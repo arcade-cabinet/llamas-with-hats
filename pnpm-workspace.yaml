@@ -1,0 +1,2 @@
+patchedDependencies:
+  reactylon@3.5.2: patches/reactylon@3.5.2.patch

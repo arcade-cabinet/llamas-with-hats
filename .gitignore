@@ -1,0 +1,33 @@
+# node_modules
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Capacitor
+/android
+/ios
+/www
+capacitor.config.ts.old
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Testing
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# Project specifics
+.expo/
+.astro/
+build_log*.txt
+carl.png
+paul.png
