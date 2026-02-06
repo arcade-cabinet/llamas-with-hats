@@ -9,7 +9,7 @@ import {
     StandardMaterial,
     Vector3
 } from '@babylonjs/core';
-import { gameEngine } from '../logic/GameEngine';
+import { gameEngine } from '../game/logic/GameEngine';
 
 export interface LlamaProps {
     scene: Scene;

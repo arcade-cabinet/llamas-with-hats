@@ -10,11 +10,11 @@ import {
 } from '@babylonjs/core';
 import HavokPhysics from '@babylonjs/havok';
 import { useEffect, useRef } from 'react';
-import { useGameState } from '../hooks/useGameState';
-import { audioManager } from '../logic/AudioManager';
-import { world } from '../logic/ECS';
-import { gameEngine } from '../logic/GameEngine';
-import { createApartment } from '../scenes/ApartmentScene';
+import { audioManager } from '../core/AudioManager';
+import { world } from '../game/logic/ECS';
+import { gameEngine } from '../game/logic/GameEngine';
+import { createApartment } from '../game/scenes/ApartmentScene';
+import { useGameState } from './hooks/useGameState';
 import { createLlama } from './Llama';
 
 import '@babylonjs/loaders'; // Enable GLTF loader
@@ -136,7 +136,7 @@ export const BabylonScene = () => {
 
     // Handle click interaction (Raycasting)
     useEffect(() => {
-        const scene = gameEngine['_scene']; // Access scene safely if exposed or public
+        const scene = gameEngine.scene;
         if (!scene) return;
 
         const handleClick = (_evt: PointerEvent) => {
@@ -144,8 +144,8 @@ export const BabylonScene = () => {
                 const pickResult = scene.pick(scene.pointerX, scene.pointerY);
                 if (pickResult.hit && pickResult.pickedMesh) {
                     // Check if mesh is interactive
-                    // const entityId = pickResult.pickedMesh.name;
-                    // gameEngine.handleInteraction(entityId); 
+                    const entityId = pickResult.pickedMesh.name;
+                    gameEngine.handleInteraction(entityId);
                 }
             }
         };

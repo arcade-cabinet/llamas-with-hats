@@ -50,6 +50,27 @@ body,
     box-shadow: 0 0 30px rgba(255, 0, 0, 0.6);
 }
 
+.start-menu-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 10;
+}
+
+.start-menu-title {
+    color: red;
+    font-family: monospace;
+    font-size: 3rem;
+    margin-bottom: 2rem;
+}
+
 .hud-container {
     pointer-events: none;
 }

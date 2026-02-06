@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { persistenceManager } from '../logic/PersistenceManager';
+import { persistenceManager } from '../../core/PersistenceManager';
 
 export interface GameState {
     isStarted: boolean;
@@ -9,6 +9,8 @@ export interface GameState {
     isDialogueActive: boolean;
     spawnedObjects: any[];
     removedObjects: string[];
+    // Stats
+    hunger: number;
     // Visual effects
     screenShake: boolean;
     bloodSplatter: boolean;
@@ -26,6 +28,7 @@ export const useGameState = () => {
         isDialogueActive: false,
         spawnedObjects: [],
         removedObjects: [],
+        hunger: 0,
         screenShake: false,
         bloodSplatter: false,
         dramaticZoom: false,

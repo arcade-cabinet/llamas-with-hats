@@ -287,7 +287,6 @@ export const createApartment = ({
             height: 0.5,
             diameterTop: 0.05,
             diameterBottom: 0.25,
-            diameterBottom: 0.25,
         }, scene);
         cone.material = coneMat;
         cone.position = new Vector3(1.5, 0.25, 2);

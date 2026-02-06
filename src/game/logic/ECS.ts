@@ -12,6 +12,7 @@ export interface Entity {
     behavior?: 'idle' | 'talking' | 'horror_react' | 'evaluating' | 'agitated' | 'stalking';
     hungerLevel?: number;
     horrorLevel?: number;
+    isFood?: boolean;
 
     isRemoved?: boolean;
 }
