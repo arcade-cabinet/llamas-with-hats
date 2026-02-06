@@ -17,6 +17,7 @@ export interface GameState {
     dramaticZoom: boolean;
     changeSky: boolean;
     llamaReaction: boolean;
+    currentGoal: string;
 }
 
 export const useGameState = () => {
@@ -34,6 +35,7 @@ export const useGameState = () => {
         dramaticZoom: false,
         changeSky: false,
         llamaReaction: false,
+        currentGoal: "Chaos."
     });
 
     useEffect(() => {
@@ -41,7 +43,8 @@ export const useGameState = () => {
         if (saved && saved.gameState) {
             setState(prev => ({
                 ...prev,
-                ...saved.gameState
+                ...saved.gameState,
+                isStarted: false // Always start at menu
             }));
         }
     }, []);

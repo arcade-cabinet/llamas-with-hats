@@ -4,9 +4,9 @@ import { rng } from '../../core/RandomManager';
 import { Entity, world } from './ECS';
 import { ScenarioManager } from './ScenarioManager';
 import { StateMachine } from './StateMachine';
-import { SteeringSystem } from './ai/SteeringBehaviors';
 import { PlayerControlSystem } from './systems/PlayerControlSystem';
 import { ProceduralAnimator } from './systems/ProceduralAnimator';
+import { SteeringSystem } from './systems/SteeringSystem';
 
 export class GameEngine {
     private static instance: GameEngine;
@@ -17,10 +17,10 @@ export class GameEngine {
         return this._scene;
     }
     private stateMachines: Map<string, StateMachine> = new Map();
-    private scenarioManager: ScenarioManager | null = null;
-    private steeringSystem: SteeringSystem;
+    public scenarioManager: ScenarioManager | null = null;
+    public steeringSystem: SteeringSystem;
     private proceduralAnimator: ProceduralAnimator;
-    private playerControlSystem: PlayerControlSystem;
+    public playerControlSystem: PlayerControlSystem;
 
     private constructor() {
         this.steeringSystem = new SteeringSystem();
@@ -46,11 +46,16 @@ export class GameEngine {
         });
 
         if (entity.id && (entity.type === 'carl' || entity.type === 'paul')) {
+            // Initialize Steering/Vehicle Component
+            entity.vehicle = {
+                velocity: new Vector3(0, 0, 0),
+                steering: new Vector3(0, 0, 0),
+                mass: 1.0,
+                maxSpeed: 2.0,
+                maxForce: 5.0
+            };
+
             this.setupLlamaStateMachine(entity);
-            // Register with Steering
-            if (entity.position) {
-                this.steeringSystem.register(entity.id, entity.position);
-            }
         }
 
         return entity;
@@ -67,7 +72,13 @@ export class GameEngine {
             onEnter: (e) => {
                 (e as any).wanderTimer = 2000 + rng.float(0, 8000);
             },
-            onUpdate: (e, dt) => {
+            onUpdate: (e, _dt) => {
+                // If this is the Active Player, skip AI behaviors
+                if (gameEngine.playerControlSystem.activeCharacterId === e.id) {
+                    // Player Control System handles movement
+                    return;
+                }
+
                 // Animation bob
                 if (e.mesh) {
                     e.mesh.scaling.y = 1 + Math.sin(Date.now() / 1000) * 0.01;
@@ -81,34 +92,44 @@ export class GameEngine {
                     // Search for food
                     const food = world.where((f): f is Entity & { mesh: AbstractMesh; isFood: boolean } => !!f.isFood && !!f.mesh && !f.isRemoved).first;
 
-                    if (food && food.mesh && e.mesh) {
-                        // Move to food
-                        const dir = food.mesh.position.subtract(e.mesh.position).normalize();
-                        const speed = 0.003 * dt;
-                        // Store original y to prevent flying
-                        const currentY = e.position?.y || 0;
-                        e.position = e.mesh.position.add(dir.scale(speed));
-                        e.position.y = currentY;
+                    if (food && food.mesh && e.mesh && e.vehicle) {
+                        // Steer Seek to food
+                        gameEngine.steeringSystem.seek(e, food.mesh.position);
 
                         // Despawn if close
                         if (Vector3.Distance(e.mesh.position, food.mesh.position) < 1.0) {
                             food.mesh.dispose();
                             world.remove(food);
                             // Audio: Paul logic handled in interaction mostly, but could add "Disgusting" here
+                            audioManager.play('crunch', 1.0, rng.float(0.8, 1.2)); // Reuse crunch for clean up?
                         }
                         return; // Skip wandering if cleaning
                     }
                 }
 
                 // Carl / Default Wandering
-                if (e.position) {
-                    (e as any).wanderTimer -= dt;
-                    if ((e as any).wanderTimer <= 0) {
-                        const targetX = (rng.float() - 0.5) * 4;
-                        const targetZ = (rng.float() - 0.5) * 4;
-                        e.position = new Vector3(targetX, e.position.y, targetZ);
-                        (e as any).wanderTimer = 5000 + rng.float(0, 10000);
+                if (e.position && e.vehicle) {
+                    // Chaos Timer
+                    const now = Date.now();
+                    if (!(e as any).chaosTimer || now > (e as any).chaosTimer) {
+                        (e as any).chaosTimer = now + 5000 + rng.float(0, 5000);
+
+                        // Find something to mess with
+                        const physicsObjs = world.where(obj => !!obj.mesh?.physicsBody && obj.id !== e.id);
+                        let targetToKick = null;
+                        for (const obj of physicsObjs) {
+                            if (Vector3.Distance(obj.mesh!.position, e.position) < 2.0) {
+                                targetToKick = obj;
+                                break;
+                            }
+                        }
+
+                        if (targetToKick && targetToKick.id) {
+                            gameEngine.handleInteraction(targetToKick.id, e.id!);
+                        }
                     }
+
+                    gameEngine.steeringSystem.wander(e, 5, 10, 1.0);
                 }
             }
         });
@@ -117,39 +138,39 @@ export class GameEngine {
         this.stateMachines.set(entity.id, sm);
     }
 
-    public handleInteraction(entityId: string) {
-        // Find entity
-        const entity = world.where(e => e.id === entityId).first;
-        if (entity && entity.mesh && entity.mesh.physicsBody) {
-            const activeChar = this.playerControlSystem.activeCharacterId;
-            const isFood = entity.isFood;
+    public handleInteraction(targetId: string, sourceId: string) {
+        // Find entities
+        const target = world.where(e => e.id === targetId).first;
+
+        if (target && target.mesh) {
+            const isFood = target.isFood;
 
             // Paul Logic: Dispose of food/mess
-            if (activeChar === 'paul' && isFood) {
-                // Audio? "Paul: Disgusting."
-                entity.mesh.dispose();
-                world.remove(entity);
+            if (sourceId === 'paul' && isFood) {
+                target.mesh.dispose();
+                world.remove(target);
                 this.scenarioManager?.reportAction('DISPOSE');
+                audioManager.play('crunch', 1.0, rng.float(0.8, 1.2)); // Clean crunch
                 return;
             }
 
-            // Carl Logic: Throw / Eat?
-            // Existing Throw Logic
-            let direction = new Vector3((rng.float() - 0.5) * 2, 5, (rng.float() - 0.5) * 2);
+            // Carl Logic: Throw / Chaos
+            if (sourceId === 'carl' && target.mesh.physicsBody) {
+                let direction = new Vector3((rng.float() - 0.5) * 2, 5, (rng.float() - 0.5) * 2);
 
-            if (isFood) {
-                const carl = world.where(e => e.id === 'carl').first;
-                if (carl && carl.mesh) {
-                    // Throw towards Carl
-                    const dirToCarl = carl.mesh.position.subtract(entity.mesh.position).normalize();
-                    direction = dirToCarl.scale(5).add(new Vector3(0, 3, 0)); // Arc it
+                if (isFood) {
+                    // Throw AT someone?
+                    const other = world.where(e => e.id === (sourceId === 'carl' ? 'paul' : 'carl')).first;
+                    if (other && other.mesh) {
+                        const dirToOther = other.mesh.position.subtract(target.mesh.position).normalize();
+                        direction = dirToOther.scale(5).add(new Vector3(0, 3, 0));
+                    }
                 }
+
+                target.mesh.physicsBody.applyImpulse(direction, target.mesh.absolutePosition);
+                audioManager.play('throw', 1.0, rng.float(0.9, 1.1));
+                this.scenarioManager?.reportAction('KICK');
             }
-
-            entity.mesh.physicsBody.applyImpulse(direction, entity.mesh.absolutePosition);
-
-            // Audio: Throw sound
-            audioManager.play('throw', 1.0, rng.float(0.9, 1.1));
         }
     }
 

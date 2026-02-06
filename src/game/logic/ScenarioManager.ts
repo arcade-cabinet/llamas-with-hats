@@ -1,5 +1,6 @@
 
 import { Scene, Vector3 } from '@babylonjs/core';
+import { audioManager } from '../../core/AudioManager';
 import { AssetFactory } from '../scenes/assets/AssetFactory';
 import { world } from './ECS';
 import { gameEngine } from './GameEngine';
@@ -16,8 +17,20 @@ export class ScenarioManager {
     private meatEatenCount = 0;
     private meatDisposedCount = 0;
 
+    // Chaos Goals
+    private chaosGoals = [
+        { description: "Knock over 3 items", target: 3, current: 0, type: 'KICK' },
+        { description: "Eat 3 Hands", target: 3, current: 0, type: 'EAT_HAND' }, // Future
+    ];
+    private currentChaosGoalIndex = 0;
+
     constructor(scene: Scene) {
         this.assetFactory = new AssetFactory(scene);
+    }
+
+    public get currentGoalDescription(): string {
+        const goal = this.chaosGoals[this.currentChaosGoalIndex];
+        return goal ? `${goal.description} (${goal.current}/${goal.target})` : "Chaos Reign.";
     }
 
     public update(deltaTime: number, horrorLevel: number) {
@@ -33,7 +46,7 @@ export class ScenarioManager {
         }
     }
 
-    public reportAction(action: 'EAT' | 'DISPOSE') {
+    public reportAction(action: 'EAT' | 'DISPOSE' | 'KICK') {
         if (this.currentScenario === 'THE_HUNGER') {
             if (action === 'EAT') {
                 this.meatEatenCount++;
@@ -41,6 +54,16 @@ export class ScenarioManager {
             } else if (action === 'DISPOSE') {
                 this.meatDisposedCount++;
                 console.log(`Paul cleaned! Progress: ${this.meatDisposedCount}/3`);
+            } else if (action === 'KICK') {
+                // Check Goal
+                const goal = this.chaosGoals[this.currentChaosGoalIndex];
+                if (goal && goal.type === 'KICK') {
+                    goal.current++;
+                    if (goal.current >= goal.target) {
+                        this.currentChaosGoalIndex++;
+                        audioManager.play('speech_carl_scream', 1.0); // Victory scream?
+                    }
+                }
             }
 
             this.checkWinCondition();
@@ -48,12 +71,8 @@ export class ScenarioManager {
     }
 
     private checkWinCondition() {
-        if (this.meatEatenCount >= 3) {
-            console.log("CARL WINS: The Hunger Satisfied.");
-            // Transition or Reset
-        } else if (this.meatDisposedCount >= 3) {
-            console.log("PAUL WINS: The Apartment is Clean.");
-            // Transition or Reset
+        if (this.chaosGoals[this.currentChaosGoalIndex] === undefined) {
+            console.log("CARL CHAOS COMPLETE");
         }
     }
 

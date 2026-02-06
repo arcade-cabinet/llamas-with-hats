@@ -145,7 +145,7 @@ export const BabylonScene = () => {
                 if (pickResult.hit && pickResult.pickedMesh) {
                     // Check if mesh is interactive
                     const entityId = pickResult.pickedMesh.name;
-                    gameEngine.handleInteraction(entityId);
+                    gameEngine.handleInteraction(entityId, 'player_click');
                 }
             }
         };

@@ -14,6 +14,16 @@ export interface Entity {
     horrorLevel?: number;
     isFood?: boolean;
 
+    // Physics / Steering
+    vehicle?: {
+        velocity: Vector3;
+        mass: number;
+        maxSpeed: number;
+        maxForce: number;
+        steering: Vector3;
+        wanderTarget?: Vector3; // For wander state consistency
+    };
+
     isRemoved?: boolean;
 }
 

@@ -34,9 +34,12 @@ const App: React.FC = () => {
         <div className="game-container">
             <BabylonScene />
 
-            <div className="hud-container">
-                <HUD horrorLevel={state.horrorLevel} />
-            </div>
+            {state.isStarted && (
+                <div className="hud-overlay">
+                    <HUD horrorLevel={state.horrorLevel} currentGoal={state.currentGoal} />
+                    {state.isDialogueActive && <DialogueOverlay active={state.isDialogueActive} text={state.currentDialogue?.text || ""} onClick={handleDialogueClick} />}
+                </div>
+            )}
 
             {!state.isStarted && (
                 <div className="start-menu-container">
