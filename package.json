@@ -6,11 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "biome check src",
-    "format": "biome format --write src",
-    "preview": "vite preview",
-    "test": "vitest",
-    "e2e": "playwright test"
+    "lint": "eslint .",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@babylonjs/core": "7.34.3",
