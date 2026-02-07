@@ -126,6 +126,9 @@ export interface StoryBeat {
     
     /** ID of the next story beat (for linear progression) */
     nextBeat?: string;
+
+    /** Marks this beat as the stage completion trigger */
+    stageComplete?: boolean;
   };
 }
 

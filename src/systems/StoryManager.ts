@@ -78,6 +78,7 @@ export interface StoryCallbacks {
   onSound?: (soundId: string) => void;
   onEffect?: (effectType: string, params?: Record<string, unknown>) => void;
   onBeatComplete?: (beatId: string) => void;
+  onStageComplete?: () => void;
 }
 
 export interface StoryManager {
@@ -215,6 +216,11 @@ export function createStoryManager(): StoryManager {
     // Next beat
     if (consequences.nextBeat) {
       currentBeat = consequences.nextBeat;
+    }
+
+    // Stage completion
+    if (consequences.stageComplete) {
+      callbacks.onStageComplete?.();
     }
   }
   

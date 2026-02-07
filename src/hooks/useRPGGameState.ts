@@ -10,7 +10,7 @@ import {
   RoomConfig
 } from '../types/game';
 import { generateWorldSeed } from '../utils/worldGenerator';
-import { getStartingStage } from '../data';
+import { getStartingStage, getNextStage } from '../data';
 import { getStoryManager, resetStoryManager, StoryState } from '../systems/StoryManager';
 import { resetAtmosphereManager } from '../systems/AtmosphereManager';
 import { resetAudioManager } from '../systems/AudioManager';
@@ -40,6 +40,7 @@ export interface RPGGameState {
   isPaused: boolean;
   showInventory: boolean;
   isLoadingStage: boolean;
+  showVictory: boolean;
 }
 
 const DEFAULT_SETTINGS: GameSettings = {
@@ -76,7 +77,8 @@ export function useRPGGameState() {
     opponentRotation: Math.PI,
     isPaused: false,
     showInventory: false,
-    isLoadingStage: false
+    isLoadingStage: false,
+    showVictory: false
   });
 
   const gameInstanceRef = useRef<GameInstance | null>(null);
@@ -329,6 +331,7 @@ export function useRPGGameState() {
     setState(prev => ({
       ...prev,
       isPlaying: false,
+      showVictory: false,
       menuScreen: 'main',
       currentRoom: null,
       currentStageId: null,
@@ -336,6 +339,57 @@ export function useRPGGameState() {
       selectedCharacter: null,
       worldSeed: null
     }));
+  }, []);
+
+  // Advance to next stage, or trigger victory if no next stage
+  const advanceStage = useCallback(async () => {
+    const { currentStageId, selectedCharacter, worldSeed } = stateRef.current;
+    if (!currentStageId || !selectedCharacter || !worldSeed) return;
+
+    const nextStageId = getNextStage(currentStageId);
+
+    // No next stage — the game is complete!
+    if (!nextStageId) {
+      setState(prev => ({
+        ...prev,
+        showVictory: true,
+        isPaused: true,
+        menuScreen: 'victory',
+      }));
+      return;
+    }
+
+    setState(prev => ({ ...prev, isLoadingStage: true }));
+
+    // Initialize the next stage
+    const game = await initializeGame(nextStageId, selectedCharacter, worldSeed);
+    gameInstanceRef.current = game;
+
+    const startRoom = game.getCurrentRoom();
+
+    // Reload story for the new stage
+    const storyManager = getStoryManager();
+    storyManager.reset();
+    storyManager.setCharacterPath(selectedCharacter === 'carl' ? 'order' : 'chaos');
+    await storyManager.loadStage(nextStageId);
+
+    setState(prev => ({
+      ...prev,
+      isLoadingStage: false,
+      currentStageId: nextStageId,
+      currentStageDefinition: null,
+      currentRoom: startRoom,
+      player: {
+        ...prev.player,
+        position: { x: 0, y: 0, z: 2 },
+        currentRoom: startRoom.id
+      },
+      opponentPosition: { x: 2, y: 0, z: 0 },
+      opponentRotation: Math.PI
+    }));
+
+    // Fire scene_enter trigger for the new room
+    storyManager.checkTrigger('scene_enter', { sceneId: startRoom.id });
   }, []);
 
   // Inventory management
@@ -434,6 +488,7 @@ export function useRPGGameState() {
     addToInventory,
     removeFromInventory,
     hasItem,
-    unlockExit
+    unlockExit,
+    advanceStage
   };
 }

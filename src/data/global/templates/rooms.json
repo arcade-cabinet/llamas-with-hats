@@ -165,8 +165,9 @@
       ],
       "propRules": [
         { "propTypes": ["bench"], "zone": "edge", "count": { "min": 0, "max": 2 } },
-        { "propTypes": ["lamp"], "zone": "corner", "count": { "min": 0, "max": 2 } },
-        { "propTypes": ["plant", "tree"], "zone": "edge", "count": { "min": 0, "max": 3 } }
+        { "propTypes": ["lightpost", "lamp"], "zone": "corner", "count": { "min": 1, "max": 2 } },
+        { "propTypes": ["plant", "suburban_tree", "tree"], "zone": "edge", "count": { "min": 0, "max": 3 } },
+        { "propTypes": ["suburban_fence", "fence"], "zone": "wall", "count": { "min": 0, "max": 2 } }
       ],
       "tags": ["street", "exterior", "suburban"]
     },
@@ -183,9 +184,10 @@
         { "id": "east", "side": "east", "position": "center", "allowedConnections": ["open", "wall_gate"] }
       ],
       "propRules": [
-        { "propTypes": ["plant"], "zone": "edge", "count": { "min": 1, "max": 3 } },
-        { "propTypes": ["fence"], "zone": "wall", "count": { "min": 0, "max": 2 } },
-        { "propTypes": ["crate"], "zone": "corner", "count": { "min": 0, "max": 1 } }
+        { "propTypes": ["plant", "hedge", "suburban_tree"], "zone": "edge", "count": { "min": 1, "max": 4 } },
+        { "propTypes": ["suburban_fence", "fence"], "zone": "wall", "count": { "min": 1, "max": 3 } },
+        { "propTypes": ["planter", "rock"], "zone": "corner", "count": { "min": 0, "max": 2 } },
+        { "propTypes": ["bench"], "zone": "edge", "count": { "min": 0, "max": 1 } }
       ],
       "tags": ["yard", "exterior", "suburban"]
     },
@@ -202,7 +204,8 @@
       ],
       "propRules": [
         { "propTypes": ["barrel", "crate"], "zone": "edge", "count": { "min": 1, "max": 3 } },
-        { "propTypes": ["trash"], "zone": "random", "count": { "min": 0, "max": 2 } }
+        { "propTypes": ["trash", "debris"], "zone": "random", "count": { "min": 1, "max": 3 } },
+        { "propTypes": ["lightpost"], "zone": "corner", "count": { "min": 0, "max": 1 } }
       ],
       "tags": ["alley", "exterior", "urban", "dark"]
     },
@@ -220,9 +223,10 @@
         { "id": "west", "side": "west", "position": "center", "allowedConnections": ["open", "wall_gate"] }
       ],
       "propRules": [
-        { "propTypes": ["barrel"], "zone": "edge", "count": { "min": 0, "max": 2 } },
-        { "propTypes": ["lamp"], "zone": "corner", "count": { "min": 1, "max": 2 } },
-        { "propTypes": ["crate"], "zone": "random", "count": { "min": 0, "max": 2 } }
+        { "propTypes": ["barrel", "debris"], "zone": "edge", "count": { "min": 0, "max": 3 } },
+        { "propTypes": ["lightpost", "lamp"], "zone": "corner", "count": { "min": 1, "max": 2 } },
+        { "propTypes": ["crate", "trash"], "zone": "random", "count": { "min": 0, "max": 3 } },
+        { "propTypes": ["suburban_fence"], "zone": "wall", "count": { "min": 0, "max": 1 } }
       ],
       "tags": ["parking_lot", "exterior", "suburban"]
     },
@@ -241,9 +245,11 @@
         { "id": "west", "side": "west", "position": "center", "allowedConnections": ["open", "wall_gate"] }
       ],
       "propRules": [
-        { "propTypes": ["lamp"], "zone": "corner", "count": { "min": 1, "max": 3 } },
+        { "propTypes": ["lightpost", "lamp"], "zone": "corner", "count": { "min": 1, "max": 3 } },
         { "propTypes": ["bench"], "zone": "edge", "count": { "min": 0, "max": 2 } },
-        { "propTypes": ["barrel", "crate"], "zone": "edge", "count": { "min": 0, "max": 3 } }
+        { "propTypes": ["barrel", "crate", "trash"], "zone": "edge", "count": { "min": 0, "max": 3 } },
+        { "propTypes": ["iron_fence", "suburban_fence"], "zone": "wall", "count": { "min": 0, "max": 2 } },
+        { "propTypes": ["planter", "rock"], "zone": "corner", "count": { "min": 0, "max": 1 } }
       ],
       "tags": ["city_block", "exterior", "urban"]
     },
@@ -261,10 +267,11 @@
         { "id": "west", "side": "west", "position": "center", "allowedConnections": ["open", "wall_gate"] }
       ],
       "propRules": [
-        { "propTypes": ["statue"], "zone": "center", "count": { "min": 0, "max": 1 } },
+        { "propTypes": ["statue", "fountain"], "zone": "center", "count": { "min": 1, "max": 1 } },
         { "propTypes": ["bench"], "zone": "edge", "count": { "min": 1, "max": 4 } },
-        { "propTypes": ["lamp"], "zone": "corner", "count": { "min": 2, "max": 4 } },
-        { "propTypes": ["plant"], "zone": "edge", "count": { "min": 0, "max": 3 } }
+        { "propTypes": ["lightpost", "lamp"], "zone": "corner", "count": { "min": 2, "max": 4 } },
+        { "propTypes": ["plant", "tree", "hedge"], "zone": "edge", "count": { "min": 1, "max": 4 } },
+        { "propTypes": ["planter"], "zone": "edge", "count": { "min": 0, "max": 2 } }
       ],
       "tags": ["plaza", "exterior", "urban", "open"]
     },
@@ -387,6 +394,10 @@
     "apartment_furniture": ["table", "chair", "bookshelf", "cabinet", "bed", "dresser", "couch"],
     "apartment_clutter": ["crate", "barrel", "lamp", "rug", "plant"],
     "basement_junk": ["crate", "barrel", "pillar", "chest"],
-    "horror_props": ["bloodstain", "torn_curtain", "broken_mirror", "dead_plant"]
+    "horror_props": ["bloodstain", "torn_curtain", "broken_mirror", "dead_plant"],
+    "outdoor_props": ["bench", "lamp", "plant", "tree", "fence", "rock", "suburban_fence", "suburban_tree", "planter", "sign"],
+    "urban_props": ["bench", "lightpost", "billboard", "planter", "iron_fence", "trash", "barrel", "crate"],
+    "graveyard_props": ["gravestone", "cross", "coffin", "lantern", "iron_fence", "pumpkin", "pine", "campfire"],
+    "debris": ["debris", "trash", "crate", "barrel", "rock"]
   }
 }

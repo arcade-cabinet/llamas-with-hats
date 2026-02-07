@@ -135,6 +135,22 @@ export const MusicTracks = {
 } as const;
 
 /**
+ * Map of music track IDs to OGG file paths.
+ * When a track has an OGG file, the file-based player is used instead of
+ * (or layered with) the procedural synth fallback.
+ */
+const TRACK_FILES: Partial<Record<string, string>> = {
+  [MusicTracks.HORROR_AMBIENT]: '/assets/sounds/horror_ambience.ogg',
+  [MusicTracks.APARTMENT_TENSE]: '/assets/sounds/tense_horror.ogg',
+  [MusicTracks.DREAD_AMBIENT]: '/assets/sounds/dark_theme.ogg',
+  [MusicTracks.TENSE_AMBIENT]: '/assets/sounds/tense_horror.ogg',
+  [MusicTracks.UNEASY_AMBIENT]: '/assets/sounds/spooky_dungeon.ogg',
+  [MusicTracks.PANIC_AMBIENT]: '/assets/sounds/revenge_theme.ogg',
+  [MusicTracks.CHASE]: '/assets/sounds/violence_theme.ogg',
+  [MusicTracks.MENU]: '/assets/sounds/dark_theme.ogg',
+};
+
+/**
  * Create procedural audio manager using Tone.js
  */
 export function createAudioManager(): AudioManager {
@@ -571,20 +587,69 @@ export function createAudioManager(): AudioManager {
   }
   
   /**
-   * Start ambient music/drone
+   * Start ambient music/drone.
+   * Prefers file-based OGG playback when a track has a mapped file in TRACK_FILES.
+   * Falls back to procedural Tone.js synthesis for unmapped tracks or on load error.
    */
   function startMusic(trackId: string, options: MusicOptions = {}): void {
     if (!initialized) return;
-    
+
     stopMusicInternal();
     currentMusicTrack = trackId;
-    
+
     const { volume = 1, fadeIn = 1000 } = options;
     const targetVol = volume * musicVolume * masterVolume;
-    
+
     musicGain!.gain.setValueAtTime(0, Tone.now());
     musicGain!.gain.linearRampToValueAtTime(muted ? 0 : targetVol, Tone.now() + fadeIn / 1000);
-    
+
+    // ── Try file-based playback first ──
+    const filePath = TRACK_FILES[trackId];
+    if (filePath) {
+      const player = new Tone.Player({
+        url: filePath,
+        loop: true,
+        autostart: false,
+        fadeIn: fadeIn / 1000,
+        onload: () => {
+          // Only start if this track is still current (user may have switched)
+          if (currentMusicTrack === trackId) {
+            player.start();
+          }
+        },
+        onerror: () => {
+          console.warn(`Failed to load music file: ${filePath}, falling back to procedural`);
+          // Remove the failed player and fall through to procedural
+          const idx = musicPlayers.indexOf(player);
+          if (idx !== -1) musicPlayers.splice(idx, 1);
+          player.dispose();
+          startMusicProcedural(trackId, options);
+        },
+      }).connect(musicGain!);
+      musicPlayers.push(player);
+      return;
+    }
+
+    // ── No file mapped, use procedural synthesis ──
+    startMusicProcedural(trackId, options);
+  }
+
+  /**
+   * Procedural synthesis fallback for music tracks.
+   */
+  function startMusicProcedural(trackId: string, options: MusicOptions = {}): void {
+    const { fadeIn = 1000 } = options;
+
+    // If startMusic already set currentMusicTrack and gain, don't redo it
+    // But if called as fallback from onerror, we need to ensure gain is set
+    if (currentMusicTrack !== trackId) {
+      currentMusicTrack = trackId;
+      const { volume = 1 } = options;
+      const targetVol = volume * musicVolume * masterVolume;
+      musicGain!.gain.setValueAtTime(0, Tone.now());
+      musicGain!.gain.linearRampToValueAtTime(muted ? 0 : targetVol, Tone.now() + fadeIn / 1000);
+    }
+
     switch (trackId) {
       case MusicTracks.HORROR_AMBIENT:
       case MusicTracks.APARTMENT_TENSE: {
@@ -1072,7 +1137,7 @@ export function createAudioManager(): AudioManager {
     
     setTimeout(() => {
       musicPlayers.forEach(player => {
-        if (player instanceof Tone.Oscillator) {
+        if (player instanceof Tone.Oscillator || player instanceof Tone.Player) {
           player.stop();
         }
         player.dispose();
@@ -1110,7 +1175,7 @@ export function createAudioManager(): AudioManager {
       crossfadeLoop = null;
     }
     crossfadePlayers.forEach(p => {
-      if (p instanceof Tone.Oscillator) p.stop();
+      if (p instanceof Tone.Oscillator || p instanceof Tone.Player) p.stop();
       p.dispose();
     });
     crossfadePlayers = [];
@@ -1140,7 +1205,7 @@ export function createAudioManager(): AudioManager {
           crossfadeLoop = null;
         }
         crossfadePlayers.forEach(p => {
-          if (p instanceof Tone.Oscillator) p.stop();
+          if (p instanceof Tone.Oscillator || p instanceof Tone.Player) p.stop();
           p.dispose();
         });
         crossfadePlayers = [];
@@ -1263,7 +1328,7 @@ export function createAudioManager(): AudioManager {
         crossfadeLoop = null;
       }
       crossfadePlayers.forEach(p => {
-        if (p instanceof Tone.Oscillator) p.stop();
+        if (p instanceof Tone.Oscillator || p instanceof Tone.Player) p.stop();
         p.dispose();
       });
       crossfadePlayers = [];

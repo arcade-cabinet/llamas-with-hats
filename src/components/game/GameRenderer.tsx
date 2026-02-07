@@ -102,6 +102,8 @@ interface GameRendererProps {
   screenShake?: boolean;
   bloodSplatter?: boolean;
   dramaticZoom?: boolean;
+  // Stage completion callback
+  onStageComplete?: () => void;
 }
 
 export const GameRenderer: React.FC<GameRendererProps> = ({
@@ -124,7 +126,8 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
   atmospherePreset = 'cozy',
   screenShake = false,
   bloodSplatter = false,
-  dramaticZoom = false
+  dramaticZoom = false,
+  onStageComplete
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<Engine | null>(null);
@@ -153,13 +156,13 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
     isPaused, opponentPosition, opponentRotation, playerInventory,
     playerCharacter, onPlayerMove, onRoomTransition, onDialogue,
     onUnlockExit, onLockedDoor, onItemPickup, onInteractionStateChange,
-    currentRoom,
+    currentRoom, onStageComplete,
   });
   propsRef.current = {
     isPaused, opponentPosition, opponentRotation, playerInventory,
     playerCharacter, onPlayerMove, onRoomTransition, onDialogue,
     onUnlockExit, onLockedDoor, onItemPickup, onInteractionStateChange,
-    currentRoom,
+    currentRoom, onStageComplete,
   };
 
   // Handle interaction callback
@@ -424,14 +427,69 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
           collisionSystem.removeProp(`lock_${lockId}`);
         }
       },
-      onLock: () => {},
-      onSpawn: () => {},
+      onLock: (lockId) => {
+        // Re-lock an exit (visual + collision barrier)
+        if (collisionSystem) {
+          collisionSystem.addProp({
+            id: `lock_${lockId}`,
+            type: 'lock',
+            bounds: { minX: -0.5, maxX: 0.5, minZ: -0.5, maxZ: 0.5 },
+            solid: true,
+            interactable: false,
+          });
+        }
+      },
+      onSpawn: (entityId, position) => {
+        // Spawn a new prop into the scene at the given position
+        const spawnX = position?.x ?? 0;
+        const spawnZ = position?.z ?? 0;
+        createPropMeshAsync(scene, entityId, true, entityId).then(mesh => {
+          if (mesh) {
+            mesh.position.set(spawnX, 0, spawnZ);
+            // Add shadow support
+            if (mesh instanceof AbstractMesh) {
+              shadowGen.addShadowCaster(mesh);
+            } else if ('getChildMeshes' in mesh) {
+              (mesh as TransformNode).getChildMeshes().forEach(child => {
+                shadowGen.addShadowCaster(child);
+                child.receiveShadows = true;
+              });
+            }
+            // Track for later despawn/pickup
+            propMeshMap.set(entityId, mesh);
+            // Add collision
+            if (collisionSystem) {
+              const r = 0.4;
+              collisionSystem.addProp({
+                id: entityId,
+                type: entityId,
+                bounds: { minX: spawnX - r, maxX: spawnX + r, minZ: spawnZ - r, maxZ: spawnZ + r },
+                solid: false,
+                interactable: true,
+                itemDrop: entityId,
+              });
+            }
+            // Sparkle effect at spawn point
+            effectsManager.spawnSparkles(new Vector3(spawnX, 0.5, spawnZ));
+          }
+        });
+      },
       onDespawn: (entityId) => {
+        // Remove collision
         if (collisionSystem) {
           collisionSystem.removeProp(entityId);
         }
+        // Remove the visual mesh from the scene
+        const mesh = propMeshMap.get(entityId);
+        if (mesh) {
+          mesh.dispose();
+          propMeshMap.delete(entityId);
+        }
       },
       onBeatComplete: () => {},
+      onStageComplete: () => {
+        propsRef.current.onStageComplete?.();
+      },
       onEffect: (effectType, params) => {
         switch (effectType) {
           case 'screen_shake':

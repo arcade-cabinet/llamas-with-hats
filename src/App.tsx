@@ -34,7 +34,8 @@ const App: React.FC = () => {
     returnToMainMenu,
     transitionToRoom,
     addToInventory,
-    unlockExit
+    unlockExit,
+    advanceStage
   } = useRPGGameState();
 
   const device = useDeviceInfo();
@@ -254,6 +255,7 @@ const App: React.FC = () => {
           hideHUD={showMenu}
           onItemPickup={addToInventory}
           onUnlockExit={unlockExit}
+          onStageComplete={advanceStage}
         />
       )}
 
@@ -282,6 +284,38 @@ const App: React.FC = () => {
           onUpdateSettings={updateSettings}
           deviceType={device.deviceType}
         />
+      )}
+
+      {/* Victory Screen Overlay */}
+      {state.showVictory && (
+        <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-8">
+          <div className="text-center max-w-lg">
+            <h1 className="text-4xl md:text-6xl font-serif text-blood mb-6">
+              CAAAAARL!
+            </h1>
+            <p className="text-xl text-wood mb-4 font-serif">
+              That kills people!
+            </p>
+            <div className="border-t border-wood/30 my-6" />
+            <p className="text-gray-400 mb-2">
+              You survived all three stages as{' '}
+              <span className="text-carl font-bold">
+                {state.selectedCharacter === 'carl' ? 'Carl' : 'Paul'}
+              </span>
+            </p>
+            <p className="text-gray-500 text-sm mb-8">
+              The {state.worldSeed?.adjective1} {state.worldSeed?.adjective2} {state.worldSeed?.noun} will never be the same.
+            </p>
+            <div className="flex flex-col gap-3 items-center">
+              <button
+                onClick={returnToMainMenu}
+                className="px-8 py-3 bg-wood/20 hover:bg-wood/40 text-wood border border-wood/50 rounded-lg font-serif transition-colors"
+              >
+                Return to Main Menu
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Landscape requirement overlay */}

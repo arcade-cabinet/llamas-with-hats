@@ -109,12 +109,13 @@ export const NOUNS = [
 ];
 
 // Menu states
-export type MenuScreen = 
+export type MenuScreen =
   | 'main'
   | 'newGame'
   | 'loadGame'
   | 'settings'
-  | 'inGame';
+  | 'inGame'
+  | 'victory';
 
 export interface MenuState {
   currentScreen: MenuScreen;

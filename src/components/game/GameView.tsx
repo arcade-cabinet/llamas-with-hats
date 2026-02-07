@@ -76,6 +76,8 @@ interface GameViewProps {
   screenShake?: boolean;
   bloodSplatter?: boolean;
   dramaticZoom?: boolean;
+  // Stage completion callback
+  onStageComplete?: () => void;
 }
 
 export const GameView: React.FC<GameViewProps> = ({
@@ -104,7 +106,8 @@ export const GameView: React.FC<GameViewProps> = ({
   onUnlockExit,
   screenShake = false,
   bloodSplatter = false,
-  dramaticZoom = false
+  dramaticZoom = false,
+  onStageComplete
 }) => {
   const gameContainerRef = useRef<HTMLDivElement>(null);
   
@@ -215,6 +218,7 @@ export const GameView: React.FC<GameViewProps> = ({
         screenShake={screenShake}
         bloodSplatter={bloodSplatter}
         dramaticZoom={dramaticZoom}
+        onStageComplete={onStageComplete}
       />
       
       {/* HUD Overlay - hidden when menu is showing */}
