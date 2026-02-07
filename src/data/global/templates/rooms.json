@@ -148,6 +148,143 @@
         { "propTypes": ["pillar"], "zone": "center", "count": { "min": 0, "max": 4 }, "minSpacing": 3 }
       ],
       "tags": ["basement", "dark", "storage", "underground"]
+    },
+
+    {
+      "id": "street_section",
+      "type": "exterior_path",
+      "size": {
+        "width": { "min": 10, "max": 16 },
+        "height": { "min": 6, "max": 8 }
+      },
+      "connectionPoints": [
+        { "id": "north", "side": "north", "position": "center", "allowedConnections": ["open", "wall_gate"] },
+        { "id": "south", "side": "south", "position": "center", "allowedConnections": ["open", "wall_gate"] },
+        { "id": "east", "side": "east", "position": "center", "allowedConnections": ["open", "wall_gate"] },
+        { "id": "west", "side": "west", "position": "center", "allowedConnections": ["open", "wall_gate"] }
+      ],
+      "propRules": [
+        { "propTypes": ["bench"], "zone": "edge", "count": { "min": 0, "max": 2 } },
+        { "propTypes": ["lamp"], "zone": "corner", "count": { "min": 0, "max": 2 } },
+        { "propTypes": ["plant", "tree"], "zone": "edge", "count": { "min": 0, "max": 3 } }
+      ],
+      "tags": ["street", "exterior", "suburban"]
+    },
+    {
+      "id": "yard",
+      "type": "exterior_room",
+      "size": {
+        "width": { "min": 8, "max": 14 },
+        "height": { "min": 8, "max": 12 }
+      },
+      "connectionPoints": [
+        { "id": "north", "side": "north", "position": "center", "allowedConnections": ["open", "wall_gate"] },
+        { "id": "south", "side": "south", "position": "center", "allowedConnections": ["open", "wall_gate"] },
+        { "id": "east", "side": "east", "position": "center", "allowedConnections": ["open", "wall_gate"] }
+      ],
+      "propRules": [
+        { "propTypes": ["plant"], "zone": "edge", "count": { "min": 1, "max": 3 } },
+        { "propTypes": ["fence"], "zone": "wall", "count": { "min": 0, "max": 2 } },
+        { "propTypes": ["crate"], "zone": "corner", "count": { "min": 0, "max": 1 } }
+      ],
+      "tags": ["yard", "exterior", "suburban"]
+    },
+    {
+      "id": "alley",
+      "type": "exterior_path",
+      "size": {
+        "width": { "min": 3, "max": 5 },
+        "height": { "min": 8, "max": 14 }
+      },
+      "connectionPoints": [
+        { "id": "north", "side": "north", "position": "center", "allowedConnections": ["open", "wall_gate"] },
+        { "id": "south", "side": "south", "position": "center", "allowedConnections": ["open", "wall_gate"] }
+      ],
+      "propRules": [
+        { "propTypes": ["barrel", "crate"], "zone": "edge", "count": { "min": 1, "max": 3 } },
+        { "propTypes": ["trash"], "zone": "random", "count": { "min": 0, "max": 2 } }
+      ],
+      "tags": ["alley", "exterior", "urban", "dark"]
+    },
+    {
+      "id": "parking_lot",
+      "type": "exterior_room",
+      "size": {
+        "width": { "min": 12, "max": 18 },
+        "height": { "min": 10, "max": 14 }
+      },
+      "connectionPoints": [
+        { "id": "north", "side": "north", "position": "center", "allowedConnections": ["open", "wall_gate"] },
+        { "id": "south", "side": "south", "position": "center", "allowedConnections": ["open", "wall_gate"] },
+        { "id": "east", "side": "east", "position": "center", "allowedConnections": ["open", "wall_gate"] },
+        { "id": "west", "side": "west", "position": "center", "allowedConnections": ["open", "wall_gate"] }
+      ],
+      "propRules": [
+        { "propTypes": ["barrel"], "zone": "edge", "count": { "min": 0, "max": 2 } },
+        { "propTypes": ["lamp"], "zone": "corner", "count": { "min": 1, "max": 2 } },
+        { "propTypes": ["crate"], "zone": "random", "count": { "min": 0, "max": 2 } }
+      ],
+      "tags": ["parking_lot", "exterior", "suburban"]
+    },
+
+    {
+      "id": "city_block",
+      "type": "exterior_room",
+      "size": {
+        "width": { "min": 10, "max": 16 },
+        "height": { "min": 10, "max": 14 }
+      },
+      "connectionPoints": [
+        { "id": "north", "side": "north", "position": "center", "allowedConnections": ["open", "wall_gate"] },
+        { "id": "south", "side": "south", "position": "center", "allowedConnections": ["open", "wall_gate"] },
+        { "id": "east", "side": "east", "position": "center", "allowedConnections": ["open", "wall_gate"] },
+        { "id": "west", "side": "west", "position": "center", "allowedConnections": ["open", "wall_gate"] }
+      ],
+      "propRules": [
+        { "propTypes": ["lamp"], "zone": "corner", "count": { "min": 1, "max": 3 } },
+        { "propTypes": ["bench"], "zone": "edge", "count": { "min": 0, "max": 2 } },
+        { "propTypes": ["barrel", "crate"], "zone": "edge", "count": { "min": 0, "max": 3 } }
+      ],
+      "tags": ["city_block", "exterior", "urban"]
+    },
+    {
+      "id": "plaza",
+      "type": "exterior_room",
+      "size": {
+        "width": { "min": 14, "max": 20 },
+        "height": { "min": 14, "max": 18 }
+      },
+      "connectionPoints": [
+        { "id": "north", "side": "north", "position": "center", "allowedConnections": ["open", "wall_gate"] },
+        { "id": "south", "side": "south", "position": "center", "allowedConnections": ["open", "wall_gate"] },
+        { "id": "east", "side": "east", "position": "center", "allowedConnections": ["open", "wall_gate"] },
+        { "id": "west", "side": "west", "position": "center", "allowedConnections": ["open", "wall_gate"] }
+      ],
+      "propRules": [
+        { "propTypes": ["statue"], "zone": "center", "count": { "min": 0, "max": 1 } },
+        { "propTypes": ["bench"], "zone": "edge", "count": { "min": 1, "max": 4 } },
+        { "propTypes": ["lamp"], "zone": "corner", "count": { "min": 2, "max": 4 } },
+        { "propTypes": ["plant"], "zone": "edge", "count": { "min": 0, "max": 3 } }
+      ],
+      "tags": ["plaza", "exterior", "urban", "open"]
+    },
+    {
+      "id": "building_interior",
+      "type": "interior_room",
+      "size": {
+        "width": { "min": 8, "max": 12 },
+        "height": { "min": 8, "max": 10 },
+        "ceiling": { "min": 2, "max": 3 }
+      },
+      "connectionPoints": [
+        { "id": "south", "side": "south", "position": "center", "allowedConnections": ["wall_door"], "required": true }
+      ],
+      "propRules": [
+        { "propTypes": ["table"], "zone": "center", "count": { "min": 0, "max": 1 } },
+        { "propTypes": ["chair"], "zone": "center", "count": { "min": 0, "max": 4 }, "minSpacing": 1, "faceCenter": true },
+        { "propTypes": ["bookshelf", "cabinet"], "zone": "wall", "count": { "min": 0, "max": 2 }, "faceWall": true }
+      ],
+      "tags": ["building", "interior", "urban"]
     }
   ],
   
@@ -205,6 +342,42 @@
       "lighting": {
         "ambient": [0.4, 0.45, 0.5],
         "intensity": 0.3,
+        "shadows": true
+      }
+    },
+    {
+      "id": "suburban_day",
+      "name": "Suburban Day",
+      "floors": {
+        "primary": { "color": [0.35, 0.4, 0.3] },
+        "accent": { "color": [0.45, 0.42, 0.35] }
+      },
+      "walls": {
+        "primary": { "color": [0.6, 0.55, 0.5] },
+        "trim": { "color": [0.5, 0.45, 0.4] }
+      },
+      "propSets": ["outdoor_props"],
+      "lighting": {
+        "ambient": [1.0, 0.95, 0.85],
+        "intensity": 0.8,
+        "shadows": true
+      }
+    },
+    {
+      "id": "urban_night",
+      "name": "Urban Night",
+      "floors": {
+        "primary": { "color": [0.2, 0.2, 0.22] },
+        "accent": { "color": [0.25, 0.22, 0.2] }
+      },
+      "walls": {
+        "primary": { "color": [0.3, 0.3, 0.35] },
+        "trim": { "color": [0.25, 0.25, 0.28] }
+      },
+      "propSets": ["urban_props", "debris"],
+      "lighting": {
+        "ambient": [0.4, 0.45, 0.55],
+        "intensity": 0.35,
         "shadows": true
       }
     }

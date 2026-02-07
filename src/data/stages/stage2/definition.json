@@ -1,13 +1,55 @@
 {
-  "$schema": "../../schemas/stage.schema.json",
-  "_comment": "Stage 2: The Neighborhood - Carl/Paul leave the apartment",
-  
   "id": "stage2_neighborhood",
   "name": "The Neighborhood",
   "description": "After escaping the apartment, our llamas venture into the neighborhood. The neighbors have... concerns.",
-  
+
   "path": "both",
-  
+
+  "layout": {
+    "archetypeId": "suburban_neighborhood",
+    "levelOverrides": {
+      "0": {
+        "totalRooms": { "min": 5, "max": 7 },
+        "anchorRooms": [
+          {
+            "purpose": "neighborhood_entry",
+            "gridPosition": { "x": 0, "z": 0 },
+            "templateId": "street_section",
+            "templateTags": ["street", "exterior"],
+            "isEntry": true,
+            "storyBeats": ["exit_building"]
+          },
+          {
+            "purpose": "street",
+            "gridPosition": { "x": 1, "z": 0 },
+            "templateId": "street_section",
+            "templateTags": ["street", "exterior"],
+            "storyBeats": ["meet_neighbor"]
+          },
+          {
+            "purpose": "neighbor_house",
+            "gridPosition": { "x": 1, "z": -1 },
+            "templateId": "room_medium",
+            "templateTags": ["house", "interior"]
+          },
+          {
+            "purpose": "alley",
+            "gridPosition": { "x": -1, "z": 0 },
+            "templateId": "alley",
+            "templateTags": ["alley", "dark"]
+          },
+          {
+            "purpose": "parking_lot",
+            "gridPosition": { "x": 2, "z": 0 },
+            "templateId": "parking_lot",
+            "templateTags": ["parking_lot", "exterior"],
+            "isExit": true
+          }
+        ]
+      }
+    }
+  },
+
   "story": {
     "beats": [
       {
@@ -17,6 +59,9 @@
         "trigger": {
           "type": "scene_enter",
           "params": { "sceneId": "entry" }
+        },
+        "consequences": {
+          "nextBeat": "meet_neighbor"
         }
       },
       {
@@ -26,10 +71,33 @@
         "trigger": {
           "type": "npc_interact",
           "params": { "npcId": "mrs_henderson" }
+        },
+        "consequences": {
+          "horrorLevelChange": 1,
+          "nextBeat": "reach_car"
+        }
+      },
+      {
+        "id": "reach_car",
+        "description": "Make it to the parking lot and escape",
+        "dialogueId": "stage2_reach_car",
+        "trigger": {
+          "type": "scene_enter",
+          "params": { "sceneId": "parking_lot" }
+        },
+        "consequences": {
+          "stageComplete": true,
+          "nextStage": "stage3_downtown"
         }
       }
     ],
     "goals": [
+      {
+        "id": "leave_building",
+        "description": "Get outside",
+        "type": "reach_scene",
+        "params": { "sceneId": "street" }
+      },
       {
         "id": "reach_car",
         "description": "Get to the car",
@@ -40,57 +108,83 @@
     "startingBeat": "exit_building",
     "completionGoals": ["reach_car"]
   },
-  
+
   "generation": {
     "entryScene": {
+      "templateId": "street_section",
       "templateTags": ["street", "exterior"],
-      "purpose": "entry"
+      "purpose": "neighborhood_entry"
     },
     "exitScene": {
+      "templateId": "parking_lot",
       "templateTags": ["parking_lot", "exterior"],
-      "purpose": "exit"
+      "purpose": "parking_lot"
     },
-    "requiredScenes": [],
-    "optionalSceneCount": { "min": 2, "max": 4 },
-    "allowedTemplates": ["street_section", "yard", "alley"],
+    "requiredScenes": [
+      {
+        "templateId": "street_section",
+        "templateTags": ["street", "exterior"],
+        "purpose": "street"
+      },
+      {
+        "templateId": "alley",
+        "templateTags": ["alley", "dark"],
+        "purpose": "alley"
+      }
+    ],
+    "optionalSceneCount": { "min": 1, "max": 3 },
+    "allowedTemplates": ["yard", "street_section", "alley", "room_small"],
     "palettes": ["suburban_day"],
     "connectionRules": {
       "type": "linear",
       "maxDeadEnds": 1,
-      "loopsAllowed": false
+      "loopsAllowed": false,
+      "maxDistanceFromEntry": 4
     },
     "environment": "exterior",
     "separation": "open"
   },
-  
+
   "props": {
     "density": "sparse",
     "questItems": [],
-    "propPools": ["outdoor_props", "vehicles"]
+    "propPools": ["outdoor_props"]
   },
-  
+
   "npcs": {
     "required": [
       {
         "characterId": "paul",
         "behavior": "follow",
         "dialogueId": "stage2_paul_dialogue",
-        "interactable": true
+        "interactable": true,
+        "spawnRoom": "neighborhood_entry",
+        "wanderRooms": ["neighborhood_entry", "street"]
       }
     ],
     "optional": {
       "pool": ["neighbor_scared", "neighbor_suspicious"],
-      "count": { "min": 1, "max": 3 }
+      "count": { "min": 1, "max": 2 }
     }
   },
-  
+
   "atmosphere": {
     "baseHorrorLevel": 3,
     "horrorProgression": "static",
     "ambientSound": "ambient_suburban_day",
-    "musicTrack": "music_tension_medium"
+    "musicTrack": "music_tension_medium",
+    "perRoomOverrides": {
+      "alley": {
+        "horrorLevel": 5,
+        "ambientSound": "ambient_dripping"
+      },
+      "parking_lot": {
+        "horrorLevel": 4,
+        "musicTrack": "music_tension_high"
+      }
+    }
   },
-  
+
   "estimatedDuration": 8,
   "difficulty": "easy"
 }

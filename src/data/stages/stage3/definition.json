@@ -1,87 +1,309 @@
 {
-  "$schema": "../../schemas/stage.schema.json",
-  "_comment": "Stage 3: Downtown - The situation escalates",
-  
   "id": "stage3_downtown",
   "name": "Downtown",
-  "description": "The llamas head downtown, where Paul's 'projects' have attracted some attention.",
-  
+  "description": "The llamas head downtown, where Paul's 'projects' have attracted some attention. The city is destroyed. The police are gone. And Paul is proud.",
+
   "path": "both",
-  
+
+  "layout": {
+    "archetypeId": "urban_downtown",
+    "levelOverrides": {
+      "0": {
+        "totalRooms": { "min": 7, "max": 9 },
+        "anchorRooms": [
+          {
+            "purpose": "downtown_entry",
+            "gridPosition": { "x": 0, "z": 0 },
+            "templateId": "city_block",
+            "templateTags": ["city_block", "exterior"],
+            "isEntry": true,
+            "storyBeats": ["arrive_downtown"]
+          },
+          {
+            "purpose": "city_block",
+            "gridPosition": { "x": 1, "z": 0 },
+            "templateId": "city_block",
+            "templateTags": ["city_block", "exterior"],
+            "storyBeats": ["city_block_chaos"]
+          },
+          {
+            "purpose": "dark_alley",
+            "gridPosition": { "x": 1, "z": -1 },
+            "templateId": "alley",
+            "templateTags": ["alley", "dark"]
+          },
+          {
+            "purpose": "plaza",
+            "gridPosition": { "x": 2, "z": 0 },
+            "templateId": "plaza",
+            "templateTags": ["plaza", "exterior"],
+            "storyBeats": ["plaza_discovery"]
+          },
+          {
+            "purpose": "police_station",
+            "gridPosition": { "x": 2, "z": 1 },
+            "templateId": "building_interior",
+            "templateTags": ["building", "interior"]
+          },
+          {
+            "purpose": "workshop",
+            "gridPosition": { "x": 1, "z": 1 },
+            "templateId": "building_interior",
+            "templateTags": ["building", "interior"]
+          },
+          {
+            "purpose": "office",
+            "gridPosition": { "x": 0, "z": 1 },
+            "templateId": "building_interior",
+            "templateTags": ["building", "interior"]
+          },
+          {
+            "purpose": "highway_onramp",
+            "gridPosition": { "x": 3, "z": 0 },
+            "templateId": "city_block",
+            "templateTags": ["city_block", "exterior"],
+            "isExit": true,
+            "storyBeats": ["final_choice"]
+          }
+        ]
+      }
+    }
+  },
+
   "story": {
     "beats": [
       {
         "id": "arrive_downtown",
-        "description": "Arrive in the downtown area",
+        "description": "Arrive in the devastated downtown area",
         "dialogueId": "stage3_arrive",
         "trigger": {
           "type": "scene_enter",
           "params": { "sceneId": "entry" }
+        },
+        "consequences": {
+          "nextBeat": "explore_downtown"
+        }
+      },
+      {
+        "id": "explore_downtown",
+        "description": "Get your bearings in the chaos",
+        "dialogueId": "stage3_explore_downtown",
+        "trigger": {
+          "type": "scene_enter",
+          "params": { "sceneId": "city_block" }
+        },
+        "consequences": {
+          "horrorLevelChange": 1,
+          "nextBeat": "city_block_chaos"
+        }
+      },
+      {
+        "id": "city_block_chaos",
+        "description": "Discover Paul's been coming downtown for weeks",
+        "dialogueId": "stage3_city_block_chaos",
+        "trigger": {
+          "type": "npc_interact",
+          "params": { "npcId": "paul" }
+        },
+        "consequences": {
+          "horrorLevelChange": 1,
+          "nextBeat": "plaza_discovery"
+        }
+      },
+      {
+        "id": "plaza_discovery",
+        "description": "Find the blood fountain in the plaza",
+        "dialogueId": "stage3_plaza_discovery",
+        "trigger": {
+          "type": "scene_enter",
+          "params": { "sceneId": "plaza" }
+        },
+        "consequences": {
+          "horrorLevelChange": 2,
+          "nextBeat": "confrontation"
+        }
+      },
+      {
+        "id": "confrontation",
+        "description": "Confront Paul about what he has done",
+        "dialogueId": "stage3_confrontation",
+        "trigger": {
+          "type": "npc_interact",
+          "params": { "npcId": "paul" }
+        },
+        "consequences": {
+          "horrorLevelChange": 1,
+          "nextBeat": "final_choice"
+        }
+      },
+      {
+        "id": "final_choice",
+        "description": "Reach the highway and make the final choice",
+        "dialogueId": "stage3_final_choice",
+        "trigger": {
+          "type": "scene_enter",
+          "params": { "sceneId": "highway_onramp" }
+        },
+        "consequences": {
+          "stageComplete": true
         }
       }
     ],
     "goals": [
       {
-        "id": "find_escape",
-        "description": "Find a way out of the city",
+        "id": "explore_city",
+        "description": "Explore the devastated downtown",
         "type": "reach_scene",
-        "params": { "sceneId": "exit" }
+        "params": { "sceneId": "city_block" }
+      },
+      {
+        "id": "find_plaza",
+        "description": "Reach the town plaza",
+        "type": "reach_scene",
+        "params": { "sceneId": "plaza" }
+      },
+      {
+        "id": "find_escape",
+        "description": "Find the highway and escape the city",
+        "type": "reach_scene",
+        "params": { "sceneId": "highway_onramp" }
       }
     ],
     "startingBeat": "arrive_downtown",
     "completionGoals": ["find_escape"]
   },
-  
+
   "generation": {
     "entryScene": {
-      "templateTags": ["street", "urban"],
-      "purpose": "entry"
+      "templateId": "city_block",
+      "templateTags": ["city_block", "exterior"],
+      "purpose": "downtown_entry"
     },
     "exitScene": {
-      "templateTags": ["highway", "escape"],
-      "purpose": "exit"
+      "templateId": "city_block",
+      "templateTags": ["city_block", "exterior"],
+      "purpose": "highway_onramp"
     },
-    "requiredScenes": [],
-    "optionalSceneCount": { "min": 3, "max": 6 },
+    "requiredScenes": [
+      {
+        "templateId": "city_block",
+        "templateTags": ["city_block", "exterior"],
+        "purpose": "city_block"
+      },
+      {
+        "templateId": "plaza",
+        "templateTags": ["plaza", "exterior"],
+        "purpose": "plaza"
+      },
+      {
+        "templateId": "alley",
+        "templateTags": ["alley", "dark"],
+        "purpose": "dark_alley"
+      },
+      {
+        "templateId": "building_interior",
+        "templateTags": ["building", "interior"],
+        "purpose": "police_station"
+      }
+    ],
+    "optionalSceneCount": { "min": 1, "max": 3 },
     "allowedTemplates": ["city_block", "alley", "plaza", "building_interior"],
     "palettes": ["urban_night"],
     "connectionRules": {
-      "type": "maze",
+      "type": "branching",
       "maxDeadEnds": 3,
-      "loopsAllowed": true
+      "loopsAllowed": true,
+      "maxDistanceFromEntry": 5
     },
     "environment": "mixed",
-    "separation": "wall_door"
+    "separation": "open"
   },
-  
+
   "props": {
     "density": "cluttered",
-    "questItems": [],
-    "propPools": ["urban_props", "debris", "vehicles"]
+    "questItems": [
+      {
+        "itemId": "police_badge",
+        "requiredScene": "police_station",
+        "dialogueId": "stage3_pickup_badge"
+      },
+      {
+        "itemId": "police_radio",
+        "requiredScene": "police_station",
+        "dialogueId": "stage3_pickup_radio"
+      },
+      {
+        "itemId": "newspaper",
+        "requiredScene": "city_block",
+        "dialogueId": "stage3_pickup_newspaper"
+      },
+      {
+        "itemId": "dropped_keys",
+        "requiredScene": "downtown_entry",
+        "dialogueId": "stage3_pickup_keys"
+      },
+      {
+        "itemId": "marked_map",
+        "requiredScene": "office",
+        "dialogueId": "stage3_find_map"
+      }
+    ],
+    "propPools": ["urban_props", "debris"]
   },
-  
+
   "npcs": {
     "required": [
       {
         "characterId": "paul",
         "behavior": "wander",
         "dialogueId": "stage3_paul_dialogue",
-        "interactable": true
+        "interactable": true,
+        "spawnRoom": "downtown_entry",
+        "wanderRooms": ["downtown_entry", "city_block", "plaza", "dark_alley"]
       }
     ],
     "optional": {
       "pool": ["citizen_panicked", "authority_figure"],
-      "count": { "min": 2, "max": 5 }
+      "count": { "min": 1, "max": 2 }
     }
   },
-  
+
   "atmosphere": {
     "baseHorrorLevel": 5,
     "horrorProgression": "increasing",
     "ambientSound": "ambient_city_chaos",
-    "musicTrack": "music_tension_high"
+    "musicTrack": "music_tension_high",
+    "perRoomOverrides": {
+      "dark_alley": {
+        "horrorLevel": 8,
+        "ambientSound": "ambient_dripping",
+        "musicTrack": "music_dread_rising"
+      },
+      "plaza": {
+        "horrorLevel": 7,
+        "musicTrack": "music_dread_rising"
+      },
+      "police_station": {
+        "horrorLevel": 8,
+        "ambientSound": "ambient_building_empty",
+        "musicTrack": "music_dread_rising"
+      },
+      "workshop": {
+        "horrorLevel": 9,
+        "ambientSound": "ambient_building_empty",
+        "musicTrack": "music_dread_rising"
+      },
+      "office": {
+        "horrorLevel": 6,
+        "ambientSound": "ambient_building_empty"
+      },
+      "highway_onramp": {
+        "horrorLevel": 9,
+        "musicTrack": "music_final_confrontation"
+      }
+    }
   },
-  
+
   "estimatedDuration": 15,
   "difficulty": "medium"
 }
