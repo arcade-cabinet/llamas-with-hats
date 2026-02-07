@@ -1,0 +1,96 @@
+{
+  "$schema": "../../schemas/stage.schema.json",
+  "_comment": "Stage 2: The Neighborhood - Carl/Paul leave the apartment",
+  
+  "id": "stage2_neighborhood",
+  "name": "The Neighborhood",
+  "description": "After escaping the apartment, our llamas venture into the neighborhood. The neighbors have... concerns.",
+  
+  "path": "both",
+  
+  "story": {
+    "beats": [
+      {
+        "id": "exit_building",
+        "description": "Leave the apartment building",
+        "dialogueId": "stage2_exit_building",
+        "trigger": {
+          "type": "scene_enter",
+          "params": { "sceneId": "entry" }
+        }
+      },
+      {
+        "id": "meet_neighbor",
+        "description": "Encounter a concerned neighbor",
+        "dialogueId": "stage2_meet_neighbor",
+        "trigger": {
+          "type": "npc_interact",
+          "params": { "npcId": "mrs_henderson" }
+        }
+      }
+    ],
+    "goals": [
+      {
+        "id": "reach_car",
+        "description": "Get to the car",
+        "type": "reach_scene",
+        "params": { "sceneId": "parking_lot" }
+      }
+    ],
+    "startingBeat": "exit_building",
+    "completionGoals": ["reach_car"]
+  },
+  
+  "generation": {
+    "entryScene": {
+      "templateTags": ["street", "exterior"],
+      "purpose": "entry"
+    },
+    "exitScene": {
+      "templateTags": ["parking_lot", "exterior"],
+      "purpose": "exit"
+    },
+    "requiredScenes": [],
+    "optionalSceneCount": { "min": 2, "max": 4 },
+    "allowedTemplates": ["street_section", "yard", "alley"],
+    "palettes": ["suburban_day"],
+    "connectionRules": {
+      "type": "linear",
+      "maxDeadEnds": 1,
+      "loopsAllowed": false
+    },
+    "environment": "exterior",
+    "separation": "open"
+  },
+  
+  "props": {
+    "density": "sparse",
+    "questItems": [],
+    "propPools": ["outdoor_props", "vehicles"]
+  },
+  
+  "npcs": {
+    "required": [
+      {
+        "characterId": "paul",
+        "behavior": "follow",
+        "dialogueId": "stage2_paul_dialogue",
+        "interactable": true
+      }
+    ],
+    "optional": {
+      "pool": ["neighbor_scared", "neighbor_suspicious"],
+      "count": { "min": 1, "max": 3 }
+    }
+  },
+  
+  "atmosphere": {
+    "baseHorrorLevel": 3,
+    "horrorProgression": "static",
+    "ambientSound": "ambient_suburban_day",
+    "musicTrack": "music_tension_medium"
+  },
+  
+  "estimatedDuration": 8,
+  "difficulty": "easy"
+}

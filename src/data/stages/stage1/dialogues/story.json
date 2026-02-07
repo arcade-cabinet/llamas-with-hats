@@ -1,0 +1,278 @@
+{
+  "storyDialogues": {
+    "stage1_wake_up": {
+      "id": "stage1_wake_up",
+      "type": "cutscene",
+      "lines": [
+        { "speaker": "carl", "text": "Ugh... my head. What time is it?", "delay": 1000 },
+        { "speaker": "narrator", "text": "The morning light filters through dusty curtains.", "delay": 2000 },
+        { "speaker": "narrator", "text": "Something feels... wrong.", "delay": 1500 }
+      ],
+      "nextBeat": "explore_apartment"
+    },
+    
+    "stage1_explore": {
+      "id": "stage1_explore",
+      "type": "hint",
+      "lines": [
+        { "speaker": "carl", "text": "I should look around. Something doesn't feel right." }
+      ]
+    },
+    
+    "stage1_blood_discovery": {
+      "id": "stage1_blood_discovery",
+      "type": "cutscene",
+      "lines": [
+        { "speaker": "carl", "text": "What... what is this?", "delay": 500 },
+        { "speaker": "carl", "text": "Is that... blood?", "delay": 1000 },
+        { "speaker": "carl", "text": "No. No no no.", "delay": 800 },
+        { "speaker": "carl", "text": "Not again. Please not again.", "delay": 1200 }
+      ],
+      "effects": [
+        { "type": "screen_shake", "intensity": 0.3, "duration": 500 },
+        { "type": "horror_pulse", "intensity": 0.5 }
+      ]
+    },
+    
+    "stage1_pickup_key": {
+      "id": "stage1_pickup_key",
+      "type": "item",
+      "lines": [
+        { "speaker": "carl", "text": "A key? It says 'BASEMENT' on the tag." },
+        { "speaker": "carl", "text": "Why is it covered in... I don't want to know." }
+      ],
+      "itemId": "basement_key"
+    },
+    
+    "stage1_examine_key": {
+      "id": "stage1_examine_key",
+      "type": "examine",
+      "lines": [
+        { "speaker": "narrator", "text": "A rusty iron key. The tag reads 'BASEMENT' in faded letters." },
+        { "speaker": "narrator", "text": "It's covered in something dark and sticky." }
+      ]
+    },
+    
+    "stage1_basement_unlocked": {
+      "id": "stage1_basement_unlocked",
+      "type": "hint",
+      "lines": [
+        { "speaker": "carl", "text": "The basement. I have to check the basement." },
+        { "speaker": "carl", "text": "I don't want to. But I have to know." }
+      ]
+    },
+    
+    "stage1_enter_basement": {
+      "id": "stage1_enter_basement",
+      "type": "cutscene",
+      "lines": [
+        { "speaker": "narrator", "text": "The stairs creak with each step.", "delay": 1000 },
+        { "speaker": "narrator", "text": "The air grows cold and damp.", "delay": 1500 },
+        { "speaker": "carl", "text": "What's that smell?", "delay": 1000 },
+        { "speaker": "carl", "text": "It's getting stronger...", "delay": 800 }
+      ],
+      "effects": [
+        { "type": "fog_increase", "targetDensity": 0.04, "duration": 3000 },
+        { "type": "ambient_change", "track": "ambient_basement_drip" }
+      ]
+    },
+    
+    "stage1_discover_horror": {
+      "id": "stage1_discover_horror",
+      "type": "cutscene",
+      "lines": [
+        { "speaker": "carl", "text": "Oh god.", "delay": 500 },
+        { "speaker": "carl", "text": "Oh god oh god oh god.", "delay": 1000 },
+        { "speaker": "carl", "text": "PAUL!", "delay": 800 },
+        { "speaker": "carl", "text": "PAUL WHAT DID YOU DO?!", "delay": 1200 },
+        { "speaker": "narrator", "text": "In the corner, something that was once human.", "delay": 2000 }
+      ],
+      "effects": [
+        { "type": "screen_shake", "intensity": 0.6, "duration": 1000 },
+        { "type": "horror_pulse", "intensity": 1.0 },
+        { "type": "music_change", "track": "music_horror_discovery" }
+      ]
+    },
+    
+    "stage1_escape": {
+      "id": "stage1_escape",
+      "type": "cutscene",
+      "lines": [
+        { "speaker": "carl", "text": "I have to get out of here.", "delay": 800 },
+        { "speaker": "carl", "text": "I have to tell someone.", "delay": 1000 },
+        { "speaker": "carl", "text": "But who would believe me?", "delay": 1200 },
+        { "speaker": "carl", "text": "Who would believe any of this?", "delay": 1000 }
+      ],
+      "transition": "stage2_town"
+    },
+    
+    "stage1_read_note": {
+      "id": "stage1_read_note",
+      "type": "item",
+      "lines": [
+        { "speaker": "narrator", "text": "The note reads:" },
+        { "speaker": "note", "text": "'DON'T GO TO THE BASEMENT. -P'" },
+        { "speaker": "carl", "text": "Paul... what did you do?" }
+      ],
+      "itemId": "bloody_note"
+    },
+    
+    "stage1_examine_note": {
+      "id": "stage1_examine_note",
+      "type": "examine",
+      "lines": [
+        { "speaker": "narrator", "text": "A crumpled piece of paper, stained with what looks like blood." },
+        { "speaker": "narrator", "text": "The handwriting is hasty, almost frantic." }
+      ]
+    },
+    
+    "stage1_examine_photo": {
+      "id": "stage1_examine_photo",
+      "type": "examine",
+      "lines": [
+        { "speaker": "narrator", "text": "A photograph in a cracked frame." },
+        { "speaker": "narrator", "text": "Two figures stand side by side - one smiling widely, the other looking uncertain." },
+        { "speaker": "carl", "text": "That was a good day. Before..." },
+        { "speaker": "carl", "text": "Before everything changed." }
+      ]
+    }
+  },
+  
+  "npcDialogues": {
+    "stage1_paul_dialogue": {
+      "id": "stage1_paul_dialogue",
+      "character": "paul",
+      "tree": {
+        "initial": {
+          "lines": [
+            { "speaker": "paul", "text": "Morning, Carl! Sleep well?" },
+            { "speaker": "carl", "text": "Paul... what happened last night?" },
+            { "speaker": "carl", "text": "I can't remember anything." },
+            { "speaker": "paul", "text": "Oh, you know. The usual." },
+            { "speaker": "paul", "text": "Nothing to worry about!" }
+          ],
+          "options": [
+            { "text": "What's that smell?", "next": "smell" },
+            { "text": "Why is there red on your hands?", "next": "hands" },
+            { "text": "I need to look around.", "next": "end" }
+          ]
+        },
+        "smell": {
+          "lines": [
+            { "speaker": "paul", "text": "Smell? I don't smell anything." },
+            { "speaker": "paul", "text": "Maybe check the kitchen?" },
+            { "speaker": "carl", "text": "Paul..." }
+          ],
+          "options": [
+            { "text": "Why is there red on your hands?", "next": "hands" },
+            { "text": "I'm going to look around.", "next": "end" }
+          ]
+        },
+        "hands": {
+          "lines": [
+            { "speaker": "paul", "text": "Oh this?" },
+            { "speaker": "paul", "text": "I was... making jam." },
+            { "speaker": "paul", "text": "Yes. Strawberry jam." },
+            { "speaker": "carl", "text": "At 6 AM?" },
+            { "speaker": "carl", "text": "We don't even have strawberries." },
+            { "speaker": "paul", "text": "I improvised!" },
+            { "speaker": "paul", "text": "You know me, always creative in the kitchen!" }
+          ],
+          "options": [
+            { "text": "I need to check the kitchen.", "next": "end" }
+          ]
+        },
+        "end": {
+          "lines": [
+            { "speaker": "paul", "text": "Sure thing, buddy!" },
+            { "speaker": "paul", "text": "Let me know if you need anything!" }
+          ],
+          "options": []
+        }
+      }
+    }
+  },
+  
+  "propOverrides": {
+    "couch": {
+      "carl": [
+        "Our couch. Paul's been sleeping on it lately.",
+        "There's a suspicious stain I don't want to examine."
+      ],
+      "paul": [
+        "Ah, the couch! My throne!",
+        "Best naps happen right here."
+      ],
+      "prompt": "Examine couch"
+    },
+    "table": {
+      "carl": [
+        "The dining table. We used to eat here together.",
+        "Now I'm not sure what happens at this table anymore."
+      ],
+      "paul": [
+        "Great for breakfast!",
+        "And other activities."
+      ],
+      "prompt": "Examine table"
+    },
+    "counter": {
+      "carl": [
+        "The kitchen counter is... sticky.",
+        "Is that... no, I don't want to know."
+      ],
+      "paul": [
+        "Perfect workspace for my culinary experiments!",
+        "Don't worry about the mess, it'll wash right off."
+      ],
+      "horror": [
+        "Dark stains cover the surface.",
+        "Some things don't wash off."
+      ],
+      "prompt": "Examine counter"
+    },
+    "barrel": {
+      "carl": [
+        "Why do we have barrels in the apartment?",
+        "I'm afraid to ask what's inside."
+      ],
+      "paul": [
+        "Storage! Very practical.",
+        "Don't look inside though. Trust me."
+      ],
+      "prompt": "Check barrel"
+    },
+    "suspicious_box": {
+      "carl": [
+        "Oh god. Oh god no.",
+        "What did you put in there, Paul?",
+        "I can hear... dripping."
+      ],
+      "paul": [
+        "My special project!",
+        "Don't open it, it's a surprise!"
+      ],
+      "prompt": "Examine box"
+    }
+  },
+  
+  "genericLines": {
+    "locked_door": {
+      "carl": ["It's locked. I need to find a key."],
+      "paul": ["Hmm, locked! That's unusual. Wonder where the key went?"]
+    },
+    "basement_door_locked": {
+      "carl": [
+        "The basement door. It's locked.",
+        "Paul always said never to go down there."
+      ],
+      "paul": ["Oh, we keep that locked for a reason!"]
+    },
+    "basement_door_unlocked": {
+      "carl": [
+        "The key fits. The lock clicks open.",
+        "Here we go..."
+      ]
+    }
+  }
+}

@@ -133,3 +133,7 @@ dist/
 *.png
 build_log*.txt
 *.zip
+
+# npm artifacts (pnpm only)
+package-lock.json
+yarn.lock

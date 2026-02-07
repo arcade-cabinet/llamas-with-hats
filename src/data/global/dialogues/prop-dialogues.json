@@ -1,0 +1,138 @@
+{
+  "$schema": "./prop-dialogues.schema.json",
+  "_comment": "Dialogue lines for prop interactions, organized by prop type",
+  
+  "dialogues": {
+    "couch": {
+      "carl": ["It's our couch. Paul sometimes hides things in the cushions."],
+      "paul": ["The couch! Perfect for afternoon naps. And hiding snacks."],
+      "horror": ["There's something sticky between the cushions..."],
+      "prompt": "Examine couch"
+    },
+    
+    "table": {
+      "carl": ["A perfectly normal table. At least it was before Paul got here."],
+      "paul": ["Great for board games! Or... other activities."],
+      "horror": ["Are those scratch marks? From fingernails?"],
+      "prompt": "Examine table"
+    },
+    
+    "lamp": {
+      "carl": ["The lamp still works. Surprisingly, Paul hasn't destroyed it yet."],
+      "paul": ["I love lamps! They're like little indoor suns."],
+      "horror": ["Why does the light flicker whenever Carl walks by?"],
+      "prompt": "Examine lamp"
+    },
+    
+    "bookshelf": {
+      "carl": ["My book collection. Paul keeps putting weird things between the pages."],
+      "paul": ["Books! Full of ideas. Some good, some... inspiring."],
+      "horror": ["One of these books is bound in something that isn't leather..."],
+      "prompt": "Browse bookshelf"
+    },
+    
+    "counter": {
+      "carl": ["The kitchen counter. I try to keep it clean. TRY."],
+      "paul": ["So many delicious meals have been prepared here!"],
+      "horror": ["The stains won't come out. They never come out."],
+      "prompt": "Examine counter"
+    },
+    
+    "fridge": {
+      "carl": ["I'm afraid to look inside."],
+      "paul": ["The fridge! Full of... ingredients. Fresh ingredients."],
+      "horror": ["Something in there is still moving."],
+      "prompt": "Open fridge"
+    },
+    
+    "stove": {
+      "carl": ["The stove. Paul has been 'cooking' again."],
+      "paul": ["My culinary laboratory! The flavors I've discovered..."],
+      "horror": ["That's not food residue. That's not food."],
+      "prompt": "Examine stove"
+    },
+    
+    "bed": {
+      "carl": ["My bed. The only safe place. Usually."],
+      "paul": ["Sleep is so peaceful. Unless you dream about Carl."],
+      "horror": ["Something was under here recently. It left a trail."],
+      "prompt": "Examine bed"
+    },
+    
+    "dresser": {
+      "carl": ["My dresser. Paul, STAY OUT OF MY DRAWERS."],
+      "paul": ["Drawers full of possibilities!"],
+      "horror": ["Why are all my socks missing their pairs?"],
+      "prompt": "Open dresser"
+    },
+    
+    "nightstand": {
+      "carl": ["Just a nightstand. Nothing unusual. Please."],
+      "paul": ["I keep my midnight snacks here!"],
+      "horror": ["The drawer won't close all the way. Something's blocking it."],
+      "prompt": "Check nightstand"
+    },
+    
+    "toilet": {
+      "carl": ["I don't want to know what Paul has done to this."],
+      "paul": ["The thinking throne!"],
+      "horror": ["The water hasn't been that color in days."],
+      "prompt": "Examine toilet"
+    },
+    
+    "bathtub": {
+      "carl": ["The bathtub. Ring around the... is that a ring or a stain?"],
+      "paul": ["Perfect for relaxing! Or... other purposes."],
+      "horror": ["The drain is clogged. With something fibrous."],
+      "prompt": "Examine bathtub"
+    },
+    
+    "chest": {
+      "carl": ["A storage chest. I should check what's inside."],
+      "paul": ["Treasure chest! Well, more like 'trophy' chest."],
+      "horror": ["It's locked. And warm to the touch."],
+      "prompt": "Open chest"
+    },
+    
+    "crate": {
+      "carl": ["A wooden crate. Probably full of normal things."],
+      "paul": ["I've been saving some special items in here!"],
+      "horror": ["Something inside is scratching to get out."],
+      "prompt": "Open crate"
+    },
+    
+    "barrel": {
+      "carl": ["An old barrel. What's that smell?"],
+      "paul": ["Barrels are great for storage! And other things."],
+      "horror": ["The lid is sealed shut. With wax. Red wax."],
+      "prompt": "Examine barrel"
+    },
+    
+    "desk": {
+      "carl": ["My desk. I do my work here. When Paul lets me."],
+      "paul": ["Planning desk! So many plans..."],
+      "horror": ["The papers are covered in drawings. Of hands."],
+      "prompt": "Search desk"
+    },
+    
+    "pillar": {
+      "carl": ["A support pillar. Structurally important."],
+      "paul": ["Pillars! They hold things up. Unlike some people."],
+      "horror": ["There are grooves worn into the stone. Like claw marks."],
+      "prompt": "Examine pillar"
+    },
+    
+    "chair": {
+      "carl": ["A chair. At least this is normal."],
+      "paul": ["Chairs are for sitting! Or standing on. Or..."],
+      "horror": ["The seat is slightly warm. Someone was just here."],
+      "prompt": "Examine chair"
+    }
+  },
+  
+  "defaultDialogue": {
+    "carl": ["It's a {propType}. Nothing unusual."],
+    "paul": ["A {propType}! How delightful!"],
+    "prompt": "Examine {propType}"
+  }
+}

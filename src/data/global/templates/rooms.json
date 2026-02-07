@@ -1,0 +1,219 @@
+{
+  "templates": [
+    {
+      "id": "room_small",
+      "type": "interior_room",
+      "size": {
+        "width": { "min": 6, "max": 8 },
+        "height": { "min": 6, "max": 8 },
+        "ceiling": { "min": 2, "max": 3 }
+      },
+      "connectionPoints": [
+        { "id": "north", "side": "north", "position": "center", "allowedConnections": ["wall_door", "wall_archway"] },
+        { "id": "south", "side": "south", "position": "center", "allowedConnections": ["wall_door", "wall_archway"] },
+        { "id": "east", "side": "east", "position": "center", "allowedConnections": ["wall_door"] },
+        { "id": "west", "side": "west", "position": "center", "allowedConnections": ["wall_door"] }
+      ],
+      "propRules": [
+        { "propTypes": ["chair", "stool"], "zone": "corner", "count": { "min": 0, "max": 2 }, "faceCenter": true },
+        { "propTypes": ["crate", "barrel", "chest"], "zone": "edge", "count": { "min": 0, "max": 3 }, "faceWall": true },
+        { "propTypes": ["lamp"], "zone": "corner", "count": { "min": 0, "max": 1 } }
+      ],
+      "tags": ["small", "generic", "apartment", "house"]
+    },
+    {
+      "id": "room_medium",
+      "type": "interior_room",
+      "size": {
+        "width": { "min": 8, "max": 12 },
+        "height": { "min": 8, "max": 10 },
+        "ceiling": { "min": 2, "max": 3 }
+      },
+      "connectionPoints": [
+        { "id": "north", "side": "north", "position": "center", "allowedConnections": ["wall_door", "wall_archway"] },
+        { "id": "south", "side": "south", "position": "center", "allowedConnections": ["wall_door", "wall_archway"] },
+        { "id": "east", "side": "east", "position": "center", "allowedConnections": ["wall_door", "wall_archway"] },
+        { "id": "west", "side": "west", "position": "center", "allowedConnections": ["wall_door", "wall_archway"] }
+      ],
+      "propRules": [
+        { "propTypes": ["table"], "zone": "center", "count": { "min": 0, "max": 1 } },
+        { "propTypes": ["chair"], "zone": "center", "count": { "min": 0, "max": 4 }, "minSpacing": 1, "faceCenter": true },
+        { "propTypes": ["bookshelf", "cabinet"], "zone": "wall", "count": { "min": 0, "max": 2 }, "faceWall": true },
+        { "propTypes": ["rug"], "zone": "center", "count": { "min": 0, "max": 1 } }
+      ],
+      "tags": ["medium", "living_room", "apartment", "house"]
+    },
+    {
+      "id": "room_kitchen",
+      "type": "interior_room",
+      "size": {
+        "width": { "min": 6, "max": 10 },
+        "height": { "min": 6, "max": 8 },
+        "ceiling": { "min": 2, "max": 3 }
+      },
+      "connectionPoints": [
+        { "id": "south", "side": "south", "position": "center", "allowedConnections": ["wall_door", "wall_archway"], "required": true }
+      ],
+      "propRules": [
+        { "propTypes": ["counter"], "zone": "wall", "count": { "min": 2, "max": 3 }, "faceWall": true },
+        { "propTypes": ["barrel", "crate"], "zone": "corner", "count": { "min": 1, "max": 2 } },
+        { "propTypes": ["table"], "zone": "center", "count": { "min": 0, "max": 1 } }
+      ],
+      "requiredFeatures": ["sink", "counter"],
+      "tags": ["kitchen", "apartment", "house"]
+    },
+    {
+      "id": "room_bedroom",
+      "type": "interior_room",
+      "size": {
+        "width": { "min": 8, "max": 12 },
+        "height": { "min": 8, "max": 10 },
+        "ceiling": { "min": 2, "max": 3 }
+      },
+      "connectionPoints": [
+        { "id": "door", "side": "south", "position": "left", "allowedConnections": ["wall_door"], "required": true }
+      ],
+      "propRules": [
+        { "propTypes": ["bed"], "zone": "wall", "count": { "min": 1, "max": 1 }, "faceCenter": true },
+        { "propTypes": ["chest", "dresser"], "zone": "corner", "count": { "min": 1, "max": 2 } },
+        { "propTypes": ["chair"], "zone": "edge", "count": { "min": 0, "max": 1 } },
+        { "propTypes": ["rug"], "zone": "center", "count": { "min": 0, "max": 1 } }
+      ],
+      "tags": ["bedroom", "apartment", "house", "private"]
+    },
+    {
+      "id": "room_bathroom",
+      "type": "interior_room",
+      "size": {
+        "width": { "min": 4, "max": 6 },
+        "height": { "min": 4, "max": 6 },
+        "ceiling": { "min": 2, "max": 2 }
+      },
+      "connectionPoints": [
+        { "id": "door", "side": "south", "position": "center", "allowedConnections": ["wall_door"], "required": true }
+      ],
+      "propRules": [
+        { "propTypes": ["tub", "sink"], "zone": "wall", "count": { "min": 1, "max": 2 }, "faceWall": true }
+      ],
+      "tags": ["bathroom", "apartment", "house", "small"]
+    },
+    {
+      "id": "hallway_short",
+      "type": "interior_hallway",
+      "size": {
+        "width": { "min": 3, "max": 4 },
+        "height": { "min": 6, "max": 10 },
+        "ceiling": { "min": 2, "max": 3 }
+      },
+      "connectionPoints": [
+        { "id": "north", "side": "north", "position": "center", "allowedConnections": ["wall_door", "wall_archway", "open"], "required": true },
+        { "id": "south", "side": "south", "position": "center", "allowedConnections": ["wall_door", "wall_archway", "open"], "required": true },
+        { "id": "east", "side": "east", "position": "center", "allowedConnections": ["wall_door"] },
+        { "id": "west", "side": "west", "position": "center", "allowedConnections": ["wall_door"] }
+      ],
+      "propRules": [
+        { "propTypes": ["lamp"], "zone": "wall", "count": { "min": 0, "max": 2 } }
+      ],
+      "tags": ["hallway", "connector", "apartment", "house"]
+    },
+    {
+      "id": "closet",
+      "type": "interior_room",
+      "size": {
+        "width": { "min": 2, "max": 4 },
+        "height": { "min": 2, "max": 4 },
+        "ceiling": { "min": 2, "max": 2 }
+      },
+      "connectionPoints": [
+        { "id": "door", "side": "south", "position": "center", "allowedConnections": ["wall_door"], "required": true }
+      ],
+      "propRules": [
+        { "propTypes": ["crate", "chest", "barrel"], "zone": "random", "count": { "min": 1, "max": 3 }, "cluster": true }
+      ],
+      "tags": ["closet", "storage", "small", "apartment", "house"]
+    },
+    {
+      "id": "room_basement",
+      "type": "interior_room",
+      "size": {
+        "width": { "min": 10, "max": 16 },
+        "height": { "min": 10, "max": 14 },
+        "ceiling": { "min": 2, "max": 2 }
+      },
+      "connectionPoints": [
+        { "id": "stairs", "side": "north", "position": "center", "allowedConnections": ["stairs"], "required": true }
+      ],
+      "propRules": [
+        { "propTypes": ["barrel", "crate"], "zone": "edge", "count": { "min": 3, "max": 8 } },
+        { "propTypes": ["pillar"], "zone": "center", "count": { "min": 0, "max": 4 }, "minSpacing": 3 }
+      ],
+      "tags": ["basement", "dark", "storage", "underground"]
+    }
+  ],
+  
+  "palettes": [
+    {
+      "id": "apartment_worn",
+      "name": "Worn Apartment",
+      "floors": {
+        "primary": { "color": [0.35, 0.28, 0.2] },
+        "accent": { "color": [0.4, 0.32, 0.25] },
+        "worn": { "color": [0.3, 0.24, 0.18] }
+      },
+      "walls": {
+        "primary": { "color": [0.55, 0.5, 0.45] },
+        "trim": { "color": [0.4, 0.35, 0.3] },
+        "damaged": { "color": [0.45, 0.4, 0.35] }
+      },
+      "propSets": ["apartment_furniture", "apartment_clutter"],
+      "lighting": {
+        "ambient": [0.9, 0.85, 0.75],
+        "intensity": 0.6,
+        "shadows": true
+      }
+    },
+    {
+      "id": "apartment_dark",
+      "name": "Dark Apartment",
+      "floors": {
+        "primary": { "color": [0.25, 0.2, 0.15] },
+        "accent": { "color": [0.3, 0.24, 0.18] }
+      },
+      "walls": {
+        "primary": { "color": [0.4, 0.35, 0.3] },
+        "trim": { "color": [0.3, 0.25, 0.2] }
+      },
+      "propSets": ["apartment_furniture", "horror_props"],
+      "lighting": {
+        "ambient": [0.6, 0.55, 0.5],
+        "intensity": 0.4,
+        "shadows": true
+      }
+    },
+    {
+      "id": "basement_damp",
+      "name": "Damp Basement",
+      "floors": {
+        "primary": { "color": [0.25, 0.25, 0.28] },
+        "worn": { "color": [0.2, 0.2, 0.22] }
+      },
+      "walls": {
+        "primary": { "color": [0.35, 0.35, 0.38] },
+        "damaged": { "color": [0.3, 0.3, 0.32] }
+      },
+      "propSets": ["basement_junk", "horror_props"],
+      "lighting": {
+        "ambient": [0.4, 0.45, 0.5],
+        "intensity": 0.3,
+        "shadows": true
+      }
+    }
+  ],
+  
+  "propPools": {
+    "apartment_furniture": ["table", "chair", "bookshelf", "cabinet", "bed", "dresser", "couch"],
+    "apartment_clutter": ["crate", "barrel", "lamp", "rug", "plant"],
+    "basement_junk": ["crate", "barrel", "pillar", "chest"],
+    "horror_props": ["bloodstain", "torn_curtain", "broken_mirror", "dead_plant"]
+  }
+}

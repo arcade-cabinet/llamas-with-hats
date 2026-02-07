@@ -1,0 +1,87 @@
+{
+  "$schema": "../../schemas/stage.schema.json",
+  "_comment": "Stage 3: Downtown - The situation escalates",
+  
+  "id": "stage3_downtown",
+  "name": "Downtown",
+  "description": "The llamas head downtown, where Paul's 'projects' have attracted some attention.",
+  
+  "path": "both",
+  
+  "story": {
+    "beats": [
+      {
+        "id": "arrive_downtown",
+        "description": "Arrive in the downtown area",
+        "dialogueId": "stage3_arrive",
+        "trigger": {
+          "type": "scene_enter",
+          "params": { "sceneId": "entry" }
+        }
+      }
+    ],
+    "goals": [
+      {
+        "id": "find_escape",
+        "description": "Find a way out of the city",
+        "type": "reach_scene",
+        "params": { "sceneId": "exit" }
+      }
+    ],
+    "startingBeat": "arrive_downtown",
+    "completionGoals": ["find_escape"]
+  },
+  
+  "generation": {
+    "entryScene": {
+      "templateTags": ["street", "urban"],
+      "purpose": "entry"
+    },
+    "exitScene": {
+      "templateTags": ["highway", "escape"],
+      "purpose": "exit"
+    },
+    "requiredScenes": [],
+    "optionalSceneCount": { "min": 3, "max": 6 },
+    "allowedTemplates": ["city_block", "alley", "plaza", "building_interior"],
+    "palettes": ["urban_night"],
+    "connectionRules": {
+      "type": "maze",
+      "maxDeadEnds": 3,
+      "loopsAllowed": true
+    },
+    "environment": "mixed",
+    "separation": "wall_door"
+  },
+  
+  "props": {
+    "density": "cluttered",
+    "questItems": [],
+    "propPools": ["urban_props", "debris", "vehicles"]
+  },
+  
+  "npcs": {
+    "required": [
+      {
+        "characterId": "paul",
+        "behavior": "wander",
+        "dialogueId": "stage3_paul_dialogue",
+        "interactable": true
+      }
+    ],
+    "optional": {
+      "pool": ["citizen_panicked", "authority_figure"],
+      "count": { "min": 2, "max": 5 }
+    }
+  },
+  
+  "atmosphere": {
+    "baseHorrorLevel": 5,
+    "horrorProgression": "increasing",
+    "ambientSound": "ambient_city_chaos",
+    "musicTrack": "music_tension_high"
+  },
+  
+  "estimatedDuration": 15,
+  "difficulty": "medium"
+}

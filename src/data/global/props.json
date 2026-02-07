@@ -1,0 +1,334 @@
+{
+  "$schema": "./props.schema.json",
+  "_comment": "Prop definitions for mesh generation and interaction",
+  
+  "props": {
+    "table": {
+      "mesh": {
+        "type": "box",
+        "width": 1.2,
+        "height": 0.5,
+        "depth": 0.8,
+        "yOffset": 0.25
+      },
+      "material": {
+        "color": [0.35, 0.25, 0.15]
+      },
+      "collision": {
+        "radius": 0.8
+      }
+    },
+    
+    "chair": {
+      "mesh": {
+        "type": "box",
+        "width": 0.5,
+        "height": 0.8,
+        "depth": 0.5,
+        "yOffset": 0.4
+      },
+      "material": {
+        "color": [0.4, 0.28, 0.18]
+      },
+      "collision": {
+        "radius": 0.35
+      }
+    },
+    
+    "bookshelf": {
+      "mesh": {
+        "type": "box",
+        "width": 1.2,
+        "height": 1.8,
+        "depth": 0.4,
+        "yOffset": 0.9
+      },
+      "material": {
+        "color": [0.3, 0.2, 0.12]
+      },
+      "collision": {
+        "radius": 0.7
+      }
+    },
+    
+    "couch": {
+      "mesh": {
+        "type": "composite",
+        "parts": [
+          {
+            "type": "box",
+            "width": 2.5,
+            "height": 0.6,
+            "depth": 0.9,
+            "yOffset": 0.3,
+            "color": [0.4, 0.28, 0.2]
+          },
+          {
+            "type": "box",
+            "width": 2.5,
+            "height": 0.5,
+            "depth": 0.2,
+            "position": [0, 0.55, -0.35],
+            "color": [0.35, 0.24, 0.18]
+          }
+        ]
+      },
+      "material": {
+        "color": [0.4, 0.28, 0.2]
+      },
+      "collision": {
+        "radius": 1.3
+      }
+    },
+    
+    "counter": {
+      "mesh": {
+        "type": "box",
+        "width": 2.0,
+        "height": 0.9,
+        "depth": 0.6,
+        "yOffset": 0.45
+      },
+      "material": {
+        "color": [0.45, 0.38, 0.3]
+      },
+      "collision": {
+        "radius": 1.0
+      }
+    },
+    
+    "lamp": {
+      "mesh": {
+        "type": "composite",
+        "parts": [
+          {
+            "type": "cylinder",
+            "height": 1.2,
+            "diameter": 0.15,
+            "yOffset": 0.6,
+            "color": [0.3, 0.25, 0.2]
+          },
+          {
+            "type": "cylinder",
+            "height": 0.3,
+            "diameterTop": 0.35,
+            "diameterBottom": 0.2,
+            "position": [0, 1.35, 0],
+            "color": [0.9, 0.85, 0.7],
+            "emissive": [0.3, 0.25, 0.15]
+          }
+        ]
+      },
+      "material": {
+        "color": [0.3, 0.25, 0.2]
+      },
+      "collision": {
+        "radius": 0.2
+      }
+    },
+    
+    "crate": {
+      "mesh": {
+        "type": "box",
+        "width": 0.6,
+        "height": 0.6,
+        "depth": 0.6,
+        "yOffset": 0.3
+      },
+      "material": {
+        "color": [0.45, 0.32, 0.2]
+      },
+      "collision": {
+        "radius": 0.4
+      }
+    },
+    
+    "chest": {
+      "mesh": {
+        "type": "box",
+        "width": 0.6,
+        "height": 0.6,
+        "depth": 0.6,
+        "yOffset": 0.3
+      },
+      "material": {
+        "color": [0.45, 0.32, 0.2]
+      },
+      "collision": {
+        "radius": 0.4
+      }
+    },
+    
+    "barrel": {
+      "mesh": {
+        "type": "cylinder",
+        "height": 0.9,
+        "diameter": 0.5,
+        "yOffset": 0.45
+      },
+      "material": {
+        "color": [0.4, 0.28, 0.16]
+      },
+      "collision": {
+        "radius": 0.3
+      }
+    },
+    
+    "pillar": {
+      "mesh": {
+        "type": "cylinder",
+        "height": 2.0,
+        "diameter": 0.5,
+        "yOffset": 1.0
+      },
+      "material": {
+        "color": [0.5, 0.45, 0.4]
+      },
+      "collision": {
+        "radius": 0.3
+      }
+    },
+    
+    "bed": {
+      "mesh": {
+        "type": "box",
+        "width": 2.0,
+        "height": 0.5,
+        "depth": 2.4,
+        "yOffset": 0.25
+      },
+      "material": {
+        "color": [0.35, 0.28, 0.22]
+      },
+      "collision": {
+        "radius": 1.2
+      }
+    },
+    
+    "dresser": {
+      "mesh": {
+        "type": "box",
+        "width": 1.2,
+        "height": 0.9,
+        "depth": 0.5,
+        "yOffset": 0.45
+      },
+      "material": {
+        "color": [0.38, 0.28, 0.2]
+      },
+      "collision": {
+        "radius": 0.7
+      }
+    },
+    
+    "fridge": {
+      "mesh": {
+        "type": "box",
+        "width": 0.9,
+        "height": 1.8,
+        "depth": 0.8,
+        "yOffset": 0.9
+      },
+      "material": {
+        "color": [0.85, 0.85, 0.85]
+      },
+      "collision": {
+        "radius": 0.6
+      }
+    },
+    
+    "stove": {
+      "mesh": {
+        "type": "box",
+        "width": 0.8,
+        "height": 0.9,
+        "depth": 0.7,
+        "yOffset": 0.45
+      },
+      "material": {
+        "color": [0.3, 0.3, 0.3]
+      },
+      "collision": {
+        "radius": 0.5
+      }
+    },
+    
+    "nightstand": {
+      "mesh": {
+        "type": "box",
+        "width": 0.5,
+        "height": 0.5,
+        "depth": 0.5,
+        "yOffset": 0.25
+      },
+      "material": {
+        "color": [0.38, 0.28, 0.2]
+      },
+      "collision": {
+        "radius": 0.35
+      }
+    },
+    
+    "toilet": {
+      "mesh": {
+        "type": "box",
+        "width": 0.5,
+        "height": 0.6,
+        "depth": 0.7,
+        "yOffset": 0.3
+      },
+      "material": {
+        "color": [0.9, 0.9, 0.9]
+      },
+      "collision": {
+        "radius": 0.4
+      }
+    },
+    
+    "bathtub": {
+      "mesh": {
+        "type": "box",
+        "width": 0.8,
+        "height": 0.5,
+        "depth": 1.8,
+        "yOffset": 0.25
+      },
+      "material": {
+        "color": [0.9, 0.9, 0.9]
+      },
+      "collision": {
+        "radius": 0.8
+      }
+    },
+    
+    "desk": {
+      "mesh": {
+        "type": "box",
+        "width": 1.4,
+        "height": 0.75,
+        "depth": 0.7,
+        "yOffset": 0.375
+      },
+      "material": {
+        "color": [0.35, 0.28, 0.2]
+      },
+      "collision": {
+        "radius": 0.8
+      }
+    }
+  },
+  
+  "defaultProp": {
+    "mesh": {
+      "type": "box",
+      "size": 0.5,
+      "yOffset": 0.25
+    },
+    "material": {
+      "color": [0.4, 0.35, 0.3]
+    },
+    "collision": {
+      "radius": 0.3
+    }
+  }
+}

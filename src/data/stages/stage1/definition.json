@@ -1,0 +1,182 @@
+{
+  "id": "stage1_apartment",
+  "name": "The Morning After",
+  "description": "Carl wakes up to find something terrible has happened. Again.",
+  
+  "path": "both",
+  
+  "story": {
+    "beats": [
+      {
+        "id": "wake_up",
+        "description": "Player wakes up in the living room",
+        "dialogueId": "stage1_wake_up",
+        "trigger": {
+          "type": "scene_enter",
+          "params": { "sceneId": "entry" }
+        },
+        "consequences": {
+          "nextBeat": "discover_blood"
+        }
+      },
+      {
+        "id": "discover_blood",
+        "description": "Player finds blood in the kitchen",
+        "dialogueId": "stage1_blood_discovery",
+        "trigger": {
+          "type": "scene_enter",
+          "params": { "sceneId": "kitchen" }
+        },
+        "consequences": {
+          "horrorLevelChange": 2,
+          "unlockExits": ["basement_door"],
+          "nextBeat": "find_key"
+        }
+      },
+      {
+        "id": "find_key",
+        "description": "Player finds the basement key",
+        "dialogueId": "stage1_key_found",
+        "trigger": {
+          "type": "item_pickup",
+          "params": { "itemId": "basement_key" }
+        },
+        "consequences": {
+          "unlockExits": ["exit_basement"]
+        }
+      }
+    ],
+    "goals": [
+      {
+        "id": "investigate_apartment",
+        "description": "Investigate the apartment",
+        "type": "reach_scene",
+        "params": { "sceneId": "kitchen" }
+      },
+      {
+        "id": "find_basement_key",
+        "description": "Find the basement key",
+        "type": "collect_items",
+        "params": { "items": ["basement_key"] },
+        "hiddenUntil": "discover_blood"
+      },
+      {
+        "id": "escape_apartment",
+        "description": "Find a way out",
+        "type": "reach_scene",
+        "params": { "sceneId": "exit" }
+      }
+    ],
+    "startingBeat": "wake_up",
+    "completionGoals": ["escape_apartment"]
+  },
+  
+  "generation": {
+    "entryScene": {
+      "templateTags": ["living_room", "apartment"],
+      "purpose": "entry",
+      "mustContain": {
+        "features": ["couch", "table"]
+      }
+    },
+    "exitScene": {
+      "templateTags": ["basement", "dark"],
+      "purpose": "exit",
+      "placement": {
+        "distanceFromEntry": { "min": 3, "max": 5 }
+      }
+    },
+    "requiredScenes": [
+      {
+        "templateTags": ["kitchen", "apartment"],
+        "purpose": "kitchen",
+        "mustContain": {
+          "features": ["sink", "counter"]
+        }
+      },
+      {
+        "templateTags": ["bedroom", "apartment"],
+        "purpose": "bedroom"
+      },
+      {
+        "templateTags": ["bathroom", "apartment"],
+        "purpose": "bathroom"
+      }
+    ],
+    "optionalSceneCount": { "min": 1, "max": 3 },
+    
+    "allowedTemplates": [
+      "room_small",
+      "room_medium",
+      "hallway_short",
+      "closet"
+    ],
+    
+    "palettes": ["apartment_worn", "apartment_dark"],
+    
+    "connectionRules": {
+      "type": "branching",
+      "maxDeadEnds": 2,
+      "loopsAllowed": false,
+      "maxDistanceFromEntry": 4
+    },
+    
+    "environment": "interior",
+    "separation": "wall_door"
+  },
+  
+  "props": {
+    "density": "cluttered",
+    "questItems": [
+      {
+        "id": "basement_key",
+        "name": "Rusty Key",
+        "description": "An old key with a tag that says 'BASEMENT'",
+        "model": "items/key.glb",
+        "pickupDialogue": "stage1_pickup_key",
+        "examineDialogue": "stage1_examine_key",
+        "spawnRules": {
+          "sceneTypes": ["interior_room"],
+          "zones": ["hidden"],
+          "requiredBeat": "discover_blood"
+        }
+      },
+      {
+        "id": "bloody_note",
+        "name": "Blood-Stained Note",
+        "description": "A crumpled note with something written on it",
+        "pickupDialogue": "stage1_read_note",
+        "spawnRules": {
+          "sceneTypes": ["interior_room"],
+          "zones": ["visible"]
+        }
+      }
+    ],
+    "propPools": ["apartment_furniture", "apartment_clutter", "horror_props"]
+  },
+  
+  "npcs": {
+    "required": [
+      {
+        "characterId": "paul",
+        "behavior": "idle",
+        "dialogueId": "stage1_paul_dialogue",
+        "interactable": true
+      }
+    ],
+    "optional": {
+      "pool": [],
+      "count": { "min": 0, "max": 0 }
+    }
+  },
+  
+  "atmosphere": {
+    "baseHorrorLevel": 2,
+    "horrorProgression": "increasing",
+    "ambientSound": "ambient_apartment_morning",
+    "musicTrack": "music_uneasy"
+  },
+  
+  "estimatedDuration": 10,
+  "difficulty": "easy"
+}

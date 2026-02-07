@@ -1,0 +1,309 @@
+{
+  "archetypes": [
+    {
+      "id": "apartment_interior",
+      "name": "Apartment Interior",
+      "description": "Standard apartment layout with rooms branching off a central corridor. Main floor has living areas, basement is dark and cramped.",
+      "environment": "interior",
+      "levels": [
+        {
+          "level": 0,
+          "name": "Main Floor",
+          "pattern": "branching",
+          "totalRooms": { "min": 5, "max": 8 },
+          "anchorRooms": [
+            { "purpose": "entry", "gridPosition": { "x": 0, "z": 0 }, "templateTags": ["living_room", "apartment"], "isEntry": true, "storyBeats": ["wake_up"] },
+            { "purpose": "kitchen", "gridPosition": { "x": 0, "z": -1 }, "templateTags": ["kitchen", "apartment"], "storyBeats": ["discover_blood"] },
+            { "purpose": "bedroom", "gridPosition": { "x": 1, "z": 0 }, "templateTags": ["bedroom", "apartment"] },
+            { "purpose": "bathroom", "gridPosition": { "x": -1, "z": -1 }, "templateTags": ["bathroom", "apartment"] }
+          ],
+          "fillerRules": {
+            "allowedTemplates": ["room_small", "hallway_short", "closet"],
+            "growthStrategy": "adjacent"
+          },
+          "verticalConnections": [
+            { "gridPosition": { "x": 0, "z": -2 }, "direction": "down", "targetLevel": -1, "type": "stairs", "locked": true, "lockId": "basement_door" }
+          ]
+        },
+        {
+          "level": -1,
+          "name": "Basement",
+          "pattern": "linear",
+          "totalRooms": { "min": 1, "max": 3 },
+          "anchorRooms": [
+            { "purpose": "basement_main", "gridPosition": { "x": 0, "z": -2 }, "templateTags": ["basement", "dark"], "isExit": true, "storyBeats": ["discover_horror"] }
+          ],
+          "fillerRules": {
+            "allowedTemplates": ["room_small", "closet"],
+            "growthStrategy": "adjacent",
+            "palette": "basement_damp"
+          },
+          "verticalConnections": [
+            { "gridPosition": { "x": 0, "z": -2 }, "direction": "up", "targetLevel": 0, "type": "stairs" }
+          ],
+          "palette": "basement_damp"
+        }
+      ],
+      "connectionRules": {
+        "defaultType": "wall_door",
+        "hallwayType": "wall_archway",
+        "maxDoorsPerRoom": 3
+      }
+    },
+    {
+      "id": "house_two_story",
+      "name": "Two-Story House",
+      "description": "Traditional house with entry hall hub on ground floor and linear bedrooms upstairs.",
+      "environment": "interior",
+      "levels": [
+        {
+          "level": 0,
+          "name": "Ground Floor",
+          "pattern": "hub",
+          "totalRooms": { "min": 6, "max": 10 },
+          "anchorRooms": [
+            { "purpose": "entry_hall", "gridPosition": { "x": 0, "z": 0 }, "templateTags": ["hallway", "house"], "isEntry": true },
+            { "purpose": "living_room", "gridPosition": { "x": -1, "z": 0 }, "templateTags": ["living_room", "house"] },
+            { "purpose": "kitchen", "gridPosition": { "x": 1, "z": 0 }, "templateTags": ["kitchen", "house"] },
+            { "purpose": "dining_room", "gridPosition": { "x": 0, "z": -1 }, "templateTags": ["medium", "house"] }
+          ],
+          "fillerRules": {
+            "allowedTemplates": ["room_small", "hallway_short", "closet"],
+            "growthStrategy": "adjacent"
+          },
+          "verticalConnections": [
+            { "gridPosition": { "x": 0, "z": 1 }, "direction": "up", "targetLevel": 1, "type": "stairs" }
+          ]
+        },
+        {
+          "level": 1,
+          "name": "Upstairs",
+          "pattern": "linear",
+          "totalRooms": { "min": 3, "max": 5 },
+          "anchorRooms": [
+            { "purpose": "upstairs_hall", "gridPosition": { "x": 0, "z": 1 }, "templateTags": ["hallway", "house"] },
+            { "purpose": "master_bedroom", "gridPosition": { "x": -1, "z": 1 }, "templateTags": ["bedroom", "house"] },
+            { "purpose": "bathroom", "gridPosition": { "x": 1, "z": 1 }, "templateTags": ["bathroom", "house"] }
+          ],
+          "fillerRules": {
+            "allowedTemplates": ["room_small", "closet"],
+            "growthStrategy": "path"
+          },
+          "verticalConnections": [
+            { "gridPosition": { "x": 0, "z": 1 }, "direction": "down", "targetLevel": 0, "type": "stairs" }
+          ]
+        }
+      ],
+      "connectionRules": {
+        "defaultType": "wall_door",
+        "hallwayType": "open",
+        "maxDoorsPerRoom": 4
+      }
+    },
+    {
+      "id": "outdoor_town",
+      "name": "Town Street",
+      "description": "Outdoor town area with buildings along a grid of streets. Open connections between outdoor areas, doors into buildings.",
+      "environment": "exterior",
+      "levels": [
+        {
+          "level": 0,
+          "name": "Street Level",
+          "pattern": "grid",
+          "totalRooms": { "min": 8, "max": 15 },
+          "anchorRooms": [
+            { "purpose": "town_square", "gridPosition": { "x": 0, "z": 0 }, "templateTags": ["exterior_plaza"], "isEntry": true },
+            { "purpose": "shop", "gridPosition": { "x": -1, "z": 0 }, "templateTags": ["small", "house"] },
+            { "purpose": "tavern", "gridPosition": { "x": 1, "z": 0 }, "templateTags": ["medium", "house"] },
+            { "purpose": "exit_gate", "gridPosition": { "x": 0, "z": -2 }, "templateTags": ["exterior_plaza"], "isExit": true }
+          ],
+          "fillerRules": {
+            "allowedTemplates": ["room_small", "room_medium"],
+            "growthStrategy": "ring"
+          },
+          "verticalConnections": []
+        }
+      ],
+      "connectionRules": {
+        "defaultType": "open",
+        "buildingEntryType": "wall_door",
+        "maxDoorsPerRoom": 4
+      }
+    },
+    {
+      "id": "dungeon_linear",
+      "name": "Linear Dungeon",
+      "description": "Straightforward dungeon with rooms in sequence. Entry level is linear, deep level branches for exploration.",
+      "environment": "interior",
+      "levels": [
+        {
+          "level": 0,
+          "name": "Entry Level",
+          "pattern": "linear",
+          "totalRooms": { "min": 4, "max": 6 },
+          "anchorRooms": [
+            { "purpose": "entrance", "gridPosition": { "x": 0, "z": 0 }, "templateTags": ["generic"], "isEntry": true },
+            { "purpose": "guard_room", "gridPosition": { "x": 0, "z": -1 }, "templateTags": ["medium"] },
+            { "purpose": "treasure", "gridPosition": { "x": 0, "z": -3 }, "templateTags": ["small"] }
+          ],
+          "fillerRules": {
+            "allowedTemplates": ["room_small", "hallway_short"],
+            "growthStrategy": "path"
+          },
+          "verticalConnections": [
+            { "gridPosition": { "x": 0, "z": -2 }, "direction": "down", "targetLevel": -1, "type": "stairs" }
+          ]
+        },
+        {
+          "level": -1,
+          "name": "Deep Dungeon",
+          "pattern": "branching",
+          "totalRooms": { "min": 3, "max": 6 },
+          "anchorRooms": [
+            { "purpose": "boss_room", "gridPosition": { "x": 0, "z": -4 }, "templateTags": ["basement"], "isExit": true },
+            { "purpose": "secret_cache", "gridPosition": { "x": 1, "z": -3 }, "templateTags": ["small", "storage"] }
+          ],
+          "fillerRules": {
+            "allowedTemplates": ["room_small", "closet"],
+            "growthStrategy": "adjacent"
+          },
+          "verticalConnections": [
+            { "gridPosition": { "x": 0, "z": -2 }, "direction": "up", "targetLevel": 0, "type": "stairs" }
+          ],
+          "palette": "basement_damp"
+        }
+      ],
+      "connectionRules": {
+        "defaultType": "wall_archway",
+        "secretType": "wall_door",
+        "maxDoorsPerRoom": 2
+      }
+    },
+    {
+      "id": "square_building",
+      "name": "Square Building",
+      "description": "Four rooms at compass corners around an optional center room. Compact and symmetrical.",
+      "environment": "interior",
+      "levels": [
+        {
+          "level": 0,
+          "name": "Main Floor",
+          "pattern": "square",
+          "totalRooms": { "min": 4, "max": 5 },
+          "anchorRooms": [
+            { "purpose": "nw_room", "gridPosition": { "x": -1, "z": -1 }, "templateTags": ["small"] },
+            { "purpose": "ne_room", "gridPosition": { "x": 1, "z": -1 }, "templateTags": ["small"] },
+            { "purpose": "sw_room", "gridPosition": { "x": -1, "z": 1 }, "templateTags": ["small"], "isEntry": true },
+            { "purpose": "se_room", "gridPosition": { "x": 1, "z": 1 }, "templateTags": ["small"], "isExit": true },
+            { "purpose": "center", "gridPosition": { "x": 0, "z": 0 }, "templateTags": ["hallway"] }
+          ],
+          "fillerRules": {
+            "allowedTemplates": [],
+            "growthStrategy": "adjacent"
+          },
+          "verticalConnections": []
+        }
+      ],
+      "connectionRules": {
+        "defaultType": "wall_archway",
+        "maxDoorsPerRoom": 2
+      }
+    },
+    {
+      "id": "l_shaped",
+      "name": "L-Shaped Layout",
+      "description": "Rooms arranged in an L pattern with a corner pivot. Good for irregular building shapes.",
+      "environment": "interior",
+      "levels": [
+        {
+          "level": 0,
+          "name": "Main Floor",
+          "pattern": "l_shape",
+          "totalRooms": { "min": 4, "max": 7 },
+          "anchorRooms": [
+            { "purpose": "corner", "gridPosition": { "x": 0, "z": 0 }, "templateTags": ["hallway", "connector"], "isEntry": true },
+            { "purpose": "north_end", "gridPosition": { "x": 0, "z": -2 }, "templateTags": ["small"] },
+            { "purpose": "east_end", "gridPosition": { "x": 2, "z": 0 }, "templateTags": ["small"], "isExit": true }
+          ],
+          "fillerRules": {
+            "allowedTemplates": ["room_small", "hallway_short", "closet"],
+            "growthStrategy": "path"
+          },
+          "verticalConnections": []
+        }
+      ],
+      "connectionRules": {
+        "defaultType": "wall_door",
+        "maxDoorsPerRoom": 2
+      }
+    },
+    {
+      "id": "radial_complex",
+      "name": "Radial Complex",
+      "description": "Rooms spiral outward from a central hub. Each ring of rooms connects to the ring inside it. Good for large open areas like plazas or cave systems.",
+      "environment": "mixed",
+      "levels": [
+        {
+          "level": 0,
+          "name": "Main Level",
+          "pattern": "radial",
+          "totalRooms": { "min": 7, "max": 13 },
+          "anchorRooms": [
+            { "purpose": "center_hub", "gridPosition": { "x": 0, "z": 0 }, "templateTags": ["medium"], "isEntry": true },
+            { "purpose": "north_wing", "gridPosition": { "x": 0, "z": -2 }, "templateTags": ["small"] },
+            { "purpose": "east_wing", "gridPosition": { "x": 2, "z": 0 }, "templateTags": ["small"] },
+            { "purpose": "south_wing", "gridPosition": { "x": 0, "z": 2 }, "templateTags": ["small"] },
+            { "purpose": "west_wing", "gridPosition": { "x": -2, "z": 0 }, "templateTags": ["small"], "isExit": true }
+          ],
+          "fillerRules": {
+            "allowedTemplates": ["room_small", "hallway_short"],
+            "growthStrategy": "ring"
+          },
+          "verticalConnections": []
+        }
+      ],
+      "connectionRules": {
+        "defaultType": "wall_archway",
+        "maxDoorsPerRoom": 4
+      }
+    }
+  ],
+
+  "patternAlgorithms": {
+    "linear": {
+      "description": "Rooms connected in a straight line",
+      "algorithm": "Connect rooms sequentially along primary axis",
+      "fillerBehavior": "Insert between anchors to reach target count"
+    },
+    "branching": {
+      "description": "Main path with side branches",
+      "algorithm": "Create backbone path through anchors, attach fillers as branches off non-terminal rooms",
+      "fillerBehavior": "Add as branches off main path"
+    },
+    "hub": {
+      "description": "Central room with spokes",
+      "algorithm": "Place hub first, connect anchors radially. Fillers attach to hub or extend from spokes",
+      "fillerBehavior": "Attach to hub or extend from spokes"
+    },
+    "grid": {
+      "description": "Rooms in a grid pattern",
+      "algorithm": "Place rooms at grid intersections. Adjacent grid cells are connected. Fillers fill empty cells",
+      "fillerBehavior": "Fill empty grid cells"
+    },
+    "square": {
+      "description": "Four corner rooms around center",
+      "algorithm": "Place corners at fixed positions, optional center. All corners connect to center if present",
+      "fillerBehavior": "No fillers in square pattern (fixed layout)"
+    },
+    "l_shape": {
+      "description": "Rooms in L formation",
+      "algorithm": "Place corner room, extend in two perpendicular directions. Fillers fill along the arms",
+      "fillerBehavior": "Fill along L arms between anchors"
+    },
+    "radial": {
+      "description": "Rooms spiral outward from center",
+      "algorithm": "Place center hub, then place anchors at distance 2 in cardinal directions. Fillers placed at distance 1 between hub and outer anchors to form intermediate ring",
+      "fillerBehavior": "Fill intermediate ring positions (distance 1 from center)"
+    }
+  }
+}

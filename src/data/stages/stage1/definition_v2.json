@@ -1,0 +1,238 @@
+{
+  "id": "stage1_apartment",
+  "name": "The Morning After",
+  "description": "Carl wakes up to find something terrible has happened. Again.",
+  
+  "path": "both",
+  
+  "layout": {
+    "type": "fixed",
+    "floors": [
+      {
+        "level": -1,
+        "name": "Basement",
+        "yOffset": -4,
+        "rooms": [
+          {
+            "id": "basement",
+            "anchor": true,
+            "purpose": "exit",
+            "template": "room_basement",
+            "position": { "x": 0, "z": 0 },
+            "connections": [
+              { "direction": "up", "targetRoom": "kitchen", "type": "stairs" }
+            ],
+            "storyBeats": ["basement_horror"],
+            "orderDialogue": "stage1_carl_basement",
+            "chaosDialogue": "stage1_paul_basement"
+          }
+        ]
+      },
+      {
+        "level": 0,
+        "name": "Main Floor",
+        "yOffset": 0,
+        "rooms": [
+          {
+            "id": "living_room",
+            "anchor": true,
+            "purpose": "entry",
+            "template": "room_medium",
+            "position": { "x": 0, "z": 0 },
+            "connections": [
+              { "direction": "north", "targetRoom": "kitchen", "type": "archway" },
+              { "direction": "east", "targetRoom": "hallway", "type": "archway" },
+              { "direction": "south", "targetRoom": "foyer", "type": "archway" }
+            ],
+            "props": [
+              { "type": "couch", "position": { "x": -2, "z": 1 }, "rotation": 0 },
+              { "type": "table", "position": { "x": 0, "z": 0 }, "rotation": 0 },
+              { "type": "lamp", "position": { "x": 3, "z": 2 }, "rotation": 0 }
+            ],
+            "storyBeats": ["wake_up"],
+            "orderDialogue": "stage1_carl_wakeup",
+            "chaosDialogue": "stage1_paul_wakeup"
+          },
+          {
+            "id": "kitchen",
+            "anchor": true,
+            "purpose": "kitchen",
+            "template": "room_kitchen",
+            "position": { "x": 0, "z": -10 },
+            "connections": [
+              { "direction": "south", "targetRoom": "living_room", "type": "archway" },
+              { "direction": "down", "targetRoom": "basement", "type": "stairs", "locked": true, "lockId": "basement_door" }
+            ],
+            "props": [
+              { "type": "counter", "position": { "x": -3, "z": -3 }, "rotation": 0 },
+              { "type": "counter", "position": { "x": 3, "z": -3 }, "rotation": 0 },
+              { "type": "table", "position": { "x": 0, "z": 0 }, "rotation": 0 }
+            ],
+            "storyBeats": ["discover_blood"],
+            "orderDialogue": "stage1_carl_kitchen",
+            "chaosDialogue": "stage1_paul_kitchen"
+          },
+          {
+            "id": "hallway",
+            "anchor": false,
+            "purpose": "connector",
+            "template": "hallway_short",
+            "position": { "x": 10, "z": 0 },
+            "connections": [
+              { "direction": "west", "targetRoom": "living_room", "type": "archway" },
+              { "direction": "north", "targetRoom": "bedroom", "type": "door" },
+              { "direction": "south", "targetRoom": "bathroom", "type": "door" }
+            ]
+          },
+          {
+            "id": "bedroom",
+            "anchor": false,
+            "purpose": "exploration",
+            "template": "room_bedroom",
+            "position": { "x": 10, "z": -8 },
+            "connections": [
+              { "direction": "south", "targetRoom": "hallway", "type": "door" }
+            ],
+            "questItems": ["basement_key"]
+          },
+          {
+            "id": "bathroom",
+            "anchor": false,
+            "purpose": "exploration",
+            "template": "room_bathroom",
+            "position": { "x": 10, "z": 8 },
+            "connections": [
+              { "direction": "north", "targetRoom": "hallway", "type": "door" }
+            ]
+          },
+          {
+            "id": "foyer",
+            "anchor": true,
+            "purpose": "transition",
+            "template": "room_small",
+            "position": { "x": 0, "z": 10 },
+            "connections": [
+              { "direction": "north", "targetRoom": "living_room", "type": "archway" },
+              { "direction": "south", "targetRoom": "outside", "type": "door", "locked": true, "lockId": "front_door" }
+            ],
+            "storyBeats": ["escape_attempt"],
+            "orderDialogue": "stage1_carl_foyer",
+            "chaosDialogue": "stage1_paul_foyer"
+          }
+        ]
+      }
+    ]
+  },
+  
+  "story": {
+    "beats": [
+      {
+        "id": "wake_up",
+        "room": "living_room",
+        "trigger": "enter",
+        "order": {
+          "dialogue": ["Carl: *yawns* What time is it...", "Carl: Wait. Why does everything smell like copper?"],
+          "effects": []
+        },
+        "chaos": {
+          "dialogue": ["Paul: Good morning world!", "Paul: I made breakfast! Well, sort of."],
+          "effects": []
+        }
+      },
+      {
+        "id": "discover_blood",
+        "room": "kitchen",
+        "trigger": "enter",
+        "order": {
+          "dialogue": ["Carl: PAUL! Why is there blood on the ceiling?!", "Carl: And the walls. And the... is that a handprint?"],
+          "effects": [{ "type": "horror_increase", "amount": 2 }]
+        },
+        "chaos": {
+          "dialogue": ["Paul: Oh, the kitchen! I was doing some... redecorating.", "Paul: Do you like the new color scheme?"],
+          "effects": []
+        },
+        "unlocks": ["basement_door"]
+      },
+      {
+        "id": "find_key",
+        "trigger": "pickup",
+        "item": "basement_key",
+        "order": {
+          "dialogue": ["Carl: A key... tagged 'BASEMENT'. Do I even want to know?"],
+          "effects": []
+        },
+        "chaos": {
+          "dialogue": ["Paul: Oh! You found my special key!", "Paul: I keep my art supplies down there."],
+          "effects": []
+        }
+      },
+      {
+        "id": "basement_horror",
+        "room": "basement",
+        "trigger": "enter",
+        "order": {
+          "dialogue": ["Carl: Oh no. Oh no no no.", "Carl: PAUL! WHAT DID YOU DO?!"],
+          "effects": [{ "type": "horror_increase", "amount": 5 }]
+        },
+        "chaos": {
+          "dialogue": ["Paul: Welcome to my workshop!", "Paul: I've been very productive."],
+          "effects": []
+        }
+      }
+    ],
+    "goals": [
+      {
+        "id": "investigate",
+        "description": "Investigate the apartment",
+        "type": "visit_rooms",
+        "rooms": ["kitchen", "bedroom", "bathroom"],
+        "minVisits": 2
+      },
+      {
+        "id": "find_key",
+        "description": "Find the basement key",
+        "type": "collect",
+        "items": ["basement_key"],
+        "hiddenUntil": "discover_blood"
+      },
+      {
+        "id": "discover_truth",
+        "description": "Discover what Paul did",
+        "type": "visit_room",
+        "room": "basement"
+      }
+    ]
+  },
+  
+  "questItems": [
+    {
+      "id": "basement_key",
+      "name": "Rusty Key",
+      "description": "An old key with a tag that says 'BASEMENT'",
+      "room": "bedroom",
+      "position": { "x": 2, "z": -2 },
+      "hidden": true,
+      "requiredBeat": "discover_blood"
+    },
+    {
+      "id": "bloody_note",
+      "name": "Blood-Stained Note",
+      "description": "A crumpled note with something written on it",
+      "room": "living_room",
+      "position": { "x": 0, "z": 0 }
+    }
+  ],
+  
+  "atmosphere": {
+    "baseHorrorLevel": 2,
+    "lighting": {
+      "ambient": [0.9, 0.85, 0.75],
+      "intensity": 0.6
+    },
+    "fog": {
+      "enabled": true,
+      "density": 0.01,
+      "color": [0.1, 0.08, 0.06]
+    }
+  }
+}

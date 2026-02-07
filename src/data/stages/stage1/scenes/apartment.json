@@ -1,0 +1,204 @@
+{
+  "id": "apartment_living",
+  "name": "Living Room",
+  "description": "Carl's cozy living room. Something feels off today.",
+  
+  "bounds": {
+    "width": 10,
+    "height": 8,
+    "ceiling": 3
+  },
+  
+  "floor": {
+    "color": [0.35, 0.25, 0.18]
+  },
+  
+  "walls": {
+    "color": [0.55, 0.45, 0.38],
+    "height": 2.5
+  },
+  
+  "atmosphere": {
+    "preset": "cozy",
+    "fogEnabled": true,
+    "fogColor": [0.1, 0.08, 0.06],
+    "fogDensity": 0.015,
+    "ambientColor": [0.15, 0.12, 0.1],
+    "musicTrack": "apartment_calm",
+    "ambientSounds": ["clock_tick", "creak"]
+  },
+  
+  "lights": [
+    {
+      "id": "ambient",
+      "type": "ambient",
+      "color": [0.9, 0.85, 0.7],
+      "intensity": 0.5
+    },
+    {
+      "id": "sun",
+      "type": "directional",
+      "color": [1.0, 0.95, 0.8],
+      "intensity": 0.7,
+      "position": [5, 10, 5],
+      "direction": [-0.3, -1, -0.3],
+      "shadows": true
+    }
+  ],
+  
+  "props": [
+    {
+      "id": "table_main",
+      "type": "table",
+      "transform": { "position": [0, 0, -1], "rotation": [0, 0, 0] },
+      "interactable": true,
+      "interaction": {
+        "type": "examine",
+        "prompt": "Examine table",
+        "action": {
+          "type": "dialogue",
+          "params": { "dialogueId": "table_examine" }
+        }
+      },
+      "tags": ["furniture", "main"]
+    },
+    {
+      "id": "chair_carl",
+      "type": "chair",
+      "transform": { "position": [-1.5, 0, -1], "rotation": [0, 0.5, 0] },
+      "tags": ["furniture", "seating"]
+    },
+    {
+      "id": "chair_paul",
+      "type": "chair",
+      "transform": { "position": [1.5, 0, -1], "rotation": [0, -0.5, 0] },
+      "tags": ["furniture", "seating"]
+    },
+    {
+      "id": "bookshelf_1",
+      "type": "bookshelf",
+      "transform": { "position": [-4, 0, 0], "rotation": [0, 1.57, 0] },
+      "interactable": true,
+      "interaction": {
+        "type": "examine",
+        "prompt": "Browse books",
+        "action": {
+          "type": "dialogue",
+          "params": { "dialogueId": "bookshelf_examine" }
+        }
+      },
+      "tags": ["furniture", "container"]
+    },
+    {
+      "id": "rug_center",
+      "type": "rug",
+      "transform": { "position": [0, 0, 0], "scale": 1.5 },
+      "tags": ["decor"]
+    },
+    {
+      "id": "barrel_corner",
+      "type": "barrel",
+      "transform": { "position": [3.5, 0, -3] },
+      "interactable": true,
+      "interaction": {
+        "type": "examine",
+        "prompt": "Check barrel",
+        "action": {
+          "type": "sequence",
+          "params": {
+            "actions": [
+              { "type": "dialogue", "params": { "dialogueId": "barrel_empty" } }
+            ]
+          }
+        }
+      },
+      "tags": ["container"]
+    }
+  ],
+  
+  "npcs": [
+    {
+      "id": "paul",
+      "character": "paul",
+      "transform": { "position": [1.5, 0, 0.5], "rotation": [0, -0.8, 0] },
+      "behavior": "idle",
+      "dialogue": "paul_greeting",
+      "interactable": true,
+      "tags": ["main_character"]
+    }
+  ],
+  
+  "triggers": [
+    {
+      "id": "entrance_trigger",
+      "type": "enter",
+      "shape": "box",
+      "transform": { "position": [0, 0, 3.5] },
+      "size": [3, 2, 1],
+      "action": {
+        "type": "dialogue",
+        "params": { "dialogueId": "room_enter_first" }
+      },
+      "once": true,
+      "tags": ["story"]
+    },
+    {
+      "id": "creepy_corner",
+      "type": "proximity",
+      "shape": "sphere",
+      "transform": { "position": [-3, 0, -2] },
+      "size": 2,
+      "action": {
+        "type": "atmosphere",
+        "params": { 
+          "preset": "uneasy", 
+          "duration": 2000,
+          "type": "pulse"
+        }
+      },
+      "once": false,
+      "delay": 5000,
+      "tags": ["atmosphere"]
+    }
+  ],
+  
+  "exits": [
+    {
+      "id": "exit_north",
+      "direction": "north",
+      "targetScene": "apartment_kitchen",
+      "targetSpawnPoint": "from_living",
+      "position": [0, 0, -4]
+    },
+    {
+      "id": "exit_east",
+      "direction": "east",
+      "targetScene": "apartment_bedroom",
+      "targetSpawnPoint": "from_living",
+      "position": [5, 0, 0],
+      "locked": true,
+      "lockCondition": {
+        "type": "hasItem",
+        "params": { "itemId": "bedroom_key" }
+      }
+    }
+  ],
+  
+  "spawnPoints": [
+    {
+      "id": "default",
+      "transform": { "position": [0, 0, 2] },
+      "default": true
+    },
+    {
+      "id": "from_kitchen",
+      "transform": { "position": [0, 0, -3], "rotation": [0, 3.14, 0] }
+    },
+    {
+      "id": "from_bedroom",
+      "transform": { "position": [4, 0, 0], "rotation": [0, -1.57, 0] }
+    }
+  ],
+  
+  "tags": ["indoor", "apartment", "carl_home"]
+}
