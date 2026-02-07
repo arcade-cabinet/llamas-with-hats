@@ -104,9 +104,6 @@ export async function initializeGame(
     worldSeed.seedString
   );
 
-  console.log(`Generated stage [${stageId}]:`, stage.id);
-  console.log('Scenes:', stage.scenes.map(s => s.id));
-  console.log('Entry:', stage.entrySceneId);
 
   // Create scene lookup map
   const sceneMap = new Map<string, SceneDefinition>();

@@ -1303,3 +1303,14 @@ export function getAudioManager(): AudioManager {
   }
   return audioManagerInstance;
 }
+
+/**
+ * Reset the audio manager singleton. Call during HMR or scene teardown
+ * to prevent leaked Tone.js nodes across hot reloads.
+ */
+export function resetAudioManager(): void {
+  if (audioManagerInstance) {
+    audioManagerInstance.stopMusic();
+    audioManagerInstance = null;
+  }
+}

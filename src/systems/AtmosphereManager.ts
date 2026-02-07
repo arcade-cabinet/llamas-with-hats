@@ -568,6 +568,16 @@ export function getAtmosphereManager(): AtmosphereManager {
   return atmosphereManagerInstance;
 }
 
+/**
+ * Reset the atmosphere manager singleton. Call during HMR or scene teardown.
+ */
+export function resetAtmosphereManager(): void {
+  if (atmosphereManagerInstance) {
+    atmosphereManagerInstance.dispose();
+    atmosphereManagerInstance = null;
+  }
+}
+
 // ============================================
 // JSON Action Handler
 // ============================================

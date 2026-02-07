@@ -119,7 +119,6 @@ export const StageGameRenderer: React.FC<StageGameRendererProps> = ({
   useEffect(() => {
     if (!canvasRef.current) return;
 
-    console.log('StageGameRenderer: Initializing stage', stageDefinition.id);
 
     const engine = new Engine(canvasRef.current, true, {
       preserveDrawingBuffer: true,
@@ -146,7 +145,6 @@ export const StageGameRenderer: React.FC<StageGameRendererProps> = ({
     const stage = renderStage(scene, layout, shadowGenerator);
     stageRef.current = stage;
 
-    console.log('Stage rendered with rooms:', Array.from(stage.rooms.keys()));
 
     // Camera - fixed isometric view of the whole stage
     const camera = new UniversalCamera(

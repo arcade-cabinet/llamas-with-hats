@@ -278,11 +278,13 @@ export class WorldGenerator {
   
   // Generate room from ID (for loading adjacent rooms)
   generateRoomFromId(roomId: string): RoomConfig {
-    // Reset RNG with room-specific seed for consistency
-    const roomRng = seedrandom(this.seed.seedString + roomId);
-    this.rng = roomRng;
-    
-    return this.generateRoom(roomId, roomId === 'start');
+    // Use a room-specific seed for deterministic generation
+    // Save and restore the instance RNG to avoid side effects
+    const savedRng = this.rng;
+    this.rng = seedrandom(this.seed.seedString + roomId);
+    const room = this.generateRoom(roomId, roomId === 'start');
+    this.rng = savedRng;
+    return room;
   }
   
   // Get world display name

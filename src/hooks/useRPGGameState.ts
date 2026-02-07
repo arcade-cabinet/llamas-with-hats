@@ -159,9 +159,13 @@ export function useRPGGameState() {
     storyManager.checkTrigger('scene_enter', { sceneId: startRoom.id });
   }, [state.selectedCharacter, state.worldSeed]);
 
+  // Ref to latest state for callbacks that shouldn't trigger re-renders
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
   // Save game — includes currentStageId and story state
   const saveGame = useCallback(() => {
-    const { worldSeed, selectedCharacter, currentRoom, player, currentStageId } = state;
+    const { worldSeed, selectedCharacter, currentRoom, player, currentStageId } = stateRef.current;
 
     if (!worldSeed || !selectedCharacter || !currentRoom || !currentStageId) return;
 
@@ -191,7 +195,7 @@ export function useRPGGameState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newSaves));
       return { ...prev, savedGames: newSaves };
     });
-  }, [state]);
+  }, []);
 
   // Load game — restores stageId, stage definition, and story state
   const loadGame = useCallback(async (saveId: string) => {
@@ -302,6 +306,8 @@ export function useRPGGameState() {
 
   // Return to main menu
   const returnToMainMenu = useCallback(() => {
+    // Reset singleton managers to avoid stale state on next game start
+    getStoryManager().reset();
     setState(prev => ({
       ...prev,
       isPlaying: false,
@@ -340,8 +346,8 @@ export function useRPGGameState() {
   }, []);
 
   const hasItem = useCallback((itemId: string): boolean => {
-    return state.player.inventory.includes(itemId);
-  }, [state.player.inventory]);
+    return stateRef.current.player.inventory.includes(itemId);
+  }, []);
 
   // Unlock an exit by its ID in the current room
   const unlockExit = useCallback((lockId: string) => {

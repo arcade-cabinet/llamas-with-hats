@@ -146,7 +146,22 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
   const audioManagerRef = useRef<AudioManager | null>(null);
   const storyManagerRef = useRef<StoryManager | null>(null);
   const atmosphereManagerRef = useRef<AtmosphereManager | null>(null);
-  
+
+  // Keep a ref to latest props so the render loop always reads fresh values
+  // instead of stale closures from useEffect mount time (H-2 fix)
+  const propsRef = useRef({
+    isPaused, opponentPosition, opponentRotation, playerInventory,
+    playerCharacter, onPlayerMove, onRoomTransition, onDialogue,
+    onUnlockExit, onLockedDoor, onItemPickup, onInteractionStateChange,
+    currentRoom,
+  });
+  propsRef.current = {
+    isPaused, opponentPosition, opponentRotation, playerInventory,
+    playerCharacter, onPlayerMove, onRoomTransition, onDialogue,
+    onUnlockExit, onLockedDoor, onItemPickup, onInteractionStateChange,
+    currentRoom,
+  };
+
   // Handle interaction callback
   const handleInteraction = useCallback(() => {
     const interaction = interactionSystemRef.current;
@@ -156,10 +171,11 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
   }, [playerCharacter]);
   
   // Expose interaction handler globally for input system
+  // Namespaced to __lwh_ to avoid collisions with other scripts
   useEffect(() => {
-    (window as any).__gameInteract = handleInteraction;
+    (window as any).__lwh_gameInteract = handleInteraction;
     return () => {
-      delete (window as any).__gameInteract;
+      delete (window as any).__lwh_gameInteract;
     };
   }, [handleInteraction]);
   
@@ -213,8 +229,6 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
   useEffect(() => {
     if (!canvasRef.current) return;
     
-    console.log('GameRenderer: Initializing with collision system');
-    
     const engine = new Engine(canvasRef.current, true, {
       preserveDrawingBuffer: true,
       stencil: true,
@@ -243,7 +257,6 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
     // Add prop colliders
     const propColliders = createCollidersFromProps(currentRoom.props, currentRoom.id);
     propColliders.forEach(collider => collisionSystem.addProp(collider));
-    console.log(`Added ${propColliders.length} prop colliders`);
     
     // Initialize interaction system
     const interactionSystem = createInteractionSystem();
@@ -256,35 +269,28 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
     // Set up interaction callbacks
     interactionSystem.setCallbacks({
       onDialogue: (lines, speaker) => {
-        console.log(`Dialogue [${speaker}]:`, lines);
-        onDialogue?.(lines, speaker);
+        propsRef.current.onDialogue?.(lines, speaker);
       },
       onItemPickup: (itemId) => {
-        console.log(`Item picked up: ${itemId}`);
-        // Play pickup sound
         audioManager.playSound(SoundEffects.ITEM_PICKUP);
-        // Add to inventory via parent callback
-        onItemPickup?.(itemId);
-        // Remove the prop mesh from the scene
+        propsRef.current.onItemPickup?.(itemId);
         const mesh = propMeshMap.get(itemId);
         if (mesh) {
           mesh.dispose();
           propMeshMap.delete(itemId);
         }
-        // Remove collider so player can walk through the space
         collisionSystem.removeProp(
           collisionSystem.getAllColliders().find(c => c.itemDrop === itemId)?.id ?? ''
         );
-        // Show brief pickup notification via dialogue
-        onDialogue?.([`Picked up: ${itemId.replace(/_/g, ' ')}`], playerCharacter);
+        propsRef.current.onDialogue?.(
+          [`Picked up: ${itemId.replace(/_/g, ' ')}`],
+          propsRef.current.playerCharacter
+        );
       },
-      onHorrorIncrease: (amount) => {
-        console.log(`Horror increased by ${amount}`);
-      },
+      onHorrorIncrease: () => {},
       onUnlock: (lockId) => {
-        console.log(`Unlocked: ${lockId}`);
         audioManager.playSound(SoundEffects.DOOR_UNLOCK);
-        onUnlockExit?.(lockId);
+        propsRef.current.onUnlockExit?.(lockId);
       }
     });
     
@@ -338,17 +344,12 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
         }
 
         if (propType) {
-          // Clicked on interactive prop - interact with it
-          console.log(`Clicked/tapped on interactive prop: ${propType}`);
-          interactionSystem.interactWithProp(propType, playerCharacter, itemDrop);
+          interactionSystem.interactWithProp(propType, propsRef.current.playerCharacter, itemDrop);
         } else if (pickResult.pickedPoint) {
-          // Clicked on ground/floor - tap to move
           const point = pickResult.pickedPoint;
           const meshName = mesh.name.toLowerCase();
-          
-          // Only tap-to-move on floor/ground surfaces
+
           if (meshName.includes('floor') || meshName.includes('ground') || meshName.includes('rug')) {
-            console.log(`Tap-to-move: (${point.x.toFixed(2)}, ${point.z.toFixed(2)})`);
             playerNavigator.moveTo(point.x, point.z);
           }
         }
@@ -378,10 +379,9 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
     audioManagerRef.current = audioManager;
     
     // Initialize Tone.js context (safe to call multiple times)
-    audioManager.init().then(() => {
-      console.log('Audio manager initialized');
-    }).catch(err => {
-      console.warn('Audio init failed (will retry on interaction):', err);
+    audioManager.init().catch(() => {
+      // Audio init may fail before user interaction (browser autoplay policy)
+      // Tone.js will resume automatically on first user gesture
     });
     
     // Initialize atmosphere manager (controls fog, lighting, ambient audio)
@@ -405,7 +405,7 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
     // Set up story callbacks — wires story consequences to game systems
     storyManager.setCallbacks({
       onDialogue: (lines, speaker) => {
-        onDialogue?.(lines, speaker);
+        propsRef.current.onDialogue?.(lines, speaker);
       },
       onHorrorChange: (newLevel, _delta) => {
         // Map horror level (0-10) to atmosphere presets
@@ -417,32 +417,21 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
         atmosphereManager.setPreset(preset, 2000);
       },
       onUnlock: (lockId) => {
-        // Unlock exits in the current room by marking them accessible
-        console.log(`[Story] Unlocked: ${lockId}`);
         audioManager.playSound(SoundEffects.DOOR_UNLOCK);
-        onUnlockExit?.(lockId);
+        propsRef.current.onUnlockExit?.(lockId);
         // Also remove any barrier collider that matches the lock id
         if (collisionSystem) {
           collisionSystem.removeProp(`lock_${lockId}`);
         }
       },
-      onLock: (lockId) => {
-        console.log(`[Story] Locked: ${lockId}`);
-      },
-      onSpawn: (entityId, position) => {
-        console.log(`[Story] Spawn entity: ${entityId}`, position);
-        // Future: dynamically create mesh/collider for the spawned entity
-      },
+      onLock: () => {},
+      onSpawn: () => {},
       onDespawn: (entityId) => {
-        console.log(`[Story] Despawn entity: ${entityId}`);
-        // Remove the entity's collider if it exists
         if (collisionSystem) {
           collisionSystem.removeProp(entityId);
         }
       },
-      onBeatComplete: (beatId) => {
-        console.log(`[Story] Beat complete: ${beatId}`);
-      },
+      onBeatComplete: () => {},
       onEffect: (effectType, params) => {
         switch (effectType) {
           case 'screen_shake':
@@ -560,7 +549,7 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
     let lastInteractionState: InteractionState | null = null;
     
     engine.runRenderLoop(() => {
-      if (isPaused) {
+      if (propsRef.current.isPaused) {
         scene.render();
         return;
       }
@@ -575,7 +564,7 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
       // Player movement with collision detection
       if (player && collisionSystemRef.current) {
         // Poll input from unified controller (keyboard/gesture/gamepad)
-        const getInput = (window as any).__gameGetInput;
+        const getInput = (window as any).__lwh_gameGetInput;
         const manualInput = getInput ? getInput() : { x: 0, z: 0 };
         const hasManualInput = manualInput.x !== 0 || manualInput.z !== 0;
         
@@ -652,36 +641,32 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
           // Calculate rotation to face movement direction
           player.setTargetRotation(Math.atan2(-nx, -nz));
           
-          onPlayerMove(newX, 0, newZ, player.currentRotation);
-          
-          // Check exits (with locked door support)
-          for (const exit of currentRoom.exits) {
+          propsRef.current.onPlayerMove(newX, 0, newZ, player.currentRotation);
+
+          // Check exits (with locked door support) — read from ref for fresh exit state
+          for (const exit of propsRef.current.currentRoom.exits) {
             const dx = newX - exit.position.x;
             const dz = newZ - exit.position.z;
             if (Math.sqrt(dx * dx + dz * dz) < 1.2) {
               if (exit.locked) {
-                // Check if player has the required key item
-                if (exit.requiredItem && playerInventory.includes(exit.requiredItem)) {
-                  // Unlock the exit, consume the key item, transition
+                const p = propsRef.current;
+                if (exit.requiredItem && p.playerInventory.includes(exit.requiredItem)) {
                   audioManager.playSound(SoundEffects.DOOR_UNLOCK);
-                  onUnlockExit?.(exit.id ?? exit.direction);
-                  onDialogue?.([`Used ${exit.requiredItem.replace(/_/g, ' ')} to unlock the door.`], playerCharacter);
-                  // Do not transition immediately -- let unlock feedback play.
-                  // The next frame will see the exit as unlocked and transition.
+                  p.onUnlockExit?.(exit.id ?? exit.direction);
+                  p.onDialogue?.([`Used ${exit.requiredItem.replace(/_/g, ' ')} to unlock the door.`], p.playerCharacter);
                 } else {
-                  // Door is locked and player lacks the key
                   audioManager.playSound(SoundEffects.DOOR_LOCKED);
-                  onLockedDoor?.(exit);
-                  onDialogue?.(
+                  p.onLockedDoor?.(exit);
+                  p.onDialogue?.(
                     exit.requiredItem
                       ? [`This door is locked. Looks like it needs a ${exit.requiredItem.replace(/_/g, ' ')}.`]
                       : ['This door is locked.'],
-                    playerCharacter
+                    p.playerCharacter
                   );
                 }
               } else {
                 const opposite = { north: 'south', south: 'north', east: 'west', west: 'east' } as const;
-                onRoomTransition(exit.targetRoom, opposite[exit.direction]);
+                propsRef.current.onRoomTransition(exit.targetRoom, opposite[exit.direction]);
               }
               break;
             }
@@ -695,11 +680,14 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
             player.root.position.z
           );
           
-          // Notify parent of interaction state changes
-          if (onInteractionStateChange && 
-              JSON.stringify(interactionState) !== JSON.stringify(lastInteractionState)) {
+          // Notify parent of interaction state changes (manual compare to avoid per-frame JSON.stringify)
+          const cb = propsRef.current.onInteractionStateChange;
+          if (cb && (
+            interactionState.nearbyInteractable !== lastInteractionState?.nearbyInteractable ||
+            interactionState.canInteract !== lastInteractionState?.canInteract
+          )) {
             lastInteractionState = interactionState;
-            onInteractionStateChange(interactionState);
+            cb(interactionState);
           }
         }
         
@@ -714,8 +702,9 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
       
       // Update opponent (AI controlled)
       if (opponent) {
-        opponent.setPosition(opponentPosition.x, 0, opponentPosition.z);
-        opponent.setTargetRotation(opponentRotation);
+        const opp = propsRef.current.opponentPosition;
+        opponent.setPosition(opp.x, 0, opp.z);
+        opponent.setTargetRotation(propsRef.current.opponentRotation);
         opponent.update(dt);
       }
       
@@ -750,7 +739,6 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
         if (newSize !== viewportSizeRef.current) {
           viewportSizeRef.current = newSize;
           gameCameraRef.current.setViewportSize(newSize);
-          console.log(`Viewport changed to: ${newSize}`);
         }
       }
     };

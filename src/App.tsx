@@ -189,8 +189,8 @@ const App: React.FC = () => {
           playerRotation={0}
           opponentPosition={{ x: 2, y: 0, z: 0 }}
           opponentRotation={Math.PI}
-          onPlayerMove={(x, y, z, r) => console.log('Move:', x, y, z, r)}
-          onRoomChange={(roomId) => console.log('Room changed:', roomId)}
+          onPlayerMove={(_x, _y, _z, _r) => {}}
+          onRoomChange={(_roomId) => {}}
           isPaused={false}
           seed={state.worldSeed?.seedString || 'demo-seed'}
         />

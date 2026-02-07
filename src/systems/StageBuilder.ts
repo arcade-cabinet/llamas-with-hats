@@ -1028,7 +1028,8 @@ function findFillerPositionForPattern(
         const dz = Math.sign(to.z - from.z);
         let cx = from.x + dx;
         let cz = from.z + dz;
-        while (cx !== to.x || cz !== to.z) {
+        let maxIter = Math.abs(to.x - from.x) + Math.abs(to.z - from.z) + 2;
+        while ((cx !== to.x || cz !== to.z) && maxIter-- > 0) {
           const key = `${floor},${cx},${cz}`;
           if (!grid.has(key)) candidates.push({ x: cx, z: cz });
           if (cx !== to.x) cx += dx;

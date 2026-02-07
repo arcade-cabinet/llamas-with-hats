@@ -357,3 +357,13 @@ export function getStoryManager(): StoryManager {
   }
   return storyManagerInstance;
 }
+
+/**
+ * Reset the story manager singleton. Call during HMR or scene teardown.
+ */
+export function resetStoryManager(): void {
+  if (storyManagerInstance) {
+    storyManagerInstance.reset();
+    storyManagerInstance = null;
+  }
+}

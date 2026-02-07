@@ -137,3 +137,4 @@ build_log*.txt
 # npm artifacts (pnpm only)
 package-lock.json
 yarn.lock
+.DS_Store

@@ -152,7 +152,7 @@ export const GameView: React.FC<GameViewProps> = ({
         advanceDialogue();
       } else {
         // Trigger interaction
-        const interact = (window as any).__gameInteract;
+        const interact = (window as any).__lwh_gameInteract;
         if (interact) interact();
       }
     },
@@ -185,8 +185,8 @@ export const GameView: React.FC<GameViewProps> = ({
   }, [getInput]);
   
   useEffect(() => {
-    (window as any).__gameGetInput = getInputCallback;
-    return () => { delete (window as any).__gameGetInput; };
+    (window as any).__lwh_gameGetInput = getInputCallback;
+    return () => { delete (window as any).__lwh_gameGetInput; };
   }, [getInputCallback]);
   
   // Handle interaction state changes

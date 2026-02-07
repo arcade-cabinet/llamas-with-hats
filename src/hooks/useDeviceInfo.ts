@@ -128,8 +128,7 @@ export function useDeviceInfo(): DeviceState & {
   // Get native device info on mount
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
-      Device.getInfo().then((info: DeviceInfo) => {
-        console.log('Native device info:', info);
+      Device.getInfo().then((_info: DeviceInfo) => {
         // Could use info.model to detect specific foldables
       }).catch(console.warn);
     }

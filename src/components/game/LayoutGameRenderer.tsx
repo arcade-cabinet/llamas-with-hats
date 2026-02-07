@@ -68,7 +68,6 @@ export const LayoutGameRenderer: React.FC<LayoutGameRendererProps> = ({
   useEffect(() => {
     if (!canvasRef.current) return;
 
-    console.log('LayoutGameRenderer: Initializing stage', stageDefinition.id);
 
     const engine = new Engine(canvasRef.current, true, {
       preserveDrawingBuffer: true,
@@ -117,15 +116,7 @@ export const LayoutGameRenderer: React.FC<LayoutGameRendererProps> = ({
     if (!validation.valid) {
       console.error('Layout validation failed:', validation.errors);
     } else {
-      console.log('Layout validated successfully');
     }
-
-    console.log('Generated layout:', {
-      rooms: generated.rooms.size,
-      levels: generated.levels.length,
-      connections: generated.connections.length,
-      verticalConnections: generated.verticalConnections.length
-    });
 
     // Render the layout
     const renderedLayout = renderLayout(scene, generated, shadowGenerator);
@@ -230,7 +221,6 @@ export const LayoutGameRenderer: React.FC<LayoutGameRendererProps> = ({
               // Check for story beats
               const genRoom = generatedLayoutRef.current?.rooms.get(room.id);
               if (genRoom?.storyBeats.length) {
-                console.log('Story beats in room:', genRoom.storyBeats);
               }
             }
           }
