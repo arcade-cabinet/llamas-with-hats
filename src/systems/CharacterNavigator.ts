@@ -4,7 +4,7 @@
  * 
  * A single navigation system used by both:
  * - AI characters (Paul wandering, following, fleeing)
- * - Player tap-to-move (temporary pathfinding to destination)
+ * - Player tap-to-move (one-shot pathfinding to a destination, navigates then stops)
  * 
  * ## Why Unified?
  * 

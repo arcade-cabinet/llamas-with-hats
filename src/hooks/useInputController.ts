@@ -10,7 +10,7 @@
  * Previously input was scattered:
  * - Keyboard in GameView.tsx
  * - Joystick in GameView.tsx
- * - Global `window.__gameSetInput` hack
+ * - Global window bridge pattern (now replaced by GameBridge module)
  * 
  * Now there's ONE hook that:
  * - Manages all input sources

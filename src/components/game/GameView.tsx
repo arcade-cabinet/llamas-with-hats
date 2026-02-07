@@ -42,10 +42,12 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { clsx } from 'clsx';
 import { CharacterType, RoomConfig } from '../../types/game';
+import type { GeneratedLayout } from '../../systems/LayoutGenerator';
 import { DeviceType } from '../../hooks/useDeviceInfo';
 import { GameRenderer } from './GameRenderer';
 import { useInputController } from '../../hooks/useInputController';
 import { InteractionState } from '../../systems/InteractionSystem';
+import { GameBridge } from '../../utils/gameBridge';
 
 interface GameViewProps {
   playerCharacter: CharacterType;
@@ -78,6 +80,13 @@ interface GameViewProps {
   dramaticZoom?: boolean;
   // Stage completion callback
   onStageComplete?: () => void;
+  // Dev AI mode — both llamas controlled by AI
+  devAIEnabled?: boolean;
+  // Layout-based rendering props (required — layout must always exist)
+  layout: GeneratedLayout;
+  allRoomConfigs: Map<string, RoomConfig>;
+  seed?: string;
+  onRoomChange?: (roomId: string) => void;
 }
 
 export const GameView: React.FC<GameViewProps> = ({
@@ -107,7 +116,12 @@ export const GameView: React.FC<GameViewProps> = ({
   screenShake = false,
   bloodSplatter = false,
   dramaticZoom = false,
-  onStageComplete
+  onStageComplete,
+  devAIEnabled = false,
+  layout,
+  allRoomConfigs,
+  seed,
+  onRoomChange
 }) => {
   const gameContainerRef = useRef<HTMLDivElement>(null);
   
@@ -154,9 +168,8 @@ export const GameView: React.FC<GameViewProps> = ({
       if (showDialogue) {
         advanceDialogue();
       } else {
-        // Trigger interaction
-        const interact = (window as any).__lwh_gameInteract;
-        if (interact) interact();
+        // Trigger interaction via typed bridge
+        GameBridge.triggerInteraction();
       }
     },
     gameContainerRef: gameContainerRef as React.RefObject<HTMLElement>
@@ -188,8 +201,8 @@ export const GameView: React.FC<GameViewProps> = ({
   }, [getInput]);
   
   useEffect(() => {
-    (window as any).__lwh_gameGetInput = getInputCallback;
-    return () => { delete (window as any).__lwh_gameGetInput; };
+    GameBridge.setInputProvider(getInputCallback);
+    return () => { GameBridge.clearInputProvider(); };
   }, [getInputCallback]);
   
   // Handle interaction state changes
@@ -219,6 +232,11 @@ export const GameView: React.FC<GameViewProps> = ({
         bloodSplatter={bloodSplatter}
         dramaticZoom={dramaticZoom}
         onStageComplete={onStageComplete}
+        devAIEnabled={devAIEnabled}
+        layout={layout}
+        allRoomConfigs={allRoomConfigs}
+        seed={seed}
+        onRoomChange={onRoomChange}
       />
       
       {/* HUD Overlay - hidden when menu is showing */}

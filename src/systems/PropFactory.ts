@@ -2,87 +2,90 @@
  * Prop Factory
  * ============
  *
- * Creates 3D meshes for props based on definitions from JSON data files.
- * This separates prop content (data) from prop rendering (code).
+ * Loads GLB models for props. Every prop type MUST have a GLB model mapping.
+ * There is no procedural fallback — missing or broken models are hard errors.
  *
- * ## Data-Driven Approach
- *
- * Prop definitions are loaded from `src/data/props.json`:
- * - Mesh geometry (type, dimensions)
- * - Material properties (color, emissive)
- * - Collision radius
- *
- * The factory reads these definitions and creates Babylon.js meshes.
- * When a GLB model is available for a prop type, it is loaded instead
- * of creating procedural geometry. Procedural geometry serves as a
- * fallback when no model exists or loading fails.
- *
- * ## Usage
- *
- * ```ts
- * // Async (preferred) - loads GLB model when available
- * const mesh = await createPropMeshAsync(scene, 'couch', true);
- * mesh.position.set(x, 0, z);
- *
- * // Sync fallback - always procedural geometry
- * const mesh = createPropMesh(scene, 'couch', true);
- * mesh.position.set(x, 0, z);
- * ```
- *
- * @see src/data/props.json - Prop definitions
- * @see public/assets/models/manifest.json - Available GLB models
+ * @see public/assets/models/ - GLB model files
+ * @see MODEL_MAP below - prop type → model path mapping
  */
 
 import {
   Scene,
-  MeshBuilder,
-  StandardMaterial,
-  Color3,
   AbstractMesh,
   TransformNode
 } from '@babylonjs/core';
 import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader';
 import '@babylonjs/loaders/glTF';
-import { getPropDefinition, PropMeshDefinition } from '../data';
+import { getPropDefinition } from '../data';
 
 // ============================================
 // Prop Type to GLB Model Mapping
 // ============================================
 
 /**
- * Maps prop types (used in props.json and room configs) to their
- * corresponding GLB/GLTF model paths under public/assets/models/.
- *
- * Props not listed here will always use procedural geometry.
+ * Every prop type used in room configs MUST have an entry here.
+ * If a prop type is missing, createPropMeshAsync will throw.
  */
 const MODEL_MAP: Record<string, string> = {
-  // ── Indoor props that have outdoor/fantasy model equivalents ──
-  lamp:           'assets/models/graveyard/lantern-candle.glb',
-  pillar:         'assets/models/props/pillarStone.glb',
-  plant:          'assets/models/nature/plant_bush.glb',
-  dead_plant:     'assets/models/nature/stump_old.glb',
+  // ── Indoor furniture (CC0 from Kenney/Kay Lousberg) ──
+  table:           'assets/models/furniture/tables/dining_table.glb',
+  chair:           'assets/models/furniture/seating/chair.glb',
+  bookshelf:       'assets/models/furniture/storage/bookcase.glb',
+  cabinet:         'assets/models/furniture/storage/bookcase_doors.glb',
+  dresser:         'assets/models/furniture/storage/dresser.glb',
+  couch:           'assets/models/furniture/seating/sofa.glb',
+  bed:             'assets/models/furniture/beds/bed_double.glb',
+  desk:            'assets/models/furniture/tables/desk.glb',
+  lamp:            'assets/models/furniture/lighting/lamp_table.glb',
+  tv:              'assets/models/furniture/storage/tv_cabinet.glb',
+  stool:           'assets/models/furniture/seating/stool_bar.glb',
 
-  // ── Outdoor / graveyard props ──
-  bench:          'assets/models/graveyard/bench.glb',
-  tree:           'assets/models/nature/tree_default_dark.glb',
-  fence:          'assets/models/graveyard/fence.glb',
-  statue:         'assets/models/nature/statue_column.glb',
-  gravestone:     'assets/models/graveyard/gravestone-cross.glb',
-  lantern:        'assets/models/graveyard/lantern-glass.glb',
-  lightpost:      'assets/models/graveyard/lightpost-single.glb',
-  fountain:       'assets/models/props/fountainRound.glb',
-  rock:           'assets/models/nature/rock_largeA.glb',
-  campfire:       'assets/models/nature/campfire_stones.glb',
-  cross:          'assets/models/graveyard/cross.glb',
-  pumpkin:        'assets/models/graveyard/pumpkin-carved.glb',
-  sign:           'assets/models/nature/sign.glb',
-  hedge:          'assets/models/props/hedge.glb',
-  log:            'assets/models/nature/log.glb',
-  cart:           'assets/models/props/cart.glb',
-  iron_fence:     'assets/models/graveyard/iron-fence.glb',
-  coffin:         'assets/models/graveyard/coffin.glb',
-  crypt:          'assets/models/graveyard/crypt.glb',
-  pine:           'assets/models/graveyard/pine.glb',
+  // ── Kitchen (CC0) ──
+  fridge:          'assets/models/kitchen/appliances/refrigerator.glb',
+  stove:           'assets/models/kitchen/appliances/stove.glb',
+  counter:         'assets/models/kitchen/fixtures/counter.glb',
+
+  // ── Bathroom (CC0) ──
+  toilet:          'assets/models/bathroom/fixtures/toilet.glb',
+  sink:            'assets/models/bathroom/fixtures/sink.glb',
+  bathtub:         'assets/models/bathroom/fixtures/bathtub.glb',
+  tub:             'assets/models/bathroom/fixtures/bathtub.glb',
+  broken_mirror:   'assets/models/bathroom/fixtures/mirror.glb',
+
+  // ── Indoor clutter / storage ──
+  crate:           'assets/models/dungeon/props/crate_large.glb',
+  barrel:          'assets/models/dungeon/props/barrel.glb',
+  chest:           'assets/models/dungeon/props/chest_mini.glb',
+  rug:             'assets/models/furniture/tables/coffee_table.glb',
+  plant:           'assets/models/nature/plant_bush.glb',
+  dead_plant:      'assets/models/nature/stump_old.glb',
+  pillar:          'assets/models/props/pillarStone.glb',
+
+  // ── Horror props ──
+  bloodstain:      'assets/models/dungeon/props/trap.glb',
+  torn_curtain:    'assets/models/dungeon/props/sword_shield_broken.glb',
+
+  // ── Outdoor / graveyard props (CC0 from Kenney) ──
+  bench:           'assets/models/graveyard/bench.glb',
+  tree:            'assets/models/nature/tree_default_dark.glb',
+  fence:           'assets/models/graveyard/fence.glb',
+  statue:          'assets/models/nature/statue_column.glb',
+  gravestone:      'assets/models/graveyard/gravestone-cross.glb',
+  lantern:         'assets/models/graveyard/lantern-glass.glb',
+  lightpost:       'assets/models/graveyard/lightpost-single.glb',
+  fountain:        'assets/models/props/fountainRound.glb',
+  rock:            'assets/models/nature/rock_largeA.glb',
+  campfire:        'assets/models/nature/campfire_stones.glb',
+  cross:           'assets/models/graveyard/cross.glb',
+  pumpkin:         'assets/models/graveyard/pumpkin-carved.glb',
+  sign:            'assets/models/nature/sign.glb',
+  hedge:           'assets/models/props/hedge.glb',
+  log:             'assets/models/nature/log.glb',
+  cart:            'assets/models/props/cart.glb',
+  iron_fence:      'assets/models/graveyard/iron-fence.glb',
+  coffin:          'assets/models/graveyard/coffin.glb',
+  crypt:           'assets/models/graveyard/crypt.glb',
+  pine:            'assets/models/graveyard/pine.glb',
 
   // ── Urban / suburban outdoor props ──
   suburban_fence:  'assets/models/outdoor/suburban-fence.glb',
@@ -96,134 +99,7 @@ const MODEL_MAP: Record<string, string> = {
 };
 
 /**
- * Create a mesh from a mesh definition.
- */
-function createMeshFromDefinition(
-  scene: Scene,
-  def: PropMeshDefinition,
-  name: string,
-  interactive: boolean
-): AbstractMesh | null {
-  let mesh: AbstractMesh | null = null;
-  
-  // Create material
-  const mat = new StandardMaterial(`${name}Mat`, scene);
-  if (def.color) {
-    mat.diffuseColor = new Color3(def.color[0], def.color[1], def.color[2]);
-  }
-  if (def.emissive) {
-    mat.emissiveColor = new Color3(def.emissive[0], def.emissive[1], def.emissive[2]);
-  }
-  if (interactive) {
-    // Subtle glow for interactive props
-    mat.emissiveColor = mat.emissiveColor || new Color3(0.05, 0.04, 0.02);
-  }
-  
-  switch (def.type) {
-    case 'box': {
-      const options: { width?: number; height?: number; depth?: number; size?: number } = {};
-      if (def.size) {
-        options.size = def.size;
-      } else {
-        options.width = def.width || 1;
-        options.height = def.height || 1;
-        options.depth = def.depth || 1;
-      }
-      mesh = MeshBuilder.CreateBox(name, options, scene);
-      mesh.material = mat;
-      if (def.yOffset) mesh.position.y = def.yOffset;
-      break;
-    }
-    
-    case 'cylinder': {
-      mesh = MeshBuilder.CreateCylinder(name, {
-        height: def.height || 1,
-        diameter: def.diameter,
-        diameterTop: def.diameterTop,
-        diameterBottom: def.diameterBottom
-      }, scene);
-      mesh.material = mat;
-      if (def.yOffset) mesh.position.y = def.yOffset;
-      break;
-    }
-    
-    case 'composite': {
-      // Create a parent node for composite meshes
-      const root = new TransformNode(name, scene);
-      
-      if (def.parts) {
-        def.parts.forEach((part, i) => {
-          const partMesh = createMeshFromDefinition(scene, part, `${name}_part${i}`, false);
-          if (partMesh) {
-            if (part.position) {
-              partMesh.position.set(part.position[0], part.position[1], part.position[2]);
-            }
-            partMesh.parent = root;
-          }
-        });
-      }
-      
-      // Return the root as AbstractMesh (it's a TransformNode but compatible)
-      mesh = root as unknown as AbstractMesh;
-      break;
-    }
-  }
-  
-  return mesh;
-}
-
-/**
- * Create a prop mesh from data definitions.
- *
- * @param scene - Babylon.js scene
- * @param propType - Type of prop (e.g., 'couch', 'table')
- * @param interactive - Whether this prop can be interacted with
- * @param itemDrop - Optional item ID that this prop drops when interacted with
- * @returns The created mesh, or null if creation failed
- */
-export function createPropMesh(
-  scene: Scene,
-  propType: string,
-  interactive: boolean = false,
-  itemDrop?: string
-): AbstractMesh | null {
-  const definition = getPropDefinition(propType);
-
-  // Create the mesh
-  const mesh = createMeshFromDefinition(scene, definition.mesh, propType, interactive);
-
-  if (!mesh) return null;
-
-  // Tag as interactive for raycasting
-  if (interactive) {
-    mesh.metadata = {
-      interactive: true,
-      propType: propType,
-      isPickable: true,
-      itemDrop: itemDrop
-    };
-    mesh.isPickable = true;
-
-    // Tag child meshes too
-    if ('getChildMeshes' in mesh) {
-      (mesh as AbstractMesh).getChildMeshes().forEach(child => {
-        child.metadata = { interactive: true, propType, isPickable: true, itemDrop };
-        child.isPickable = true;
-      });
-    }
-  }
-
-  return mesh;
-}
-
-// ============================================
-// Async GLB Model Loading
-// ============================================
-
-/**
  * Compute the axis-aligned bounding box extents of a loaded model.
- * Returns { width, height, depth } representing the model's world-space
- * dimensions, and { minY } for ground-plane alignment.
  */
 function measureModelBounds(meshes: AbstractMesh[]): {
   width: number;
@@ -264,131 +140,100 @@ function measureModelBounds(meshes: AbstractMesh[]): {
 }
 
 /**
- * Create a prop mesh asynchronously, loading a GLB model when one is
- * available for the given prop type. Falls back to procedural geometry
- * (createPropMesh) when no model mapping exists or when loading fails.
+ * Load a GLB model for a prop type. Throws on failure — no silent fallbacks.
  *
- * The loaded model is scaled to approximately fit the dimensions
- * specified in the prop definition (props.json), ensuring visual
- * consistency with the collision radii and room layouts.
- *
- * @param scene      - Babylon.js scene
- * @param propType   - Type of prop (e.g., 'couch', 'table')
- * @param interactive - Whether this prop can be interacted with
- * @param itemDrop   - Optional item ID that this prop drops when interacted with
- * @returns The created mesh, or null if creation failed
+ * Every prop type MUST have an entry in MODEL_MAP. If a model file is
+ * missing or fails to load, this function throws so the error is visible
+ * during development and testing.
  */
 export async function createPropMeshAsync(
   scene: Scene,
   propType: string,
   interactive: boolean = false,
   itemDrop?: string
-): Promise<AbstractMesh | null> {
+): Promise<AbstractMesh> {
   const modelPath = MODEL_MAP[propType];
 
-  // No GLB model mapped -- use procedural geometry directly
   if (!modelPath) {
-    return createPropMesh(scene, propType, interactive, itemDrop);
-  }
-
-  try {
-    // Separate directory and filename for SceneLoader
-    const lastSlash = modelPath.lastIndexOf('/');
-    const rootUrl = '/' + modelPath.substring(0, lastSlash + 1);
-    const fileName = modelPath.substring(lastSlash + 1);
-
-    const result = await SceneLoader.ImportMeshAsync('', rootUrl, fileName, scene);
-
-    if (result.meshes.length === 0) {
-      console.warn(`PropFactory: GLB loaded but no meshes found for "${propType}", falling back to procedural.`);
-      return createPropMesh(scene, propType, interactive, itemDrop);
-    }
-
-    // The root mesh from the imported GLB
-    const imported = result.meshes[0];
-
-    // Create a wrapper TransformNode so we can position/rotate/scale
-    // the prop independently of the internal model hierarchy.
-    const root = new TransformNode(`${propType}_glb_root`, scene);
-    imported.parent = root;
-
-    // Ensure all child meshes are visible and receive shadows
-    result.meshes.forEach(m => {
-      m.isVisible = true;
-      m.setEnabled(true);
-      if (m.receiveShadows !== undefined) {
-        m.receiveShadows = true;
-      }
-    });
-
-    // Measure the loaded model's natural bounding box
-    const bounds = measureModelBounds(result.meshes);
-
-    // Get target dimensions from the prop definition
-    const definition = getPropDefinition(propType);
-    const meshDef = definition.mesh;
-
-    // Determine target dimensions from the prop definition.
-    // Composite props use approximate extents from their parts.
-    let targetWidth  = meshDef.width  || meshDef.size || meshDef.diameter || 1;
-    let targetHeight = meshDef.height || meshDef.size || 1;
-    let targetDepth  = meshDef.depth  || meshDef.size || meshDef.diameter || 1;
-
-    // For composite meshes, take a rough maximum from parts
-    if (meshDef.type === 'composite' && meshDef.parts && meshDef.parts.length > 0) {
-      targetWidth = 0;
-      targetHeight = 0;
-      targetDepth = 0;
-      for (const part of meshDef.parts) {
-        targetWidth  = Math.max(targetWidth,  part.width  || part.size || part.diameter || 0.5);
-        targetDepth  = Math.max(targetDepth,  part.depth  || part.size || part.diameter || 0.5);
-        // For height, accumulate the highest point including position offset
-        const partTop = (part.height || part.size || 0.5) + (part.yOffset || 0) + (part.position?.[1] || 0);
-        targetHeight = Math.max(targetHeight, partTop);
-      }
-    }
-
-    // Compute uniform scale so the model fits within the target bounding box.
-    // We use the axis that requires the most reduction to avoid overflow.
-    const scaleX = targetWidth  / bounds.width;
-    const scaleY = targetHeight / bounds.height;
-    const scaleZ = targetDepth  / bounds.depth;
-    const uniformScale = Math.min(scaleX, scaleY, scaleZ);
-
-    imported.scaling.setAll(uniformScale);
-
-    // Align the bottom of the model with y = 0 (ground plane)
-    imported.position.y = -bounds.minY * uniformScale;
-
-    // Tag with interactive metadata
-    if (interactive) {
-      const metadata = {
-        interactive: true,
-        propType: propType,
-        isPickable: true,
-        itemDrop: itemDrop
-      };
-
-      root.metadata = metadata;
-
-      // Tag every child mesh for raycasting
-      result.meshes.forEach(m => {
-        m.metadata = { ...metadata };
-        m.isPickable = true;
-      });
-    }
-
-    // Return the root as AbstractMesh (TransformNode is compatible
-    // via the same pattern used in createMeshFromDefinition for composites)
-    return root as unknown as AbstractMesh;
-
-  } catch (err) {
-    console.warn(
-      `PropFactory: Failed to load GLB for "${propType}" (${modelPath}), falling back to procedural.`,
-      err
+    throw new Error(
+      `PropFactory: No GLB model mapped for prop type "${propType}". ` +
+      `Add an entry to MODEL_MAP in PropFactory.ts.`
     );
-    return createPropMesh(scene, propType, interactive, itemDrop);
   }
+
+  const lastSlash = modelPath.lastIndexOf('/');
+  const rootUrl = '/' + modelPath.substring(0, lastSlash + 1);
+  const fileName = modelPath.substring(lastSlash + 1);
+
+  const result = await SceneLoader.ImportMeshAsync('', rootUrl, fileName, scene);
+
+  if (result.meshes.length === 0) {
+    throw new Error(
+      `PropFactory: GLB loaded but contained no meshes for "${propType}" (${modelPath}).`
+    );
+  }
+
+  const imported = result.meshes[0];
+
+  const root = new TransformNode(`${propType}_glb_root`, scene);
+  imported.parent = root;
+
+  // Ensure all child meshes are visible and receive shadows
+  result.meshes.forEach(m => {
+    m.isVisible = true;
+    m.setEnabled(true);
+    if (m.receiveShadows !== undefined) {
+      m.receiveShadows = true;
+    }
+  });
+
+  // Scale model to fit prop definition dimensions
+  const bounds = measureModelBounds(result.meshes);
+  const definition = getPropDefinition(propType);
+  const meshDef = definition.mesh;
+
+  let targetWidth  = meshDef.width  || meshDef.size || meshDef.diameter || 1;
+  let targetHeight = meshDef.height || meshDef.size || 1;
+  let targetDepth  = meshDef.depth  || meshDef.size || meshDef.diameter || 1;
+
+  if (meshDef.type === 'composite' && meshDef.parts && meshDef.parts.length > 0) {
+    targetWidth = 0;
+    targetHeight = 0;
+    targetDepth = 0;
+    for (const part of meshDef.parts) {
+      targetWidth  = Math.max(targetWidth,  part.width  || part.size || part.diameter || 0.5);
+      targetDepth  = Math.max(targetDepth,  part.depth  || part.size || part.diameter || 0.5);
+      const partTop = (part.height || part.size || 0.5) + (part.yOffset || 0) + (part.position?.[1] || 0);
+      targetHeight = Math.max(targetHeight, partTop);
+    }
+  }
+
+  const scaleX = targetWidth  / bounds.width;
+  const scaleY = targetHeight / bounds.height;
+  const scaleZ = targetDepth  / bounds.depth;
+  const uniformScale = Math.min(scaleX, scaleY, scaleZ);
+
+  imported.scaling.setAll(uniformScale);
+  imported.position.y = -bounds.minY * uniformScale;
+
+  // Tag with interactive metadata
+  if (interactive) {
+    const metadata = {
+      interactive: true,
+      propType: propType,
+      isPickable: true,
+      itemDrop: itemDrop
+    };
+
+    root.metadata = metadata;
+
+    result.meshes.forEach(m => {
+      m.metadata = { ...metadata };
+      m.isPickable = true;
+    });
+  }
+
+  return root as unknown as AbstractMesh;
 }
 
 /**

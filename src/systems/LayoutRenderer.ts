@@ -29,7 +29,7 @@ import {
   GRID_CELL_SIZE
 } from './LayoutGenerator';
 import { createVerticalTransition } from './StageRenderer';
-import { createPropMesh } from './PropFactory';
+import { createPropMeshAsync } from './PropFactory';
 
 // ============================================
 // Types
@@ -136,11 +136,16 @@ function createMaterialSet(scene: Scene, palette: 'normal' | 'basement' | 'horro
 /**
  * Render a GeneratedLayout into Babylon.js scene.
  */
-export function renderLayout(
+export interface RenderLayoutOptions {
+  skipProps?: boolean;
+}
+
+export async function renderLayout(
   scene: Scene,
   layout: GeneratedLayout,
-  shadowGenerator?: ShadowGenerator
-): RenderedLayout {
+  shadowGenerator?: ShadowGenerator,
+  options?: RenderLayoutOptions
+): Promise<RenderedLayout> {
   const root = new TransformNode('layout_root', scene);
   const renderedRooms = new Map<string, RenderedRoom>();
   const renderedConnections: RenderedConnection[] = [];
@@ -177,7 +182,7 @@ export function renderLayout(
     // Get connection directions for wall openings
     const connectionDirections = getConnectionDirections(room, layout, roomConnections.get(roomId) || new Set());
     
-    const rendered = renderRoom(scene, room, mats, connectionDirections, shadowGenerator);
+    const rendered = await renderRoom(scene, room, mats, connectionDirections, shadowGenerator, options?.skipProps);
     rendered.root.parent = root;
     renderedRooms.set(roomId, rendered);
   }
@@ -324,13 +329,14 @@ function getConnectionDirections(
   return directions;
 }
 
-function renderRoom(
+async function renderRoom(
   scene: Scene,
   room: GeneratedRoom,
   mats: MaterialSet,
   connectionDirections: Set<'north' | 'south' | 'east' | 'west' | 'up' | 'down'>,
-  shadowGenerator?: ShadowGenerator
-): RenderedRoom {
+  shadowGenerator?: ShadowGenerator,
+  skipProps?: boolean
+): Promise<RenderedRoom> {
   const roomRoot = new TransformNode(`room_${room.id}`, scene);
   roomRoot.position.set(
     room.worldPosition.x,
@@ -425,11 +431,11 @@ function renderRoom(
     }
   }
   
-  // Props
+  // Props (skipped when GameRenderer creates its own interactive props)
   const props: AbstractMesh[] = [];
-  for (const prop of room.props) {
-    const mesh = createPropMesh(scene, prop.type, true);
-    if (mesh) {
+  if (!skipProps) {
+    for (const prop of room.props) {
+      const mesh = await createPropMeshAsync(scene, prop.type, true);
       mesh.position.set(prop.position.x, 0, prop.position.z);
       mesh.rotation.y = prop.rotation;
       mesh.parent = roomRoot;

@@ -9,6 +9,7 @@ import {
   PlayerState,
   RoomConfig
 } from '../types/game';
+import type { GeneratedLayout } from '../systems/LayoutGenerator';
 import { generateWorldSeed } from '../utils/worldGenerator';
 import { getStartingStage, getNextStage } from '../data';
 import { getStoryManager, resetStoryManager, StoryState } from '../systems/StoryManager';
@@ -32,6 +33,8 @@ export interface RPGGameState {
   currentStageId: string | null;
   currentStageDefinition: Record<string, unknown> | null;
   currentRoom: RoomConfig | null;
+  layout: GeneratedLayout | null;
+  allRoomConfigs: Map<string, RoomConfig> | null;
   player: PlayerState;
   opponentPosition: { x: number; y: number; z: number };
   opponentRotation: number;
@@ -72,6 +75,8 @@ export function useRPGGameState() {
     currentStageId: null,
     currentStageDefinition: null,
     currentRoom: null,
+    layout: null,
+    allRoomConfigs: null,
     player: DEFAULT_PLAYER,
     opponentPosition: { x: 0, y: 0, z: -2 },
     opponentRotation: Math.PI,
@@ -161,6 +166,8 @@ export function useRPGGameState() {
       currentStageId: stageId,
       currentStageDefinition: null,
       currentRoom: startRoom,
+      layout: game.layout,
+      allRoomConfigs: game.allRoomConfigs,
       player: {
         ...DEFAULT_PLAYER,
         position: { x: 0, y: 0, z: 2 },
@@ -255,6 +262,8 @@ export function useRPGGameState() {
       currentStageId: stageId,
       currentStageDefinition: null,
       currentRoom: room,
+      layout: game.layout,
+      allRoomConfigs: game.allRoomConfigs,
       player: {
         ...DEFAULT_PLAYER,
         position: save.playerPosition,
@@ -336,6 +345,8 @@ export function useRPGGameState() {
       currentRoom: null,
       currentStageId: null,
       currentStageDefinition: null,
+      layout: null,
+      allRoomConfigs: null,
       selectedCharacter: null,
       worldSeed: null
     }));
@@ -379,6 +390,8 @@ export function useRPGGameState() {
       currentStageId: nextStageId,
       currentStageDefinition: null,
       currentRoom: startRoom,
+      layout: game.layout,
+      allRoomConfigs: game.allRoomConfigs,
       player: {
         ...prev.player,
         position: { x: 0, y: 0, z: 2 },
@@ -437,7 +450,37 @@ export function useRPGGameState() {
     });
   }, []);
 
-  // Room transitions — uses GameInstance to move between stage scenes
+  // Layout-based room change — fired when player walks into a new room
+  const handleRoomChange = useCallback((roomId: string) => {
+    const game = gameInstanceRef.current;
+    if (!game) return;
+
+    const previousSceneId = game.currentSceneId;
+
+    // Fire scene_exit trigger for the room we're leaving
+    getStoryManager().checkTrigger('scene_exit', { sceneId: previousSceneId });
+
+    // Update game instance tracking
+    game.transitionTo(roomId);
+
+    // Look up the RoomConfig for HUD display
+    const roomConfig = game.allRoomConfigs.get(roomId);
+    if (!roomConfig) return;
+
+    setState(prev => ({
+      ...prev,
+      currentRoom: roomConfig,
+      player: {
+        ...prev.player,
+        currentRoom: roomId
+      }
+    }));
+
+    // Fire scene_enter story trigger for the new room
+    getStoryManager().checkTrigger('scene_enter', { sceneId: roomId });
+  }, []);
+
+  // Room transitions — uses GameInstance to move between stage scenes (fallback for single-room mode)
   const transitionToRoom = useCallback((roomId: string, entryDirection: 'north' | 'south' | 'east' | 'west') => {
     const game = gameInstanceRef.current;
     if (!game) return;
@@ -485,6 +528,7 @@ export function useRPGGameState() {
     togglePause,
     returnToMainMenu,
     transitionToRoom,
+    handleRoomChange,
     addToInventory,
     removeFromInventory,
     hasItem,

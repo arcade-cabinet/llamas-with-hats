@@ -1,16 +1,17 @@
 /**
- * GameRenderer - 3D rendering component for gameplay
- * ==================================================
- * 
- * Handles Babylon.js scene rendering with collision detection and interaction support.
- * 
+ * GameRenderer - Layout-based 3D rendering component
+ * ===================================================
+ *
+ * Renders the full multi-room layout using LayoutRenderer. Players walk
+ * seamlessly between rooms — no scene rebuild on room transitions.
+ *
  * ## Interaction Model
- * 
+ *
  * Interactions work via direct click/tap on objects:
  * - **Desktop**: Click on interactive objects with mouse
  * - **Mobile**: Tap on interactive objects
  * - **Keyboard fallback**: Press E when near an object
- * 
+ *
  * Raycasting is used to detect which object was clicked/tapped.
  * Interactive props are marked in the mesh metadata.
  */
@@ -31,47 +32,47 @@ import {
   PointerEventTypes,
 } from '@babylonjs/core';
 import {
-  getTexturesForRoom,
-  createFloorMaterial,
-  createWallMaterial,
   clearTextureCache,
 } from '../../systems/TextureLoader';
 import { CharacterType, RoomConfig } from '../../types/game';
 import { createCharacter, Character } from '../../systems/Character';
 import { createGameCamera, getViewportSize, GameCamera, ViewportSize } from '../../systems/Camera';
-import { 
-  createCollisionSystem, 
-  createCollidersFromProps, 
-  CollisionSystem 
+import {
+  createCollisionSystem,
+  createCollidersFromProps,
+  CollisionSystem
 } from '../../systems/CollisionSystem';
-import { 
-  createInteractionSystem, 
+import {
+  createInteractionSystem,
   InteractionSystem,
-  InteractionState 
+  InteractionState
 } from '../../systems/InteractionSystem';
 import { createPropMeshAsync } from '../../systems/PropFactory';
-import { 
-  createCharacterNavigator, 
-  CharacterNavigator 
+import {
+  createCharacterNavigator,
+  CharacterNavigator
 } from '../../systems/CharacterNavigator';
-import { 
-  createEffectsManager, 
-  EffectsManager 
+import {
+  createEffectsManager,
+  EffectsManager
 } from '../../systems/EffectsManager';
-import { 
-  getAudioManager, 
+import {
+  getAudioManager,
   AudioManager,
-  SoundEffects 
+  SoundEffects
 } from '../../systems/AudioManager';
-import { 
-  getStoryManager, 
-  StoryManager 
+import {
+  getStoryManager,
+  StoryManager
 } from '../../systems/StoryManager';
 import {
   getAtmosphereManager,
   AtmosphereManager,
   AtmospherePreset
 } from '../../systems/AtmosphereManager';
+import { renderLayout, RenderedLayout } from '../../systems/LayoutRenderer';
+import type { GeneratedLayout } from '../../systems/LayoutGenerator';
+import { GameBridge } from '../../utils/gameBridge';
 
 interface GameRendererProps {
   playerCharacter: CharacterType;
@@ -83,8 +84,6 @@ interface GameRendererProps {
   onPlayerMove: (x: number, y: number, z: number, rotation: number) => void;
   onRoomTransition: (roomId: string, direction: 'north' | 'south' | 'east' | 'west') => void;
   isPaused: boolean;
-  // Adjacent rooms for rendering context on larger screens
-  adjacentRooms?: RoomConfig[];
   // Interaction callbacks
   onDialogue?: (lines: string[], speaker: 'carl' | 'paul') => void;
   onInteractionStateChange?: (state: InteractionState) => void;
@@ -104,6 +103,13 @@ interface GameRendererProps {
   dramaticZoom?: boolean;
   // Stage completion callback
   onStageComplete?: () => void;
+  // Dev AI mode — player positioned from props, skip manual input
+  devAIEnabled?: boolean;
+  // Layout-based rendering (required — layout must always exist)
+  layout: GeneratedLayout;
+  allRoomConfigs: Map<string, RoomConfig>;
+  seed?: string;
+  onRoomChange?: (roomId: string) => void;
 }
 
 export const GameRenderer: React.FC<GameRendererProps> = ({
@@ -114,9 +120,8 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
   opponentPosition,
   opponentRotation,
   onPlayerMove,
-  onRoomTransition,
+  onRoomTransition: _onRoomTransition,
   isPaused,
-  adjacentRooms: _adjacentRooms = [],
   onDialogue,
   onInteractionStateChange,
   onItemPickup,
@@ -127,7 +132,12 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
   screenShake = false,
   bloodSplatter = false,
   dramaticZoom = false,
-  onStageComplete
+  onStageComplete,
+  devAIEnabled = false,
+  layout,
+  allRoomConfigs,
+  seed: _seed,
+  onRoomChange
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<Engine | null>(null);
@@ -136,33 +146,37 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
   const opponentRef = useRef<Character | null>(null);
   const gameCameraRef = useRef<GameCamera | null>(null);
   const viewportSizeRef = useRef<ViewportSize>('desktop');
-  
+
   // Collision and interaction systems
   const collisionSystemRef = useRef<CollisionSystem | null>(null);
   const interactionSystemRef = useRef<InteractionSystem | null>(null);
-  
+
   // Player pathfinding for tap-to-move
   const playerNavigatorRef = useRef<CharacterNavigator | null>(null);
-  
+
   // Visual and audio effects
   const effectsManagerRef = useRef<EffectsManager | null>(null);
   const audioManagerRef = useRef<AudioManager | null>(null);
   const storyManagerRef = useRef<StoryManager | null>(null);
   const atmosphereManagerRef = useRef<AtmosphereManager | null>(null);
 
+  // Layout rendering
+  const renderedLayoutRef = useRef<RenderedLayout | null>(null);
+
   // Keep a ref to latest props so the render loop always reads fresh values
-  // instead of stale closures from useEffect mount time (H-2 fix)
   const propsRef = useRef({
     isPaused, opponentPosition, opponentRotation, playerInventory,
-    playerCharacter, onPlayerMove, onRoomTransition, onDialogue,
+    playerCharacter, onPlayerMove, onDialogue,
     onUnlockExit, onLockedDoor, onItemPickup, onInteractionStateChange,
-    currentRoom, onStageComplete,
+    currentRoom, onStageComplete, devAIEnabled, playerPosition, playerRotation,
+    onRoomChange,
   });
   propsRef.current = {
     isPaused, opponentPosition, opponentRotation, playerInventory,
-    playerCharacter, onPlayerMove, onRoomTransition, onDialogue,
+    playerCharacter, onPlayerMove, onDialogue,
     onUnlockExit, onLockedDoor, onItemPickup, onInteractionStateChange,
-    currentRoom, onStageComplete,
+    currentRoom, onStageComplete, devAIEnabled, playerPosition, playerRotation,
+    onRoomChange,
   };
 
   // Handle interaction callback
@@ -172,20 +186,19 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
       interaction.interact(playerCharacter);
     }
   }, [playerCharacter]);
-  
-  // Expose interaction handler globally for input system
-  // Namespaced to __lwh_ to avoid collisions with other scripts
+
+  // Expose interaction handler via GameBridge for input system
   useEffect(() => {
-    (window as any).__lwh_gameInteract = handleInteraction;
+    GameBridge.setInteractionHandler(handleInteraction);
     return () => {
-      delete (window as any).__lwh_gameInteract;
+      GameBridge.clearInteractionHandler();
     };
   }, [handleInteraction]);
-  
+
   // ─────────────────────────────────────────────────────────────────────────────
   // EFFECT TRIGGERS FROM GAME STATE
   // ─────────────────────────────────────────────────────────────────────────────
-  
+
   // Screen shake effect
   useEffect(() => {
     if (screenShake && effectsManagerRef.current) {
@@ -193,7 +206,7 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
       audioManagerRef.current?.playSound(SoundEffects.SCREAM);
     }
   }, [screenShake]);
-  
+
   // Blood splatter effect
   useEffect(() => {
     if (bloodSplatter && effectsManagerRef.current && playerRef.current) {
@@ -202,74 +215,173 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
       audioManagerRef.current?.playSound(SoundEffects.BLOOD_SPLATTER);
     }
   }, [bloodSplatter]);
-  
+
   // Dramatic zoom effect
   useEffect(() => {
     if (dramaticZoom && effectsManagerRef.current) {
       effectsManagerRef.current.zoomCamera(0.6, 500, 1000);
     }
   }, [dramaticZoom]);
-  
+
   // Atmosphere preset changes
   useEffect(() => {
     if (atmosphereManagerRef.current) {
       atmosphereManagerRef.current.setPreset(atmospherePreset, 1500);
     }
   }, [atmospherePreset]);
-  
-  // Room transition - trigger story beats and atmosphere when entering new rooms
-  useEffect(() => {
-    if (currentRoom?.id) {
-      // Check for scene_enter story triggers
-      storyManagerRef.current?.checkTrigger('scene_enter', { sceneId: currentRoom.id });
-      
-      // Play door sound on room transitions
-      audioManagerRef.current?.playSound(SoundEffects.DOOR_OPEN);
-    }
-  }, [currentRoom?.id]);
-  
-  // Initialize scene
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // MAIN SCENE INITIALIZATION — Layout-based multi-room rendering
+  // ─────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!canvasRef.current) return;
-    
+    if (!layout || !allRoomConfigs) {
+      throw new Error('GameRenderer requires layout and allRoomConfigs — layout generation failed upstream');
+    }
+
     const engine = new Engine(canvasRef.current, true, {
       preserveDrawingBuffer: true,
       stencil: true,
       adaptToDeviceRatio: true
     });
     engineRef.current = engine;
-    
+
     const scene = new Scene(engine);
     sceneRef.current = scene;
-    scene.clearColor = new Color4(0.08, 0.05, 0.03, 1);
-    
+    scene.clearColor = new Color4(0.05, 0.03, 0.03, 1);
+
     // Initialize collision system
     const collisionSystem = createCollisionSystem();
     collisionSystemRef.current = collisionSystem;
-    
-    // Set room bounds for collision
-    const hw = currentRoom.width / 2 - 0.5;
-    const hh = currentRoom.height / 2 - 0.5;
-    collisionSystem.setRoomBounds({
-      minX: -hw,
-      maxX: hw,
-      minZ: -hh,
-      maxZ: hh
-    });
-    
-    // Add prop colliders
-    const propColliders = createCollidersFromProps(currentRoom.props, currentRoom.id);
-    propColliders.forEach(collider => collisionSystem.addProp(collider));
-    
+
+    // Set room bounds to full layout extent (no single-room clamping)
+    const layoutBounds = getLayoutBounds(layout);
+    collisionSystem.setRoomBounds(layoutBounds);
+
     // Initialize interaction system
     const interactionSystem = createInteractionSystem();
     interactionSystemRef.current = interactionSystem;
     interactionSystem.setCollisionSystem(collisionSystem);
-    
+
     // Track prop meshes by type for removal on pickup
     const propMeshMap = new Map<string, AbstractMesh>();
 
-    // Set up interaction callbacks
+    // ─────────────────────────────────────────────────────────────────────────
+    // LIGHTING
+    // ─────────────────────────────────────────────────────────────────────────
+    const ambient = new HemisphericLight('ambient', new Vector3(0, 1, 0), scene);
+    ambient.intensity = 1.0;
+    ambient.groundColor = new Color3(0.25, 0.2, 0.18);
+
+    const sun = new DirectionalLight('sun', new Vector3(-0.5, -1, -0.5), scene);
+    sun.intensity = 1.2;
+    sun.position = new Vector3(8, 12, 8);
+
+    scene.environmentIntensity = 1.0;
+
+    const shadowGen = new ShadowGenerator(1024, sun);
+    shadowGen.useBlurExponentialShadowMap = true;
+    shadowGen.blurKernel = 16;
+    shadowGen.darkness = 0.4;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // RENDER LAYOUT GEOMETRY (floors, walls, connections — NO props)
+    // ─────────────────────────────────────────────────────────────────────────
+    renderLayout(scene, layout, shadowGen, { skipProps: true }).then(renderedLayout => {
+      renderedLayoutRef.current = renderedLayout;
+    }).catch(err => {
+      console.error('[GameRenderer] Failed to render layout:', err);
+    });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // CREATE INTERACTIVE PROPS FROM allRoomConfigs (with world-space positions)
+    // ─────────────────────────────────────────────────────────────────────────
+    for (const [roomId, roomConfig] of allRoomConfigs) {
+      const genRoom = layout.rooms.get(roomId);
+      if (!genRoom) continue;
+
+      const worldX = genRoom.worldPosition.x;
+      const worldZ = genRoom.worldPosition.z;
+
+      // Create prop colliders offset to world coordinates
+      const propColliders = createCollidersFromProps(roomConfig.props, roomId);
+      for (const collider of propColliders) {
+        collider.bounds.minX += worldX;
+        collider.bounds.maxX += worldX;
+        collider.bounds.minZ += worldZ;
+        collider.bounds.maxZ += worldZ;
+        collisionSystem.addProp(collider);
+      }
+
+      // Create prop meshes in world space
+      for (const prop of roomConfig.props) {
+        createPropMeshAsync(scene, prop.type, prop.interactive, prop.itemDrop).then(mesh => {
+          if (mesh) {
+            mesh.position.set(worldX + prop.position.x, 0, worldZ + prop.position.z);
+            mesh.rotation.y = prop.rotation;
+            mesh.scaling.setAll(prop.scale);
+            if (mesh instanceof AbstractMesh) {
+              shadowGen.addShadowCaster(mesh);
+            } else if ('getChildMeshes' in mesh) {
+              (mesh as TransformNode).getChildMeshes().forEach(child => {
+                shadowGen.addShadowCaster(child);
+                child.receiveShadows = true;
+              });
+            }
+            if (prop.itemDrop) {
+              propMeshMap.set(prop.itemDrop, mesh);
+            }
+          }
+        });
+      }
+
+      // Place locked door barriers at doorway positions
+      for (const exit of roomConfig.exits) {
+        if (exit.locked && exit.id) {
+          const doorWorldX = worldX + exit.position.x;
+          const doorWorldZ = worldZ + exit.position.z;
+          collisionSystem.addProp({
+            id: `lock_${exit.id}`,
+            type: 'lock',
+            bounds: {
+              minX: doorWorldX - 1.0,
+              maxX: doorWorldX + 1.0,
+              minZ: doorWorldZ - 1.0,
+              maxZ: doorWorldZ + 1.0
+            },
+            solid: true,
+            interactable: false,
+          });
+
+          // Visual lock marker
+          const lockMarker = MeshBuilder.CreateBox(`lock_marker_${exit.id}`, {
+            width: 1.5, height: 0.05, depth: 1.5
+          }, scene);
+          const lockMat = new StandardMaterial(`lockMat_${exit.id}`, scene);
+          lockMat.diffuseColor = new Color3(0.5, 0.15, 0.15);
+          lockMat.emissiveColor = new Color3(0.2, 0.05, 0.05);
+          lockMat.alpha = 0.5;
+          lockMarker.material = lockMat;
+          lockMarker.position.set(doorWorldX, 0.03, doorWorldZ);
+
+          const lockIcon = MeshBuilder.CreateBox(`lock_icon_${exit.id}`, {
+            width: 0.25, height: 0.4, depth: 0.15
+          }, scene);
+          const lockIconMat = new StandardMaterial(`lockIconMat_${exit.id}`, scene);
+          lockIconMat.diffuseColor = new Color3(0.6, 0.4, 0.1);
+          lockIconMat.emissiveColor = new Color3(0.15, 0.1, 0.02);
+          lockIcon.material = lockIconMat;
+          lockIcon.position.set(doorWorldX, 0.6, doorWorldZ);
+        }
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // INTERACTION CALLBACKS
+    // ─────────────────────────────────────────────────────────────────────────
+    const audioManager = getAudioManager();
+    audioManagerRef.current = audioManager;
+
     interactionSystem.setCallbacks({
       onDialogue: (lines, speaker) => {
         propsRef.current.onDialogue?.(lines, speaker);
@@ -296,45 +408,30 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
         propsRef.current.onUnlockExit?.(lockId);
       }
     });
-    
-    // ─────────────────────────────────────────────────────────────────────────────
+
+    // ─────────────────────────────────────────────────────────────────────────
     // PLAYER NAVIGATOR FOR TAP-TO-MOVE
-    // ─────────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
     const playerNavigator = createCharacterNavigator({
       startX: playerPosition.x,
       startZ: playerPosition.z,
-      bounds: {
-        minX: -hw,
-        maxX: hw,
-        minZ: -hh,
-        maxZ: hh
-      },
+      bounds: layoutBounds,
       maxSpeed: 4,
-      obstacles: propColliders
+      obstacles: collisionSystem.getAllColliders()
     });
     playerNavigatorRef.current = playerNavigator;
-    
-    // ─────────────────────────────────────────────────────────────────────────────
-    // CLICK/TAP HANDLING - INTERACTIONS AND TAP-TO-MOVE
-    // ─────────────────────────────────────────────────────────────────────────────
-    // 
-    // Desktop: Click on objects to interact, click on ground to move
-    // Mobile: Tap on objects to interact, tap on ground to move
-    // Uses raycasting to detect what was clicked/tapped
-    // ─────────────────────────────────────────────────────────────────────────────
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // CLICK/TAP HANDLING
+    // ─────────────────────────────────────────────────────────────────────────
     scene.onPointerObservable.add((pointerInfo) => {
-      // Only handle pointer up (click/tap release) to avoid double-triggering
-      if (pointerInfo.type !== PointerEventTypes.POINTERUP) {
-        return;
-      }
-      
-      // Use scene.pick to raycast from pointer position
+      if (pointerInfo.type !== PointerEventTypes.POINTERUP) return;
+
       const pickResult = scene.pick(scene.pointerX, scene.pointerY);
-      
+
       if (pickResult?.hit && pickResult.pickedMesh) {
         const mesh = pickResult.pickedMesh;
-        
-        // Check if this mesh or its parent has interactive metadata
+
         let propType: string | null = null;
         let itemDrop: string | undefined = undefined;
 
@@ -351,43 +448,32 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
         } else if (pickResult.pickedPoint) {
           const point = pickResult.pickedPoint;
           const meshName = mesh.name.toLowerCase();
-
           if (meshName.includes('floor') || meshName.includes('ground') || meshName.includes('rug')) {
             playerNavigator.moveTo(point.x, point.z);
           }
         }
       }
     });
-    
-    // Determine viewport size from canvas
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // CAMERA
+    // ─────────────────────────────────────────────────────────────────────────
     const canvas = canvasRef.current;
     const initialViewport = getViewportSize(canvas.clientWidth, canvas.clientHeight);
     viewportSizeRef.current = initialViewport;
-    
-    // Fixed isometric-style camera (no user rotation)
+
     const gameCamera = createGameCamera(scene, initialViewport);
     gameCameraRef.current = gameCamera;
     gameCamera.setTarget(playerPosition.x, playerPosition.z);
-    
-    // ─────────────────────────────────────────────────────────────────────────────
+
+    // ─────────────────────────────────────────────────────────────────────────
     // EFFECTS, AUDIO, ATMOSPHERE, AND STORY MANAGERS
-    // ─────────────────────────────────────────────────────────────────────────────
-    
-    // Initialize effects manager with scene and camera (for shake, zoom, particles)
+    // ─────────────────────────────────────────────────────────────────────────
     const effectsManager = createEffectsManager(scene, gameCamera.camera);
     effectsManagerRef.current = effectsManager;
-    
-    // Initialize audio manager (singleton) - init() must be called after user interaction
-    const audioManager = getAudioManager();
-    audioManagerRef.current = audioManager;
-    
-    // Initialize Tone.js context (safe to call multiple times)
-    audioManager.init().catch(() => {
-      // Audio init may fail before user interaction (browser autoplay policy)
-      // Tone.js will resume automatically on first user gesture
-    });
-    
-    // Initialize atmosphere manager (controls fog, lighting, ambient audio)
+
+    audioManager.init().catch(() => {});
+
     const atmosphereManager = getAtmosphereManager();
     atmosphereManagerRef.current = atmosphereManager;
     atmosphereManager.applyToScene(scene);
@@ -397,21 +483,16 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
       crossfadeMusic: (track, opts) => audioManager.crossfadeMusic(track, opts),
       playSound: (id, opts) => audioManager.playSound(id, opts),
     });
-
-    // Set initial atmosphere from prop or default to cozy
     atmosphereManager.setPreset(atmospherePreset, 0);
-    
-    // Initialize story manager (singleton)
+
     const storyManager = getStoryManager();
     storyManagerRef.current = storyManager;
-    
-    // Set up story callbacks — wires story consequences to game systems
+
     storyManager.setCallbacks({
       onDialogue: (lines, speaker) => {
         propsRef.current.onDialogue?.(lines, speaker);
       },
       onHorrorChange: (newLevel, _delta) => {
-        // Map horror level (0-10) to atmosphere presets
         let preset: AtmospherePreset = 'cozy';
         if (newLevel >= 8) preset = 'panic';
         else if (newLevel >= 6) preset = 'dread';
@@ -422,31 +503,23 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
       onUnlock: (lockId) => {
         audioManager.playSound(SoundEffects.DOOR_UNLOCK);
         propsRef.current.onUnlockExit?.(lockId);
-        // Also remove any barrier collider that matches the lock id
-        if (collisionSystem) {
-          collisionSystem.removeProp(`lock_${lockId}`);
-        }
+        collisionSystem.removeProp(`lock_${lockId}`);
       },
       onLock: (lockId) => {
-        // Re-lock an exit (visual + collision barrier)
-        if (collisionSystem) {
-          collisionSystem.addProp({
-            id: `lock_${lockId}`,
-            type: 'lock',
-            bounds: { minX: -0.5, maxX: 0.5, minZ: -0.5, maxZ: 0.5 },
-            solid: true,
-            interactable: false,
-          });
-        }
+        collisionSystem.addProp({
+          id: `lock_${lockId}`,
+          type: 'lock',
+          bounds: { minX: -0.5, maxX: 0.5, minZ: -0.5, maxZ: 0.5 },
+          solid: true,
+          interactable: false,
+        });
       },
       onSpawn: (entityId, position) => {
-        // Spawn a new prop into the scene at the given position
         const spawnX = position?.x ?? 0;
         const spawnZ = position?.z ?? 0;
         createPropMeshAsync(scene, entityId, true, entityId).then(mesh => {
           if (mesh) {
             mesh.position.set(spawnX, 0, spawnZ);
-            // Add shadow support
             if (mesh instanceof AbstractMesh) {
               shadowGen.addShadowCaster(mesh);
             } else if ('getChildMeshes' in mesh) {
@@ -455,31 +528,22 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
                 child.receiveShadows = true;
               });
             }
-            // Track for later despawn/pickup
             propMeshMap.set(entityId, mesh);
-            // Add collision
-            if (collisionSystem) {
-              const r = 0.4;
-              collisionSystem.addProp({
-                id: entityId,
-                type: entityId,
-                bounds: { minX: spawnX - r, maxX: spawnX + r, minZ: spawnZ - r, maxZ: spawnZ + r },
-                solid: false,
-                interactable: true,
-                itemDrop: entityId,
-              });
-            }
-            // Sparkle effect at spawn point
+            const r = 0.4;
+            collisionSystem.addProp({
+              id: entityId,
+              type: entityId,
+              bounds: { minX: spawnX - r, maxX: spawnX + r, minZ: spawnZ - r, maxZ: spawnZ + r },
+              solid: false,
+              interactable: true,
+              itemDrop: entityId,
+            });
             effectsManager.spawnSparkles(new Vector3(spawnX, 0.5, spawnZ));
           }
         });
       },
       onDespawn: (entityId) => {
-        // Remove collision
-        if (collisionSystem) {
-          collisionSystem.removeProp(entityId);
-        }
-        // Remove the visual mesh from the scene
+        collisionSystem.removeProp(entityId);
         const mesh = propMeshMap.get(entityId);
         if (mesh) {
           mesh.dispose();
@@ -498,12 +562,13 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
               (params?.duration as number) ?? 500
             );
             break;
-          case 'blood_splatter':
+          case 'blood_splatter': {
             const pos = params?.position as { x: number; y: number; z: number } | undefined;
             effectsManager.spawnBloodSplatter(
               new Vector3(pos?.x ?? 0, pos?.y ?? 1, pos?.z ?? 0)
             );
             break;
+          }
           case 'dramatic_zoom':
             effectsManager.zoomCamera(
               (params?.factor as number) ?? 0.6,
@@ -511,61 +576,35 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
               (params?.hold as number) ?? 1000
             );
             break;
-          case 'atmosphere':
-            // Atmosphere transitions from story triggers
+          case 'atmosphere': {
             const preset = params?.preset as AtmospherePreset | undefined;
             if (preset) {
               atmosphereManager.setPreset(preset, (params?.duration as number) ?? 1000);
             }
             break;
-          case 'atmosphere_pulse':
-            // Temporary atmosphere spike
+          }
+          case 'atmosphere_pulse': {
             const pulsePreset = params?.preset as AtmospherePreset | undefined;
             if (pulsePreset) {
               atmosphereManager.pulse(pulsePreset, (params?.duration as number) ?? 2000);
             }
             break;
+          }
         }
       },
       onSound: (soundId) => {
         audioManager.playSound(soundId);
       },
     });
-    
-    // Set character path for story (Carl = 'order', Paul = 'chaos')
+
     storyManager.setCharacterPath(playerCharacter === 'carl' ? 'order' : 'chaos');
-    
-    // Trigger scene enter for story beats
     storyManager.checkTrigger('scene_enter', { sceneId: currentRoom.id });
-    
-    // Lighting — PBR materials are energy-conserving and need higher
-    // intensity than legacy StandardMaterial to avoid a dark scene.
-    const ambient = new HemisphericLight('ambient', new Vector3(0, 1, 0), scene);
-    ambient.intensity = 1.0;
-    ambient.groundColor = new Color3(0.25, 0.2, 0.18);
 
-    const sun = new DirectionalLight('sun', new Vector3(-0.5, -1, -0.5), scene);
-    sun.intensity = 1.2;
-    sun.position = new Vector3(8, 12, 8);
-
-    // Environment intensity helps PBR materials receive indirect illumination
-    scene.environmentIntensity = 1.0;
-    
-    // Shadows
-    const shadowGen = new ShadowGenerator(1024, sun);
-    shadowGen.useBlurExponentialShadowMap = true;
-    shadowGen.blurKernel = 16;
-    shadowGen.darkness = 0.4;
-    
-    // Create room (propMeshMap populated for pickup removal)
-    // Room creation is async because it loads GLB models for props
-    createRoom(scene, currentRoom, shadowGen, propMeshMap).catch(err => {
-      console.error('Failed to create room:', err);
-    });
-    
-    // Tap-to-move destination marker
+    // ─────────────────────────────────────────────────────────────────────────
+    // TAP-TO-MOVE DESTINATION MARKER
+    // ─────────────────────────────────────────────────────────────────────────
     const destMarker = MeshBuilder.CreateDisc('tapDestination', { radius: 0.3, tessellation: 32 }, scene);
-    destMarker.rotation.x = Math.PI / 2; // Lay flat
+    destMarker.rotation.x = Math.PI / 2;
     destMarker.position.y = 0.05;
     destMarker.isVisible = false;
     const destMarkerMat = new StandardMaterial('destMarkerMat', scene);
@@ -573,13 +612,13 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
     destMarkerMat.emissiveColor = new Color3(0.2, 0.5, 0.2);
     destMarkerMat.alpha = 0.6;
     destMarker.material = destMarkerMat;
-    
-    // Pulse animation for destination marker
     let markerPulse = 0;
-    
-    // Create characters using unified Character system
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // CHARACTERS
+    // ─────────────────────────────────────────────────────────────────────────
     const opponentChar = playerCharacter === 'carl' ? 'paul' : 'carl';
-    
+
     createCharacter({
       scene,
       type: playerCharacter,
@@ -590,7 +629,7 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
     }).then(character => {
       playerRef.current = character;
     });
-    
+
     createCharacter({
       scene,
       type: opponentChar,
@@ -601,144 +640,134 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
     }).then(character => {
       opponentRef.current = character;
     });
-    
-    // Game loop
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // GAME LOOP
+    // ─────────────────────────────────────────────────────────────────────────
     let lastTime = performance.now();
     let lastInteractionState: InteractionState | null = null;
-    
+    let currentTrackedRoom = currentRoom.id;
+
     engine.runRenderLoop(() => {
       if (propsRef.current.isPaused) {
         scene.render();
         return;
       }
-      
+
       const now = performance.now();
       const dt = (now - lastTime) / 1000;
       lastTime = now;
-      
+
       const player = playerRef.current;
       const opponent = opponentRef.current;
-      
-      // Player movement with collision detection
+      const rl = renderedLayoutRef.current;
+
+      // Player movement
       if (player && collisionSystemRef.current) {
-        // Poll input from unified controller (keyboard/gesture/gamepad)
-        const getInput = (window as any).__lwh_gameGetInput;
-        const manualInput = getInput ? getInput() : { x: 0, z: 0 };
-        const hasManualInput = manualInput.x !== 0 || manualInput.z !== 0;
-        
-        // Get tap-to-move input from navigator
-        const navigator = playerNavigatorRef.current;
-        let navInput = { x: 0, z: 0 };
-        
-        if (navigator) {
-          // Manual input cancels tap-to-move
-          if (hasManualInput && navigator.getMode() === 'moveTo') {
-            navigator.idle();
-            destMarker.isVisible = false;
-          }
-          
-          // Update navigator with current player position
-          navigator.setPosition(player.root.position.x, player.root.position.z);
-          
-          // Get navigator's movement if active
-          if (navigator.getMode() === 'moveTo') {
-            navigator.update(dt);
-            // Convert navigator velocity to input direction
-            const pos = navigator.getPosition();
-            const state = navigator.getState();
-            if (state.targetX !== undefined && state.targetZ !== undefined && !state.arrived) {
-              const dx = state.targetX - pos.x;
-              const dz = state.targetZ - pos.z;
-              const dist = Math.sqrt(dx * dx + dz * dz);
-              if (dist > 0.1) {
-                navInput.x = dx / dist;
-                navInput.z = dz / dist;
+        if (propsRef.current.devAIEnabled) {
+          // ── DEV AI MODE: position from props ──
+          const pp = propsRef.current.playerPosition;
+          player.setPosition(pp.x, 0, pp.z);
+          player.setTargetRotation(propsRef.current.playerRotation);
+        } else {
+          // ── NORMAL MODE: poll input from unified controller ──
+          const manualInput = GameBridge.getInput() ?? { x: 0, z: 0 };
+          const hasManualInput = manualInput.x !== 0 || manualInput.z !== 0;
+
+          const navigator = playerNavigatorRef.current;
+          let navInput = { x: 0, z: 0 };
+
+          if (navigator) {
+            if (hasManualInput && navigator.getMode() === 'moveTo') {
+              navigator.idle();
+              destMarker.isVisible = false;
+            }
+
+            navigator.setPosition(player.root.position.x, player.root.position.z);
+
+            if (navigator.getMode() === 'moveTo') {
+              navigator.update(dt);
+              const pos = navigator.getPosition();
+              const state = navigator.getState();
+              if (state.targetX !== undefined && state.targetZ !== undefined && !state.arrived) {
+                const dx = state.targetX - pos.x;
+                const dz = state.targetZ - pos.z;
+                const dist = Math.sqrt(dx * dx + dz * dz);
+                if (dist > 0.1) {
+                  navInput.x = dx / dist;
+                  navInput.z = dz / dist;
+                }
+                destMarker.isVisible = true;
+                destMarker.position.x = state.targetX;
+                destMarker.position.z = state.targetZ;
+                markerPulse += dt * 4;
+                const scale = 0.8 + Math.sin(markerPulse) * 0.2;
+                destMarker.scaling.setAll(scale);
+                destMarkerMat.alpha = 0.4 + Math.sin(markerPulse) * 0.2;
+              } else {
+                destMarker.isVisible = false;
               }
-              
-              // Show and update destination marker
-              destMarker.isVisible = true;
-              destMarker.position.x = state.targetX;
-              destMarker.position.z = state.targetZ;
-              
-              // Pulse animation
-              markerPulse += dt * 4;
-              const scale = 0.8 + Math.sin(markerPulse) * 0.2;
-              destMarker.scaling.setAll(scale);
-              destMarkerMat.alpha = 0.4 + Math.sin(markerPulse) * 0.2;
             } else {
               destMarker.isVisible = false;
             }
-          } else {
-            destMarker.isVisible = false;
           }
-        }
-        
-        // Use manual input if present, otherwise use navigator input
-        const input = hasManualInput ? manualInput : navInput;
-        const speed = 4;
-        
-        if (input.x !== 0 || input.z !== 0) {
-          const len = Math.sqrt(input.x * input.x + input.z * input.z);
-          const nx = input.x / len;
-          const nz = input.z / len;
-          
-          const fromX = player.root.position.x;
-          const fromZ = player.root.position.z;
-          let toX = fromX + nx * speed * dt;
-          let toZ = fromZ + nz * speed * dt;
-          
-          // Check collision with props
-          const moveResult = collisionSystemRef.current.checkMovement(
-            fromX, fromZ, toX, toZ, 0.4  // 0.4 = character radius
-          );
-          
-          const newX = moveResult.adjustedX;
-          const newZ = moveResult.adjustedZ;
-          
-          player.setPosition(newX, 0, newZ);
-          // Calculate rotation to face movement direction
-          player.setTargetRotation(Math.atan2(-nx, -nz));
-          
-          propsRef.current.onPlayerMove(newX, 0, newZ, player.currentRotation);
 
-          // Check exits (with locked door support) — read from ref for fresh exit state
-          for (const exit of propsRef.current.currentRoom.exits) {
-            const dx = newX - exit.position.x;
-            const dz = newZ - exit.position.z;
-            if (Math.sqrt(dx * dx + dz * dz) < 1.2) {
-              if (exit.locked) {
-                const p = propsRef.current;
-                if (exit.requiredItem && p.playerInventory.includes(exit.requiredItem)) {
-                  audioManager.playSound(SoundEffects.DOOR_UNLOCK);
-                  p.onUnlockExit?.(exit.id ?? exit.direction);
-                  p.onDialogue?.([`Used ${exit.requiredItem.replace(/_/g, ' ')} to unlock the door.`], p.playerCharacter);
-                } else {
-                  audioManager.playSound(SoundEffects.DOOR_LOCKED);
-                  p.onLockedDoor?.(exit);
-                  p.onDialogue?.(
-                    exit.requiredItem
-                      ? [`This door is locked. Looks like it needs a ${exit.requiredItem.replace(/_/g, ' ')}.`]
-                      : ['This door is locked.'],
-                    p.playerCharacter
-                  );
-                }
-              } else {
-                const opposite = { north: 'south', south: 'north', east: 'west', west: 'east' } as const;
-                propsRef.current.onRoomTransition(exit.targetRoom, opposite[exit.direction]);
-              }
-              break;
+          const input = hasManualInput ? manualInput : navInput;
+          const speed = 4;
+
+          if (input.x !== 0 || input.z !== 0) {
+            const len = Math.sqrt(input.x * input.x + input.z * input.z);
+            const nx = input.x / len;
+            const nz = input.z / len;
+
+            const fromX = player.root.position.x;
+            const fromZ = player.root.position.z;
+            let toX = fromX + nx * speed * dt;
+            let toZ = fromZ + nz * speed * dt;
+
+            // Check collision with props
+            const moveResult = collisionSystemRef.current.checkMovement(
+              fromX, fromZ, toX, toZ, 0.4
+            );
+
+            let newX = moveResult.adjustedX;
+            let newZ = moveResult.adjustedZ;
+
+            // Layout walkability check — prevents walking through walls / into void
+            if (rl && !rl.isWalkable(newX, newZ)) {
+              newX = fromX;
+              newZ = fromZ;
             }
+
+            // Get ground Y for multi-floor support
+            const newY = rl ? rl.getGroundY(newX, newZ) : 0;
+
+            player.setPosition(newX, newY, newZ);
+            player.setTargetRotation(Math.atan2(-nx, -nz));
+
+            propsRef.current.onPlayerMove(newX, newY, newZ, player.currentRotation);
           }
         }
-        
+
+        // Room detection — check which room the player is now in
+        if (rl) {
+          const px = player.root.position.x;
+          const pz = player.root.position.z;
+          const renderedRoom = rl.getRoomAt(px, pz);
+          if (renderedRoom && renderedRoom.id !== currentTrackedRoom) {
+            currentTrackedRoom = renderedRoom.id;
+            audioManager.playSound(SoundEffects.DOOR_OPEN);
+            propsRef.current.onRoomChange?.(renderedRoom.id);
+          }
+        }
+
         // Update interaction system
         if (interactionSystemRef.current) {
           const interactionState = interactionSystemRef.current.update(
             player.root.position.x,
             player.root.position.z
           );
-          
-          // Notify parent of interaction state changes (manual compare to avoid per-frame JSON.stringify)
+
           const cb = propsRef.current.onInteractionStateChange;
           if (cb && (
             interactionState.nearbyInteractable !== lastInteractionState?.nearbyInteractable ||
@@ -748,16 +777,14 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
             cb(interactionState);
           }
         }
-        
-        // Update smooth rotation
+
         player.update(dt);
-        
-        // Camera follow player
+
         if (gameCameraRef.current) {
           gameCameraRef.current.setTarget(player.root.position.x, player.root.position.z);
         }
       }
-      
+
       // Update opponent (AI controlled)
       if (opponent) {
         const opp = propsRef.current.opponentPosition;
@@ -765,35 +792,33 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
         opponent.setTargetRotation(propsRef.current.opponentRotation);
         opponent.update(dt);
       }
-      
+
       // Update camera (smooth follow)
       if (gameCameraRef.current) {
         gameCameraRef.current.update();
       }
-      
-      // Update effects (particles, etc.)
+
+      // Update effects
       if (effectsManagerRef.current) {
         effectsManagerRef.current.update(dt);
       }
-      
-      // Update atmosphere (fog, lighting, ambient audio)
+
+      // Update atmosphere
       if (atmosphereManagerRef.current) {
         atmosphereManagerRef.current.update(dt);
       }
-      
+
       scene.render();
     });
-    
-    // Resize handling - update viewport size for responsive camera
+
+    // Resize handling
     const handleResize = () => {
       engine.resize();
-      
       if (canvasRef.current && gameCameraRef.current) {
         const newSize = getViewportSize(
           canvasRef.current.clientWidth,
           canvasRef.current.clientHeight
         );
-        
         if (newSize !== viewportSizeRef.current) {
           viewportSizeRef.current = newSize;
           gameCameraRef.current.setViewportSize(newSize);
@@ -802,9 +827,11 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
     };
     window.addEventListener('resize', handleResize);
     setTimeout(handleResize, 50);
-    
+
     return () => {
       window.removeEventListener('resize', handleResize);
+      renderedLayoutRef.current?.dispose();
+      renderedLayoutRef.current = null;
       collisionSystemRef.current?.clear();
       playerNavigatorRef.current?.dispose();
       effectsManagerRef.current?.dispose();
@@ -812,9 +839,7 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
       clearTextureCache();
       engine.dispose();
     };
-  }, [currentRoom.id]);
-
-
+  }, [layout, allRoomConfigs]);
 
   return (
     <canvas
@@ -824,180 +849,24 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
   );
 };
 
-// Create room geometry with PBR textures based on room type
-// propMeshMap is populated with meshes keyed by itemDrop id (for pickup removal)
-async function createRoom(
-  scene: Scene,
-  room: RoomConfig,
-  shadowGen: ShadowGenerator,
-  propMeshMap?: Map<string, AbstractMesh>
-) {
-  const root = new TransformNode('room', scene);
+/**
+ * Compute bounding box encompassing the entire layout for collision system.
+ */
+function getLayoutBounds(layout: GeneratedLayout) {
+  let minX = Infinity, maxX = -Infinity;
+  let minZ = Infinity, maxZ = -Infinity;
 
-  // Resolve PBR textures for this room type
-  const textures = getTexturesForRoom(room.id, room.name);
+  for (const room of layout.rooms.values()) {
+    const hw = room.size.width / 2;
+    const hh = room.size.height / 2;
+    minX = Math.min(minX, room.worldPosition.x - hw);
+    maxX = Math.max(maxX, room.worldPosition.x + hw);
+    minZ = Math.min(minZ, room.worldPosition.z - hh);
+    maxZ = Math.max(maxZ, room.worldPosition.z + hh);
+  }
 
-  // Extended ground plane (gives context, room doesn't float)
-  const groundMat = new StandardMaterial('ground', scene);
-  groundMat.diffuseColor = new Color3(0.15, 0.12, 0.1);
-  groundMat.specularColor = new Color3(0, 0, 0);
-
-  const groundExtent = 30;
-  const ground = MeshBuilder.CreateGround('ground', {
-    width: groundExtent,
-    height: groundExtent
-  }, scene);
-  ground.material = groundMat;
-  ground.position.y = -0.02;
-  ground.receiveShadows = true;
-  ground.parent = root;
-
-  // Room floor -- PBR textured with flat-color fallback
-  const floorFallbackMat = new StandardMaterial('floor_fallback', scene);
-  floorFallbackMat.diffuseColor = new Color3(0.35, 0.25, 0.18);
-  floorFallbackMat.specularColor = new Color3(0.05, 0.05, 0.05);
-
-  const floorPBR = createFloorMaterial(scene, textures.floor, room.width, room.height);
-
-  const floor = MeshBuilder.CreateGround('floor', {
-    width: room.width,
-    height: room.height
-  }, scene);
-  floor.material = floorPBR ?? floorFallbackMat;
-  floor.receiveShadows = true;
-  floor.parent = root;
-
-  // Floor border/rug
-  const rugMat = new StandardMaterial('rug', scene);
-  rugMat.diffuseColor = new Color3(0.4, 0.28, 0.2);
-  const rug = MeshBuilder.CreateGround('rug', {
-    width: room.width - 1.5,
-    height: room.height - 1.5
-  }, scene);
-  rug.material = rugMat;
-  rug.position.y = 0.01;
-  rug.parent = root;
-
-  // Walls -- PBR textured with flat-color fallback
-  const wallFallbackMat = new StandardMaterial('wall_fallback', scene);
-  wallFallbackMat.diffuseColor = new Color3(0.55, 0.45, 0.38);
-
-  const wallH = 2;
-  const exitDirs = room.exits.map(e => e.direction);
-
-  const createWall = (dir: 'north' | 'south' | 'east' | 'west') => {
-    const hasExit = exitDirs.includes(dir);
-    const isHoriz = dir === 'north' || dir === 'south';
-    const length = isHoriz ? room.width : room.height;
-    const pos = isHoriz
-      ? new Vector3(0, wallH/2, (dir === 'north' ? -1 : 1) * room.height/2)
-      : new Vector3((dir === 'west' ? -1 : 1) * room.width/2, wallH/2, 0);
-
-    if (hasExit) {
-      const segLen = (length - 2) / 2;
-      // For split walls with doorways, create segment-specific PBR material
-      const segPBR = createWallMaterial(scene, textures.wall, segLen, wallH);
-      const segMat = segPBR ?? wallFallbackMat;
-
-      [-1, 1].forEach(side => {
-        const wall = MeshBuilder.CreateBox(`wall_${dir}_${side}`, {
-          width: isHoriz ? segLen : 0.2,
-          height: wallH,
-          depth: isHoriz ? 0.2 : segLen
-        }, scene);
-        wall.material = segMat;
-        wall.position = pos.clone();
-        if (isHoriz) wall.position.x = side * (segLen/2 + 1);
-        else wall.position.z = side * (segLen/2 + 1);
-        wall.parent = root;
-        shadowGen.addShadowCaster(wall);
-      });
-    } else {
-      // Full-length wall with PBR material
-      const wallPBR = createWallMaterial(scene, textures.wall, length, wallH);
-      const wallMat = wallPBR ?? wallFallbackMat;
-
-      const wall = MeshBuilder.CreateBox(`wall_${dir}`, {
-        width: isHoriz ? length : 0.2,
-        height: wallH,
-        depth: isHoriz ? 0.2 : length
-      }, scene);
-      wall.material = wallMat;
-      wall.position = pos;
-      wall.parent = root;
-      shadowGen.addShadowCaster(wall);
-    }
-  };
-
-  createWall('north');
-  createWall('south');
-  createWall('east');
-  createWall('west');
-  
-  // Props - load GLB models when available, fall back to procedural geometry
-  const propPromises = room.props.map(async (prop) => {
-    const mesh = await createPropMeshAsync(scene, prop.type, prop.interactive, prop.itemDrop);
-    if (mesh) {
-      mesh.position.set(prop.position.x, 0, prop.position.z);
-      mesh.rotation.y = prop.rotation;
-      mesh.scaling.setAll(prop.scale);
-      mesh.parent = root;
-      // Add shadow casters — GLB props return a TransformNode wrapper
-      // which doesn't have getBoundingInfo, so add child meshes instead
-      if (mesh instanceof AbstractMesh) {
-        shadowGen.addShadowCaster(mesh);
-      } else if ('getChildMeshes' in mesh) {
-        (mesh as TransformNode).getChildMeshes().forEach(child => {
-          shadowGen.addShadowCaster(child);
-          child.receiveShadows = true;
-        });
-      }
-      // Track pickup-able prop meshes for removal
-      if (prop.itemDrop && propMeshMap) {
-        propMeshMap.set(prop.itemDrop, mesh);
-      }
-    }
-  });
-  await Promise.all(propPromises);
-  
-  // Exit markers -- locked exits are tinted red, unlocked exits are green
-  room.exits.forEach(exit => {
-    const isLocked = exit.locked === true;
-    const marker = MeshBuilder.CreateBox(`exit_${exit.direction}`, {
-      width: 1.5, height: 0.05, depth: 1.5
-    }, scene);
-    const markerMat = new StandardMaterial(`exitMat_${exit.direction}`, scene);
-    if (isLocked) {
-      markerMat.diffuseColor = new Color3(0.5, 0.15, 0.15);
-      markerMat.emissiveColor = new Color3(0.2, 0.05, 0.05);
-    } else {
-      markerMat.diffuseColor = new Color3(0.3, 0.5, 0.3);
-      markerMat.emissiveColor = new Color3(0.1, 0.15, 0.1);
-    }
-    markerMat.alpha = 0.5;
-    marker.material = markerMat;
-    marker.position.set(exit.position.x, 0.03, exit.position.z);
-    marker.parent = root;
-
-    // Add a small lock icon (vertical box) above locked exits
-    if (isLocked) {
-      const lockIcon = MeshBuilder.CreateBox(`lock_${exit.direction}`, {
-        width: 0.25, height: 0.4, depth: 0.15
-      }, scene);
-      const lockMat = new StandardMaterial(`lockMat_${exit.direction}`, scene);
-      lockMat.diffuseColor = new Color3(0.6, 0.4, 0.1);
-      lockMat.emissiveColor = new Color3(0.15, 0.1, 0.02);
-      lockIcon.material = lockMat;
-      lockIcon.position.set(exit.position.x, 0.6, exit.position.z);
-      lockIcon.parent = root;
-    }
-  });
-  
-  return root;
+  // Add margin
+  return { minX: minX - 2, maxX: maxX + 2, minZ: minZ - 2, maxZ: maxZ + 2 };
 }
-
-// Note: Props are now created via PropFactory from data definitions
-// See src/data/props.json for prop definitions
-// See src/systems/PropFactory.ts for the factory implementation
 
 export default GameRenderer;
