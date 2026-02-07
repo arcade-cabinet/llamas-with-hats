@@ -238,16 +238,16 @@ export function createStoryManager(): StoryManager {
     
     async loadStage(stageId: string) {
       try {
-        // Dynamic import of stage story data
-        const module = await import(`../data/stages/${stageId}/story.json`);
-        const stageData = module.default;
-        
+        // Load stage story data through the data module (resolves path via game.json)
+        const { loadStageStoryDialogues } = await import('../data');
+        const stageData = await loadStageStoryDialogues(stageId);
+
         if (stageData.beats && Array.isArray(stageData.beats)) {
-          this.loadBeats(stageData.beats);
+          this.loadBeats(stageData.beats as any[]);
         }
-        
+
         // Set starting beat if specified
-        if (stageData.startingBeat) {
+        if (stageData.startingBeat && typeof stageData.startingBeat === 'string') {
           currentBeat = stageData.startingBeat;
         }
       } catch (error) {

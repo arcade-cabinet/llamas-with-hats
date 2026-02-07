@@ -9,6 +9,7 @@ import { GameView } from './components/game/GameView';
 import { LayoutGameRenderer } from './components/game/LayoutGameRenderer';
 import { LlamaAI, createLlamaAI } from './systems/AIController';
 import { createMenuRoom } from './systems/GameInitializer';
+import { loadStageDefinition, getStartingStage } from './data';
 import { RoomConfig } from './types/game';
 
 // Check if we should show the new layout demo
@@ -31,22 +32,25 @@ const App: React.FC = () => {
     updateOpponent,
     togglePause,
     returnToMainMenu,
-    transitionToRoom
+    transitionToRoom,
+    addToInventory,
+    unlockExit
   } = useRPGGameState();
-  
+
   const device = useDeviceInfo();
-  
+
   // Menu preview room - generated from stage definition
   const [menuRoom, setMenuRoom] = useState<RoomConfig | null>(null);
-  
-  // Initialize menu preview room on mount
+
+  // Stage definition for layout demo mode
+  const [layoutDemoStageDef, setLayoutDemoStageDef] = useState<Record<string, unknown> | null>(null);
+
+  // Initialize menu preview room on mount (async now)
   useEffect(() => {
-    try {
-      const room = createMenuRoom();
+    createMenuRoom().then(room => {
       setMenuRoom(room);
-    } catch (e) {
+    }).catch(e => {
       console.error('Failed to create menu room:', e);
-      // Fallback room
       setMenuRoom({
         id: 'fallback',
         name: 'The Apartment',
@@ -56,27 +60,36 @@ const App: React.FC = () => {
         props: [],
         enemies: []
       });
-    }
+    });
   }, []);
-  
+
+  // Load stage definition for layout demo mode
+  useEffect(() => {
+    if (!showLayoutDemo) return;
+    const stageId = getStartingStage();
+    loadStageDefinition(stageId).then(def => {
+      if (def) setLayoutDemoStageDef(def as Record<string, unknown>);
+    });
+  }, []);
+
   // AI controller ref
   const aiRef = useRef<LlamaAI | null>(null);
   const lastUpdateRef = useRef<number>(performance.now());
-  
+
   // Lock to landscape and fullscreen when entering game on phone/folded foldable
   useEffect(() => {
     if (state.isPlaying && device.requiresLandscape) {
       device.lockToLandscape();
       device.enterFullscreen();
     }
-    
+
     return () => {
       if (device.requiresLandscape) {
         device.unlockOrientation();
       }
     };
   }, [state.isPlaying, device.requiresLandscape]);
-  
+
   // Initialize AI when game starts
   useEffect(() => {
     if (state.isPlaying && state.currentRoom) {
@@ -89,14 +102,14 @@ const App: React.FC = () => {
           updateOpponent(x, 0, z, rotation);
         }
       );
-      
+
       return () => {
         aiRef.current?.dispose();
         aiRef.current = null;
       };
     }
   }, [state.isPlaying, state.currentRoom?.id]);
-  
+
   // Update AI with player position
   useEffect(() => {
     if (aiRef.current) {
@@ -106,32 +119,32 @@ const App: React.FC = () => {
       );
     }
   }, [state.player.position.x, state.player.position.z]);
-  
+
   // AI update loop
   useEffect(() => {
     if (!state.isPlaying || state.isPaused) return;
-    
+
     let animationId: number;
-    
+
     const updateLoop = () => {
       const now = performance.now();
       const deltaTime = (now - lastUpdateRef.current) / 1000;
       lastUpdateRef.current = now;
-      
+
       if (aiRef.current) {
         aiRef.current.update(deltaTime);
       }
-      
+
       animationId = requestAnimationFrame(updateLoop);
     };
-    
+
     animationId = requestAnimationFrame(updateLoop);
-    
+
     return () => {
       cancelAnimationFrame(animationId);
     };
   }, [state.isPlaying, state.isPaused]);
-  
+
   // Update AI bounds on room change
   useEffect(() => {
     if (aiRef.current && state.currentRoom) {
@@ -142,7 +155,7 @@ const App: React.FC = () => {
       aiRef.current.teleport(0, -2);
     }
   }, [state.currentRoom?.id]);
-  
+
   // Get world name
   const getWorldName = () => {
     if (state.worldSeed) {
@@ -150,26 +163,27 @@ const App: React.FC = () => {
     }
     return 'Unknown World';
   };
-  
+
   // Show landscape requirement overlay for phones in portrait
-  const showLandscapeOverlay = device.requiresLandscape && 
-    device.orientation === 'portrait' && 
+  const showLandscapeOverlay = device.requiresLandscape &&
+    device.orientation === 'portrait' &&
     state.isPlaying;
-  
+
   // Whether to show the menu overlay
   const showMenu = !state.isPlaying;
-  
+
   // The room to display - either the game room or menu preview
   const displayRoom = state.isPlaying ? state.currentRoom : menuRoom;
-  
+
   // If layout demo mode, show the new layout renderer
-  if (showLayoutDemo) {
+  if (showLayoutDemo && layoutDemoStageDef) {
     return (
       <div className={clsx(
         'fixed inset-0 bg-shadow overflow-hidden',
         'safe-area-inset'
       )}>
         <LayoutGameRenderer
+          stageDefinition={layoutDemoStageDef}
           playerCharacter="carl"
           playerPosition={{ x: 0, y: 0, z: 2 }}
           playerRotation={0}
@@ -180,13 +194,13 @@ const App: React.FC = () => {
           isPaused={false}
           seed={state.worldSeed?.seedString || 'demo-seed'}
         />
-        
+
         {/* Demo mode indicator */}
         <div className="absolute bottom-4 right-4 bg-shadow-light/90 px-4 py-2 rounded-lg border border-wood/50">
           <p className="text-wood text-sm font-mono">Layout Demo Mode</p>
           <p className="text-gray-500 text-xs">Remove ?layout=true to exit</p>
         </div>
-        
+
         {/* Instructions */}
         <div className="absolute top-20 left-4 bg-shadow-light/90 px-4 py-3 rounded-lg border border-wood/30 max-w-xs">
           <p className="text-gray-300 text-sm mb-2">Multi-floor procedural layout:</p>
@@ -196,6 +210,15 @@ const App: React.FC = () => {
             <li>- WASD to move, explore different rooms</li>
           </ul>
         </div>
+      </div>
+    );
+  }
+
+  // Show loading screen while layout demo is loading
+  if (showLayoutDemo && !layoutDemoStageDef) {
+    return (
+      <div className="fixed inset-0 bg-shadow flex items-center justify-center">
+        <p className="text-wood font-serif">Loading stage definition...</p>
       </div>
     );
   }
@@ -229,16 +252,18 @@ const App: React.FC = () => {
           onSave={saveGame}
           onMainMenu={returnToMainMenu}
           hideHUD={showMenu}
+          onItemPickup={addToInventory}
+          onUnlockExit={unlockExit}
         />
       )}
-      
+
       {/* Loading state while menu room generates */}
       {!displayRoom && (
         <div className="fixed inset-0 bg-shadow flex items-center justify-center">
           <p className="text-wood font-serif">Loading...</p>
         </div>
       )}
-      
+
       {/* Menu Overlay - shown on top of game scene */}
       {showMenu && (
         <MenuOverlay
@@ -258,7 +283,7 @@ const App: React.FC = () => {
           deviceType={device.deviceType}
         />
       )}
-      
+
       {/* Landscape requirement overlay */}
       {showLandscapeOverlay && (
         <div className="fixed inset-0 z-[9999] bg-shadow flex items-center justify-center p-8">

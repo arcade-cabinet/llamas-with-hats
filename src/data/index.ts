@@ -221,18 +221,23 @@ async function loadStageDialogues(stageId: string): Promise<Record<string, PropD
   if (stageDialogueCache.has(stageId)) {
     return stageDialogueCache.get(stageId)!;
   }
-  
+
+  const dir = resolveStageDir(stageId);
+  if (!dir) {
+    stageDialogueCache.set(stageId, {});
+    return {};
+  }
+
   try {
-    // Dynamic import for stage-specific dialogues
-    const module = await import(`./stages/${stageId}/dialogues/story.json`);
+    const module = await import(`./stages/${dir}/dialogues/story.json`);
     const data = module.default;
-    
+
     // Extract prop dialogue overrides if they exist
     const overrides: Record<string, PropDialogue> = {};
     if (data.propOverrides && typeof data.propOverrides === 'object') {
       Object.assign(overrides, data.propOverrides);
     }
-    
+
     stageDialogueCache.set(stageId, overrides);
     return overrides;
   } catch {
@@ -326,33 +331,8 @@ export function getPath(pathId: string) {
 // Layout & Template Data
 // ============================================
 
-export interface LayoutArchetype {
-  id: string;
-  name: string;
-  description: string;
-  environment: 'interior' | 'exterior' | 'mixed';
-  levels: Array<{
-    level: number;
-    name: string;
-    pattern: string;
-    totalRooms: { min: number; max: number };
-    anchorPositions: Record<string, { x: number; z: number }>;
-    fillerZones: Array<{ minX: number; maxX: number; minZ: number; maxZ: number }>;
-    verticalConnections: Array<{
-      position: { x: number; z: number };
-      direction: 'up' | 'down';
-      type: string;
-    }>;
-    gridConfig?: Record<string, unknown>;
-  }>;
-  connectionRules: {
-    defaultType: string;
-    hallwayType?: string;
-    buildingEntryType?: string;
-    secretType?: string;
-    maxDoorsPerRoom: number;
-  };
-}
+import type { LayoutArchetype } from '../systems/StageDefinition';
+export type { LayoutArchetype } from '../systems/StageDefinition';
 
 export interface RoomTemplate {
   id: string;
@@ -398,7 +378,7 @@ export interface MaterialPalette {
 /**
  * Layout archetypes for procedural generation.
  */
-export const layoutArchetypes = (layoutArchetypesData as { archetypes: LayoutArchetype[] }).archetypes;
+export const layoutArchetypes = (layoutArchetypesData as unknown as { archetypes: LayoutArchetype[] }).archetypes;
 
 /**
  * Room templates for procedural generation.
@@ -450,31 +430,51 @@ export function getTemplatesByTags(tags: string[]): RoomTemplate[] {
 // ============================================
 
 /**
- * Load a complete stage definition.
+ * Resolve a stageId to its directory name from game.json's stage progression.
+ * e.g. 'stage1_apartment' → 'stage1' (extracted from file path "stages/stage1/definition.json")
+ */
+function resolveStageDir(stageId: string): string | null {
+  const stage = gameDefinition.stageProgression.stages.find(s => s.id === stageId);
+  if (!stage?.file) return null;
+  // file is like "stages/stage1/definition.json" — extract the directory name
+  const match = stage.file.match(/^stages\/([^/]+)\//);
+  return match?.[1] || null;
+}
+
+/**
+ * Load a complete stage definition by stageId.
+ * Resolves the directory from game.json's stageProgression linked list,
+ * then dynamically imports the definition.json from that directory.
+ *
+ * The import pattern `./stages/${dir}/definition.json` allows Vite to
+ * glob-match and pre-bundle all stage definitions.
  */
 export async function loadStageDefinition(stageId: string): Promise<unknown> {
+  const dir = resolveStageDir(stageId);
+  if (!dir) {
+    console.error(`Unknown stage ID: ${stageId} — not found in game.json stageProgression`);
+    return null;
+  }
+
   try {
-    // Try the complete definition first
-    const module = await import(`./stages/${stageId}/definition_complete.json`);
+    const module = await import(`./stages/${dir}/definition.json`);
     return module.default;
   } catch {
-    try {
-      // Fall back to basic definition
-      const module = await import(`./stages/${stageId}/definition.json`);
-      return module.default;
-    } catch {
-      console.error(`Failed to load stage definition for: ${stageId}`);
-      return null;
-    }
+    console.error(`Failed to load stage definition for: ${stageId} (dir: ${dir})`);
+    return null;
   }
 }
 
 /**
  * Load stage-specific dialogues.
+ * Resolves the stage directory from game.json, then loads dialogues/story.json.
  */
 export async function loadStageStoryDialogues(stageId: string): Promise<Record<string, unknown>> {
+  const dir = resolveStageDir(stageId);
+  if (!dir) return {};
+
   try {
-    const module = await import(`./stages/${stageId}/dialogues/story.json`);
+    const module = await import(`./stages/${dir}/dialogues/story.json`);
     return module.default;
   } catch {
     return {};

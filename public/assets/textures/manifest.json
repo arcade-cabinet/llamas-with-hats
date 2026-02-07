@@ -1,0 +1,251 @@
+{
+  "version": "1.0",
+  "license": "CC0 1.0 Universal (Public Domain)",
+  "source": "AmbientCG (ambientcg.com)",
+  "resolution": "1K-JPG",
+  "totalSets": 30,
+  "totalFiles": 112,
+  "mapTypes": {
+    "color": "Base color / albedo map",
+    "normal": "Normal map (OpenGL format)",
+    "roughness": "Roughness map (PBR)",
+    "ao": "Ambient occlusion map",
+    "metalness": "Metalness map (PBR)"
+  },
+  "categories": {
+    "walls": {
+      "brick": {
+        "red_brick": {
+          "ambientcgId": "Bricks059",
+          "description": "Classic red brick wall, exposed brick accent",
+          "maps": ["color", "normal", "roughness", "ao"],
+          "path": "walls/brick/red_brick"
+        },
+        "modern_brick": {
+          "ambientcgId": "Bricks020",
+          "description": "Clean modern face brick, uniform pattern",
+          "maps": ["color", "normal", "roughness", "ao"],
+          "path": "walls/brick/modern_brick"
+        }
+      },
+      "plaster": {
+        "white_plaster": {
+          "ambientcgId": "Plaster001",
+          "description": "Clean white interior plaster wall",
+          "maps": ["color", "normal", "roughness"],
+          "path": "walls/plaster/white_plaster"
+        },
+        "worn_painted_wall": {
+          "ambientcgId": "PaintedPlaster005",
+          "description": "Worn yellow painted plaster with character",
+          "maps": ["color", "normal", "roughness"],
+          "path": "walls/plaster/worn_painted_wall"
+        }
+      },
+      "concrete": {
+        "cracked_concrete": {
+          "ambientcgId": "Concrete022",
+          "description": "Weathered concrete wall with cracks",
+          "maps": ["color", "normal", "roughness"],
+          "path": "walls/concrete/cracked_concrete"
+        },
+        "smooth_concrete": {
+          "ambientcgId": "Concrete015",
+          "description": "Smooth poured concrete wall",
+          "maps": ["color", "normal", "roughness"],
+          "path": "walls/concrete/smooth_concrete"
+        }
+      },
+      "wallpaper": {
+        "textured_white": {
+          "ambientcgId": "Wallpaper001A",
+          "description": "White textured wallpaper, subtle grain",
+          "maps": ["color", "normal", "roughness"],
+          "path": "walls/wallpaper/textured_white"
+        },
+        "subtle_texture": {
+          "ambientcgId": "Wallpaper002A",
+          "description": "Off-white wallpaper with subtle texture",
+          "maps": ["color", "normal", "roughness"],
+          "path": "walls/wallpaper/subtle_texture"
+        }
+      },
+      "tile": {
+        "white_subway": {
+          "ambientcgId": "Tiles011",
+          "description": "White glazed subway tile for kitchen/bathroom",
+          "maps": ["color", "normal", "roughness", "ao"],
+          "path": "walls/tile/white_subway"
+        },
+        "white_square": {
+          "ambientcgId": "Tiles107",
+          "description": "Large white square wall tiles",
+          "maps": ["color", "normal", "roughness", "ao"],
+          "path": "walls/tile/white_square"
+        }
+      }
+    },
+    "floors": {
+      "wood": {
+        "pine_planks": {
+          "ambientcgId": "WoodFloor040",
+          "description": "Light pine wide plank flooring",
+          "maps": ["color", "normal", "roughness", "ao"],
+          "path": "floors/wood/pine_planks"
+        },
+        "oak_planks": {
+          "ambientcgId": "WoodFloor051",
+          "description": "Medium oak strip flooring",
+          "maps": ["color", "normal", "roughness", "ao"],
+          "path": "floors/wood/oak_planks"
+        },
+        "herringbone_parquet": {
+          "ambientcgId": "WoodFloor012",
+          "description": "Light herringbone parquet pattern",
+          "maps": ["color", "normal", "roughness", "ao"],
+          "path": "floors/wood/herringbone_parquet"
+        }
+      },
+      "tile": {
+        "checkered_marble": {
+          "ambientcgId": "Tiles074",
+          "description": "Black and white checkered marble tile",
+          "maps": ["color", "normal", "roughness"],
+          "path": "floors/tile/checkered_marble"
+        },
+        "cream_stone": {
+          "ambientcgId": "Tiles049",
+          "description": "Cream/beige stone tile, mixed sizes",
+          "maps": ["color", "normal", "roughness"],
+          "path": "floors/tile/cream_stone"
+        },
+        "travertine": {
+          "ambientcgId": "Tiles078",
+          "description": "Beige travertine natural stone tile",
+          "maps": ["color", "normal", "roughness"],
+          "path": "floors/tile/travertine"
+        }
+      },
+      "carpet": {
+        "beige_residential": {
+          "ambientcgId": "Carpet008",
+          "description": "Beige residential carpet with subtle pattern",
+          "maps": ["color", "normal", "roughness", "ao"],
+          "path": "floors/carpet/beige_residential"
+        },
+        "neutral_woven": {
+          "ambientcgId": "Carpet001",
+          "description": "Neutral woven carpet, clean texture",
+          "maps": ["color", "normal", "roughness"],
+          "path": "floors/carpet/neutral_woven"
+        }
+      },
+      "concrete": {
+        "dark_polished": {
+          "ambientcgId": "Concrete032",
+          "description": "Dark polished concrete floor",
+          "maps": ["color", "normal", "roughness", "ao"],
+          "path": "floors/concrete/dark_polished"
+        }
+      },
+      "linoleum": {
+        "kitchen_mixed": {
+          "ambientcgId": "Tiles046",
+          "description": "Light blue/white mixed pattern kitchen floor tile",
+          "maps": ["color", "normal", "roughness"],
+          "path": "floors/linoleum/kitchen_mixed"
+        }
+      }
+    },
+    "surfaces": {
+      "wood": {
+        "walnut_grain": {
+          "ambientcgId": "Wood026",
+          "description": "Rich walnut wood grain for furniture",
+          "maps": ["color", "normal", "roughness"],
+          "path": "surfaces/wood/walnut_grain"
+        },
+        "ash_grain": {
+          "ambientcgId": "Wood048",
+          "description": "Light ash wood grain with visible pattern",
+          "maps": ["color", "normal", "roughness"],
+          "path": "surfaces/wood/ash_grain"
+        },
+        "birch": {
+          "ambientcgId": "Wood054",
+          "description": "Warm birch wood, smooth grain",
+          "maps": ["color", "normal", "roughness"],
+          "path": "surfaces/wood/birch"
+        }
+      },
+      "metal": {
+        "brushed_steel": {
+          "ambientcgId": "Metal009",
+          "description": "Brushed stainless steel surface",
+          "maps": ["color", "normal", "roughness", "metalness"],
+          "path": "surfaces/metal/brushed_steel"
+        },
+        "polished_steel": {
+          "ambientcgId": "Metal032",
+          "description": "Smooth polished steel/chrome surface",
+          "maps": ["color", "normal", "roughness", "metalness"],
+          "path": "surfaces/metal/polished_steel"
+        }
+      },
+      "fabric": {
+        "gray_linen": {
+          "ambientcgId": "Fabric030",
+          "description": "Gray linen upholstery fabric",
+          "maps": ["color", "normal", "roughness", "ao"],
+          "path": "surfaces/fabric/gray_linen"
+        },
+        "light_linen": {
+          "ambientcgId": "Fabric036",
+          "description": "Light gray linen fabric, fine weave",
+          "maps": ["color", "normal", "roughness", "ao"],
+          "path": "surfaces/fabric/light_linen"
+        }
+      },
+      "marble": {
+        "white_carrara": {
+          "ambientcgId": "Marble001",
+          "description": "White Carrara marble with gray veining",
+          "maps": ["color", "normal", "roughness"],
+          "path": "surfaces/marble/white_carrara"
+        }
+      }
+    },
+    "outdoor": {
+      "asphalt": {
+        "light_sidewalk": {
+          "ambientcgId": "Asphalt004",
+          "description": "Light gray sidewalk/pavement surface",
+          "maps": ["color", "normal", "roughness", "ao"],
+          "path": "outdoor/asphalt/light_sidewalk"
+        },
+        "dark_road": {
+          "ambientcgId": "Asphalt014",
+          "description": "Dark asphalt road surface",
+          "maps": ["color", "normal", "roughness"],
+          "path": "outdoor/asphalt/dark_road"
+        }
+      },
+      "grass": {
+        "lawn": {
+          "ambientcgId": "Grass001",
+          "description": "Green lawn grass, well-maintained",
+          "maps": ["color", "normal", "roughness", "ao"],
+          "path": "outdoor/grass/lawn"
+        }
+      },
+      "gravel": {
+        "path_gravel": {
+          "ambientcgId": "Gravel022",
+          "description": "Mixed pebble gravel for paths",
+          "maps": ["color", "normal", "roughness", "ao"],
+          "path": "outdoor/gravel/path_gravel"
+        }
+      }
+    }
+  }
+}

@@ -6,25 +6,60 @@
       "lines": [
         { "speaker": "carl", "text": "Ugh... my head. What time is it?", "delay": 1000 },
         { "speaker": "narrator", "text": "The morning light filters through dusty curtains.", "delay": 2000 },
-        { "speaker": "narrator", "text": "Something feels... wrong.", "delay": 1500 }
+        { "speaker": "narrator", "text": "Something feels... wrong.", "delay": 1500 },
+        { "speaker": "carl", "text": "Why does the couch smell like copper?", "delay": 1200 }
       ],
       "nextBeat": "explore_apartment"
     },
-    
+
     "stage1_explore": {
       "id": "stage1_explore",
       "type": "hint",
       "lines": [
-        { "speaker": "carl", "text": "I should look around. Something doesn't feel right." }
+        { "speaker": "carl", "text": "I should look around. Something doesn't feel right." },
+        { "speaker": "narrator", "text": "The apartment is quiet. Too quiet." }
       ]
     },
-    
+
+    "stage1_bedroom_search": {
+      "id": "stage1_bedroom_search",
+      "type": "cutscene",
+      "lines": [
+        { "speaker": "narrator", "text": "The bedroom door creaks open.", "delay": 800 },
+        { "speaker": "carl", "text": "The sheets are torn off the bed.", "delay": 1000 },
+        { "speaker": "carl", "text": "And there are drag marks on the floor.", "delay": 1200 },
+        { "speaker": "carl", "text": "Leading to... no. I need to focus.", "delay": 1000 },
+        { "speaker": "narrator", "text": "Something glints under the overturned nightstand.", "delay": 1500 }
+      ],
+      "effects": [
+        { "type": "horror_pulse", "intensity": 0.3 }
+      ]
+    },
+
+    "stage1_bathroom_mirror": {
+      "id": "stage1_bathroom_mirror",
+      "type": "cutscene",
+      "lines": [
+        { "speaker": "narrator", "text": "The bathroom mirror is fogged over.", "delay": 1000 },
+        { "speaker": "narrator", "text": "Someone has written on it with a finger.", "delay": 1500 },
+        { "speaker": "carl", "text": "'SORRY'", "delay": 800 },
+        { "speaker": "carl", "text": "That's Paul's handwriting.", "delay": 1000 },
+        { "speaker": "carl", "text": "Sorry for WHAT, Paul?", "delay": 1200 }
+      ],
+      "effects": [
+        { "type": "horror_pulse", "intensity": 0.4 },
+        { "type": "screen_shake", "intensity": 0.15, "duration": 300 }
+      ]
+    },
+
     "stage1_blood_discovery": {
       "id": "stage1_blood_discovery",
       "type": "cutscene",
       "lines": [
         { "speaker": "carl", "text": "What... what is this?", "delay": 500 },
         { "speaker": "carl", "text": "Is that... blood?", "delay": 1000 },
+        { "speaker": "narrator", "text": "The kitchen counter is smeared with dark crimson.", "delay": 1200 },
+        { "speaker": "narrator", "text": "A trail leads from the sink to the basement door.", "delay": 1500 },
         { "speaker": "carl", "text": "No. No no no.", "delay": 800 },
         { "speaker": "carl", "text": "Not again. Please not again.", "delay": 1200 }
       ],
@@ -33,17 +68,18 @@
         { "type": "horror_pulse", "intensity": 0.5 }
       ]
     },
-    
+
     "stage1_pickup_key": {
       "id": "stage1_pickup_key",
       "type": "item",
       "lines": [
         { "speaker": "carl", "text": "A key? It says 'BASEMENT' on the tag." },
-        { "speaker": "carl", "text": "Why is it covered in... I don't want to know." }
+        { "speaker": "carl", "text": "Why is it covered in... I don't want to know." },
+        { "speaker": "carl", "text": "But I have to know." }
       ],
       "itemId": "basement_key"
     },
-    
+
     "stage1_examine_key": {
       "id": "stage1_examine_key",
       "type": "examine",
@@ -52,31 +88,34 @@
         { "speaker": "narrator", "text": "It's covered in something dark and sticky." }
       ]
     },
-    
-    "stage1_basement_unlocked": {
-      "id": "stage1_basement_unlocked",
+
+    "stage1_key_found": {
+      "id": "stage1_key_found",
       "type": "hint",
       "lines": [
         { "speaker": "carl", "text": "The basement. I have to check the basement." },
         { "speaker": "carl", "text": "I don't want to. But I have to know." }
       ]
     },
-    
+
     "stage1_enter_basement": {
       "id": "stage1_enter_basement",
       "type": "cutscene",
       "lines": [
-        { "speaker": "narrator", "text": "The stairs creak with each step.", "delay": 1000 },
+        { "speaker": "narrator", "text": "The lock clicks. The door swings open to darkness.", "delay": 1000 },
+        { "speaker": "narrator", "text": "The stairs creak with each step.", "delay": 1200 },
         { "speaker": "narrator", "text": "The air grows cold and damp.", "delay": 1500 },
         { "speaker": "carl", "text": "What's that smell?", "delay": 1000 },
-        { "speaker": "carl", "text": "It's getting stronger...", "delay": 800 }
+        { "speaker": "carl", "text": "It's getting stronger...", "delay": 800 },
+        { "speaker": "narrator", "text": "A single bare bulb flickers overhead.", "delay": 1200 }
       ],
       "effects": [
         { "type": "fog_increase", "targetDensity": 0.04, "duration": 3000 },
-        { "type": "ambient_change", "track": "ambient_basement_drip" }
+        { "type": "ambient_change", "track": "ambient_basement_drip" },
+        { "type": "lighting_change", "intensity": 0.2, "duration": 2000 }
       ]
     },
-    
+
     "stage1_discover_horror": {
       "id": "stage1_discover_horror",
       "type": "cutscene",
@@ -85,15 +124,18 @@
         { "speaker": "carl", "text": "Oh god oh god oh god.", "delay": 1000 },
         { "speaker": "carl", "text": "PAUL!", "delay": 800 },
         { "speaker": "carl", "text": "PAUL WHAT DID YOU DO?!", "delay": 1200 },
-        { "speaker": "narrator", "text": "In the corner, something that was once human.", "delay": 2000 }
+        { "speaker": "narrator", "text": "In the corner, something that was once human.", "delay": 2000 },
+        { "speaker": "narrator", "text": "Paul's 'culinary experiments' have gone too far this time.", "delay": 2000 },
+        { "speaker": "carl", "text": "I... I have to get out of here.", "delay": 1500 }
       ],
       "effects": [
         { "type": "screen_shake", "intensity": 0.6, "duration": 1000 },
         { "type": "horror_pulse", "intensity": 1.0 },
-        { "type": "music_change", "track": "music_horror_discovery" }
+        { "type": "music_change", "track": "music_horror_discovery" },
+        { "type": "dramatic_zoom", "targetFov": 0.5, "duration": 1500 }
       ]
     },
-    
+
     "stage1_escape": {
       "id": "stage1_escape",
       "type": "cutscene",
@@ -101,11 +143,13 @@
         { "speaker": "carl", "text": "I have to get out of here.", "delay": 800 },
         { "speaker": "carl", "text": "I have to tell someone.", "delay": 1000 },
         { "speaker": "carl", "text": "But who would believe me?", "delay": 1200 },
-        { "speaker": "carl", "text": "Who would believe any of this?", "delay": 1000 }
+        { "speaker": "carl", "text": "Who would believe any of this?", "delay": 1000 },
+        { "speaker": "narrator", "text": "The morning air hits Carl like a wall of cold water.", "delay": 1500 },
+        { "speaker": "narrator", "text": "Behind him, Paul waves from the kitchen window.", "delay": 1500 }
       ],
       "transition": "stage2_town"
     },
-    
+
     "stage1_read_note": {
       "id": "stage1_read_note",
       "type": "item",
@@ -116,16 +160,68 @@
       ],
       "itemId": "bloody_note"
     },
-    
+
     "stage1_examine_note": {
       "id": "stage1_examine_note",
       "type": "examine",
       "lines": [
         { "speaker": "narrator", "text": "A crumpled piece of paper, stained with what looks like blood." },
-        { "speaker": "narrator", "text": "The handwriting is hasty, almost frantic." }
+        { "speaker": "narrator", "text": "The handwriting is hasty, almost frantic." },
+        { "speaker": "narrator", "text": "Paul wrote this recently. The ink is still slightly wet." }
       ]
     },
-    
+
+    "stage1_read_journal": {
+      "id": "stage1_read_journal",
+      "type": "item",
+      "lines": [
+        { "speaker": "narrator", "text": "A leather-bound journal. The pages are warped from moisture." },
+        { "speaker": "carl", "text": "Paul's handwriting... this goes back months." },
+        { "speaker": "narrator", "text": "The entries start cheerful, then grow increasingly erratic." },
+        { "speaker": "note", "text": "'Tuesday: Made something special today. Carl doesn't need to know.'" },
+        { "speaker": "note", "text": "'Friday: The basement is filling up. Need more barrels.'" },
+        { "speaker": "carl", "text": "Oh Paul. Oh no." }
+      ],
+      "itemId": "paul_journal",
+      "effects": [
+        { "type": "horror_pulse", "intensity": 0.6 }
+      ]
+    },
+
+    "stage1_examine_journal": {
+      "id": "stage1_examine_journal",
+      "type": "examine",
+      "lines": [
+        { "speaker": "narrator", "text": "Paul's journal. Dozens of entries, each more disturbing than the last." },
+        { "speaker": "narrator", "text": "The final entry is just the word 'SORRY' written over and over." }
+      ]
+    },
+
+    "stage1_find_phone": {
+      "id": "stage1_find_phone",
+      "type": "item",
+      "lines": [
+        { "speaker": "narrator", "text": "A phone with a shattered screen. One unsent message glows dimly." },
+        { "speaker": "note", "text": "'HELP IM AT 42 ELM STREET THE LL'" },
+        { "speaker": "carl", "text": "Someone tried to call for help." },
+        { "speaker": "carl", "text": "They didn't finish typing." }
+      ],
+      "itemId": "broken_phone",
+      "effects": [
+        { "type": "horror_pulse", "intensity": 0.4 }
+      ]
+    },
+
+    "stage1_examine_phone": {
+      "id": "stage1_examine_phone",
+      "type": "examine",
+      "lines": [
+        { "speaker": "narrator", "text": "The phone is cracked and barely functional." },
+        { "speaker": "narrator", "text": "The battery is dead. No way to send the unfinished message." },
+        { "speaker": "carl", "text": "Whoever this belonged to... they were here. Recently." }
+      ]
+    },
+
     "stage1_examine_photo": {
       "id": "stage1_examine_photo",
       "type": "examine",
@@ -137,7 +233,7 @@
       ]
     }
   },
-  
+
   "npcDialogues": {
     "stage1_paul_dialogue": {
       "id": "stage1_paul_dialogue",
@@ -154,6 +250,7 @@
           "options": [
             { "text": "What's that smell?", "next": "smell" },
             { "text": "Why is there red on your hands?", "next": "hands" },
+            { "text": "What happened to the bedroom?", "next": "bedroom" },
             { "text": "I need to look around.", "next": "end" }
           ]
         },
@@ -182,17 +279,70 @@
             { "text": "I need to check the kitchen.", "next": "end" }
           ]
         },
+        "bedroom": {
+          "lines": [
+            { "speaker": "paul", "text": "The bedroom? Oh, I was rearranging." },
+            { "speaker": "paul", "text": "Feng shui! Very important for positive energy." },
+            { "speaker": "carl", "text": "There are drag marks on the floor, Paul." },
+            { "speaker": "paul", "text": "Heavy furniture! You know how it is." },
+            { "speaker": "paul", "text": "Nothing a good carpet can't fix!" }
+          ],
+          "options": [
+            { "text": "What about the bathroom mirror?", "next": "mirror" },
+            { "text": "I'm going to look around.", "next": "end" }
+          ]
+        },
+        "mirror": {
+          "lines": [
+            { "speaker": "paul", "text": "Mirror? What about it?" },
+            { "speaker": "carl", "text": "Someone wrote 'SORRY' on it." },
+            { "speaker": "paul", "text": "..." },
+            { "speaker": "paul", "text": "Must have been the steam. You know how condensation works." },
+            { "speaker": "carl", "text": "In YOUR handwriting?" },
+            { "speaker": "paul", "text": "Look, Carl, buddy, pal..." },
+            { "speaker": "paul", "text": "Some things are better left unexamined!" }
+          ],
+          "options": [
+            { "text": "What's in the basement?", "next": "basement" },
+            { "text": "I need to search this place.", "next": "end" }
+          ]
+        },
+        "basement": {
+          "lines": [
+            { "speaker": "paul", "text": "The basement?" },
+            { "speaker": "paul", "text": "Oh Carl, you don't want to go down there." },
+            { "speaker": "paul", "text": "Trust me. Please." },
+            { "speaker": "carl", "text": "That's exactly what someone says when there's something horrible down there." },
+            { "speaker": "paul", "text": "..." },
+            { "speaker": "paul", "text": "I'm sure I don't know what you mean." }
+          ],
+          "options": [
+            { "text": "Give me the key.", "next": "demand_key" },
+            { "text": "I'll find it myself.", "next": "end" }
+          ]
+        },
+        "demand_key": {
+          "lines": [
+            { "speaker": "paul", "text": "What key? I don't have any key." },
+            { "speaker": "paul", "text": "Keys are a social construct anyway!" },
+            { "speaker": "carl", "text": "Paul..." },
+            { "speaker": "paul", "text": "Fine! But don't say I didn't warn you." },
+            { "speaker": "paul", "text": "Check the bedroom. Under the nightstand." }
+          ],
+          "options": []
+        },
         "end": {
           "lines": [
             { "speaker": "paul", "text": "Sure thing, buddy!" },
-            { "speaker": "paul", "text": "Let me know if you need anything!" }
+            { "speaker": "paul", "text": "Let me know if you need anything!" },
+            { "speaker": "paul", "text": "I'll be in the kitchen. Making... jam." }
           ],
           "options": []
         }
       }
     }
   },
-  
+
   "propOverrides": {
     "couch": {
       "carl": [
@@ -231,6 +381,17 @@
       ],
       "prompt": "Examine counter"
     },
+    "bed": {
+      "carl": [
+        "The sheets are in a heap on the floor.",
+        "There's an impression in the mattress. Like something heavy was dragged across it."
+      ],
+      "paul": [
+        "Ah, the bed! I made it extra comfy.",
+        "The stains? That's just... chocolate. Night chocolate."
+      ],
+      "prompt": "Examine bed"
+    },
     "barrel": {
       "carl": [
         "Why do we have barrels in the apartment?",
@@ -241,6 +402,18 @@
         "Don't look inside though. Trust me."
       ],
       "prompt": "Check barrel"
+    },
+    "bookshelf": {
+      "carl": [
+        "Paul's reading collection. Mostly cookbooks.",
+        "Wait... 'Advanced Butchery Techniques'? 'Disposing of Evidence: A Practical Guide'?",
+        "That second one has to be a joke. Right?"
+      ],
+      "paul": [
+        "Light reading! Broadens the mind.",
+        "The butchery one has excellent sauce recipes!"
+      ],
+      "prompt": "Browse bookshelf"
     },
     "suspicious_box": {
       "carl": [
@@ -253,9 +426,35 @@
         "Don't open it, it's a surprise!"
       ],
       "prompt": "Examine box"
+    },
+    "pillar": {
+      "carl": [
+        "A concrete support pillar.",
+        "There are scratches on it. Like fingernails."
+      ],
+      "paul": [
+        "Structural integrity! Very important!",
+        "Those marks? Cats. Definitely cats."
+      ],
+      "prompt": "Examine pillar"
+    },
+    "crate": {
+      "carl": [
+        "Wooden crate. Sealed shut.",
+        "Something inside shifts when I nudge it."
+      ],
+      "paul": [
+        "Supplies! For my hobbies.",
+        "Nothing you need to worry about."
+      ],
+      "horror": [
+        "The wood is warped from moisture.",
+        "Something dark seeps from the corner."
+      ],
+      "prompt": "Check crate"
     }
   },
-  
+
   "genericLines": {
     "locked_door": {
       "carl": ["It's locked. I need to find a key."],
@@ -272,6 +471,18 @@
       "carl": [
         "The key fits. The lock clicks open.",
         "Here we go..."
+      ]
+    },
+    "return_upstairs": {
+      "carl": [
+        "I should go back up. There's nothing else I want to see down here.",
+        "Or maybe... I should look around more."
+      ]
+    },
+    "cant_leave_yet": {
+      "carl": [
+        "I can't just leave. I need to know what happened.",
+        "The answers are somewhere in this apartment."
       ]
     }
   }

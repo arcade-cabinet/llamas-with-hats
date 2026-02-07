@@ -37,6 +37,7 @@ export interface PropCollider {
   interactable: boolean; // Can trigger interaction
   interactionRadius?: number;
   dialogueId?: string;   // What dialogue to trigger
+  itemDrop?: string;     // Item ID dropped on interaction (triggers item_pickup story beat)
 }
 
 export interface MovementResult {
@@ -334,7 +335,8 @@ export function createCollidersFromProps(
       solid: true, // All props are solid by default
       interactable: prop.interactive || interactableTypes.includes(prop.type),
       interactionRadius: 1.5,
-      dialogueId: prop.interactive ? `interact_${prop.type}` : undefined
+      dialogueId: prop.interactive ? `interact_${prop.type}` : undefined,
+      itemDrop: prop.itemDrop
     };
   });
 }

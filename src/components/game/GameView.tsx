@@ -69,6 +69,9 @@ interface GameViewProps {
   onSave: () => void;
   onMainMenu: () => void;
   hideHUD?: boolean; // Hide all HUD elements (for menu overlay)
+  // Item/door callbacks
+  onItemPickup?: (itemId: string) => void;
+  onUnlockExit?: (lockId: string) => void;
   // Visual effect triggers (optional - effects can also be triggered via story system)
   screenShake?: boolean;
   bloodSplatter?: boolean;
@@ -97,6 +100,8 @@ export const GameView: React.FC<GameViewProps> = ({
   onSave,
   onMainMenu,
   hideHUD = false,
+  onItemPickup,
+  onUnlockExit,
   screenShake = false,
   bloodSplatter = false,
   dramaticZoom = false
@@ -139,7 +144,7 @@ export const GameView: React.FC<GameViewProps> = ({
   
   // Unified input controller with gesture support
   const { getInput, inputMode, showTouchControls } = useInputController({
-    enabled: !isPaused && !showDialogue,
+    enabled: !isPaused,
     onPause,
     onAction: () => {
       // If dialogue is showing, advance it
@@ -204,6 +209,9 @@ export const GameView: React.FC<GameViewProps> = ({
         isPaused={isPaused || showDialogue}
         onDialogue={handleDialogue}
         onInteractionStateChange={handleInteractionStateChange}
+        onItemPickup={onItemPickup}
+        onUnlockExit={onUnlockExit}
+        playerInventory={playerInventory}
         screenShake={screenShake}
         bloodSplatter={bloodSplatter}
         dramaticZoom={dramaticZoom}

@@ -31,11 +31,15 @@
  * @module StageBuilder
  */
 
-import { 
-  StageDefinition, 
-  SceneTemplate, 
+import {
+  StageDefinition,
+  SceneTemplate,
   RequiredScene,
   ConnectionType,
+  LayoutArchetype,
+  LevelConfig,
+  LevelAnchorRoom,
+  LayoutPattern,
   createRNG,
   hashSeed
 } from './StageDefinition';
@@ -238,332 +242,171 @@ const OPPOSITE_DIRECTION: Record<string, string> = {
 
 /**
  * Build a complete stage from a definition.
- * 
+ *
+ * If the definition has a `layout` section with an archetype,
+ * uses archetype-driven generation. Otherwise falls back to
+ * legacy flat generation from `connectionRules.type`.
+ *
  * @param definition - Stage definition JSON
  * @param templates - Available room templates
  * @param seed - Random seed for procedural generation
+ * @param archetype - Optional layout archetype (loaded from JSON)
  * @returns Built stage ready for rendering
  */
 export function buildStage(
   definition: StageDefinition,
   templates: SceneTemplate[],
+  seed: string,
+  archetype?: LayoutArchetype
+): BuiltStage {
+  // If archetype provided (or referenced in definition), use it
+  if (archetype || definition.layout) {
+    if (!archetype) {
+      throw new Error(
+        `Stage "${definition.id}" references layout archetype ` +
+        `"${definition.layout!.archetypeId}" but none was provided. ` +
+        `Pass the archetype as the 4th argument to buildStage().`
+      );
+    }
+    return buildStageFromArchetype(definition, archetype, templates, seed);
+  }
+
+  // Legacy path: flat generation from connectionRules
+  return buildStageLegacy(definition, templates, seed);
+}
+
+/**
+ * Legacy flat generation (no archetype).
+ * Kept for backward compatibility with stages that don't
+ * define a layout section.
+ */
+function buildStageLegacy(
+  definition: StageDefinition,
+  templates: SceneTemplate[],
   seed: string
 ): BuiltStage {
   const rng = createRNG(hashSeed(seed));
-  
-  // Create template lookup
-  const templateMap = new Map<string, SceneTemplate>();
-  templates.forEach(t => templateMap.set(t.id, t));
-  
-  // Track placed rooms
+
   const rooms = new Map<string, PlacedRoom>();
-  const grid = new Map<string, string>(); // "floor,x,z" -> roomId
+  const grid = new Map<string, string>();
   const boundaries: Boundary[] = [];
-  
-  // ─────────────────────────────────────────
-  // STEP 1: Determine floors needed
-  // ─────────────────────────────────────────
+
   const floors: FloorDefinition[] = [];
   const needsBasement = definition.generation.requiredScenes.some(
     s => s.templateTags?.includes('basement')
   ) || definition.generation.exitScene.templateTags?.includes('basement');
-  
-  // Always have ground floor
+
   floors.push({ level: 0, name: 'Ground Floor', yOffset: 0, roomIds: [] });
-  
   if (needsBasement) {
     floors.push({ level: -1, name: 'Basement', yOffset: -FLOOR_HEIGHT, roomIds: [] });
   }
-  
-  // ─────────────────────────────────────────
-  // STEP 2: Place anchor rooms
-  // ─────────────────────────────────────────
-  
-  // Entry room at grid origin
+
+  // Entry room
   const entryTemplate = findTemplate(definition.generation.entryScene, templates, rng);
   const entryRoom = placeRoom({
-    template: entryTemplate,
-    purpose: 'entry',
-    isAnchor: true,
-    floor: 0,
-    gridPosition: { x: 0, z: 0 },
-    storyBeats: [definition.story.startingBeat],
-    questItems: [],
-    rng
+    template: entryTemplate, purpose: 'entry', isAnchor: true, floor: 0,
+    gridPosition: { x: 0, z: 0 }, storyBeats: [definition.story.startingBeat],
+    questItems: [], rng
   });
   rooms.set(entryRoom.id, entryRoom);
-  grid.set(`0,0,0`, entryRoom.id);
+  grid.set('0,0,0', entryRoom.id);
   floors[0].roomIds.push(entryRoom.id);
-  
-  // Required scenes (anchors)
+
+  // Required scenes
   const anchorPositions = calculateAnchorPositions(
     definition.generation.requiredScenes.length,
-    definition.generation.connectionRules,
-    rng
+    definition.generation.connectionRules, rng
   );
-  
+
   definition.generation.requiredScenes.forEach((required, i) => {
     const template = findTemplate(required, templates, rng);
     const isBasement = required.templateTags?.includes('basement');
     const floor = isBasement ? -1 : 0;
     const pos = anchorPositions[i] || { x: i + 1, z: 0 };
-    
     const room = placeRoom({
-      template,
-      purpose: required.purpose,
-      isAnchor: true,
-      floor,
-      gridPosition: pos,
-      storyBeats: [],
-      questItems: required.mustContain?.questItems || [],
-      rng
+      template, purpose: required.purpose, isAnchor: true, floor,
+      gridPosition: pos, storyBeats: [],
+      questItems: required.mustContain?.questItems || [], rng
     });
-    
     rooms.set(room.id, room);
     grid.set(`${floor},${pos.x},${pos.z}`, room.id);
-    
     const floorDef = floors.find(f => f.level === floor);
     if (floorDef) floorDef.roomIds.push(room.id);
   });
-  
+
   // Exit room
   const exitTemplate = findTemplate(definition.generation.exitScene, templates, rng);
   const exitIsBasement = definition.generation.exitScene.templateTags?.includes('basement');
   const exitFloor = exitIsBasement ? -1 : 0;
   const exitPos = findExitPosition(grid, exitFloor, definition.generation.connectionRules, rng);
-  
   const exitRoom = placeRoom({
-    template: exitTemplate,
-    purpose: 'exit',
-    isAnchor: true,
-    floor: exitFloor,
-    gridPosition: exitPos,
-    storyBeats: [],
-    questItems: [],
-    rng
+    template: exitTemplate, purpose: 'exit', isAnchor: true, floor: exitFloor,
+    gridPosition: exitPos, storyBeats: [], questItems: [], rng
   });
   rooms.set(exitRoom.id, exitRoom);
   grid.set(`${exitFloor},${exitPos.x},${exitPos.z}`, exitRoom.id);
-  
   const exitFloorDef = floors.find(f => f.level === exitFloor);
   if (exitFloorDef) exitFloorDef.roomIds.push(exitRoom.id);
-  
-  // ─────────────────────────────────────────
-  // STEP 3: Generate filler rooms
-  // ─────────────────────────────────────────
+
+  // Fillers
   const fillerCount = rng.nextInt(
     definition.generation.optionalSceneCount.min,
     definition.generation.optionalSceneCount.max
   );
-  
-  const fillerTemplates = templates.filter(t => 
+  const fillerTemplates = templates.filter(t =>
     definition.generation.allowedTemplates.includes(t.id)
   );
-  
   for (let i = 0; i < fillerCount; i++) {
     const position = findFillerPosition(grid, 0, rooms, rng);
-    if (!position) break; // No valid positions left
-    
+    if (!position) break;
     const template = rng.pick(fillerTemplates);
     const room = placeRoom({
-      template,
-      purpose: 'filler',
-      isAnchor: false,
-      floor: 0,
-      gridPosition: position,
-      storyBeats: [],
-      questItems: [],
-      rng
+      template, purpose: 'filler', isAnchor: false, floor: 0,
+      gridPosition: position, storyBeats: [], questItems: [], rng
     });
-    
     rooms.set(room.id, room);
     grid.set(`0,${position.x},${position.z}`, room.id);
     floors[0].roomIds.push(room.id);
   }
-  
-  // ─────────────────────────────────────────
-  // STEP 4: Create connections & boundaries
-  // ─────────────────────────────────────────
-  
-  // Connect adjacent rooms on each floor
+
+  // Connect adjacent rooms
   for (const floor of floors) {
     const floorRooms = floor.roomIds.map(id => rooms.get(id)!);
-    
     for (const room of floorRooms) {
       for (const [dir, offset] of Object.entries(DIRECTION_OFFSETS)) {
         const neighborKey = `${floor.level},${room.gridPosition.x + offset.x},${room.gridPosition.z + offset.z}`;
         const neighborId = grid.get(neighborKey);
-        
         if (neighborId && !room.connections.find(c => c.targetRoomId === neighborId)) {
           const neighbor = rooms.get(neighborId)!;
           const connectionType = determineConnectionType(room, neighbor, definition, rng);
-          
-          // Add connection to both rooms
-          const connectionPos = getConnectionPosition(room, dir as any);
           room.connections.push({
-            direction: dir as any,
-            targetRoomId: neighborId,
-            type: connectionType,
-            position: connectionPos,
-            locked: false
+            direction: dir as any, targetRoomId: neighborId, type: connectionType,
+            position: getConnectionPosition(room, dir as any), locked: false
           });
-          
           neighbor.connections.push({
-            direction: OPPOSITE_DIRECTION[dir] as any,
-            targetRoomId: room.id,
+            direction: OPPOSITE_DIRECTION[dir] as any, targetRoomId: room.id,
             type: connectionType,
             position: getConnectionPosition(neighbor, OPPOSITE_DIRECTION[dir] as any),
             locked: false
           });
-          
-          // Create boundary
           boundaries.push({
-            id: `boundary_${room.id}_${neighborId}`,
-            roomA: room.id,
-            roomB: neighborId,
+            id: `boundary_${room.id}_${neighborId}`, roomA: room.id, roomB: neighborId,
             transitionType: connectionType,
             worldPosition: calculateBoundaryPosition(room, neighbor, dir as any),
-            direction: dir as any,
-            width: 2,
-            locked: false
+            direction: dir as any, width: 2, locked: false
           });
         }
       }
     }
   }
-  
-  // Connect floors with stairs/ramps
+
+  // Vertical connections
   if (floors.length > 1) {
-    const verticalBoundary = createVerticalConnection(
-      rooms, grid, floors, definition, rng
-    );
-    if (verticalBoundary) {
-      boundaries.push(verticalBoundary);
-    }
+    const verticalBoundary = createVerticalConnection(rooms, grid, floors, definition, rng);
+    if (verticalBoundary) boundaries.push(verticalBoundary);
   }
-  
-  // ─────────────────────────────────────────
-  // STEP 5: Build navigation helpers
-  // ─────────────────────────────────────────
-  
-  const builtStage: BuiltStage = {
-    definition,
-    seed,
-    rooms,
-    boundaries,
-    entryRoomId: entryRoom.id,
-    exitRoomId: exitRoom.id,
-    floors,
-    
-    getRoom(id: string) {
-      return rooms.get(id);
-    },
-    
-    getRoomsOnFloor(floor: number) {
-      return Array.from(rooms.values()).filter(r => r.floor === floor);
-    },
-    
-    getBoundariesForRoom(roomId: string) {
-      return boundaries.filter(b => b.roomA === roomId || b.roomB === roomId);
-    },
-    
-    getGroundY(x: number, z: number) {
-      // Find which room contains this position
-      for (const room of rooms.values()) {
-        const wx = room.worldPosition.x;
-        const wz = room.worldPosition.z;
-        const hw = room.size.width / 2;
-        const hh = room.size.height / 2;
-        
-        if (x >= wx - hw && x <= wx + hw && z >= wz - hh && z <= wz + hh) {
-          return room.worldPosition.y;
-        }
-      }
-      
-      // Check boundaries for stairs/ramps
-      for (const boundary of boundaries) {
-        if (boundary.transitionType === 'stairs' || boundary.transitionType === 'ramp') {
-          const bw = boundary.width;
-          const transitionLength = (boundary.heightDifference || FLOOR_HEIGHT) * 
-            (boundary.transitionType === 'stairs' ? 1.8 : 3.0);
-          
-          // Calculate bounds based on direction
-          let bounds: { minX: number; maxX: number; minZ: number; maxZ: number };
-          const pos = boundary.worldPosition;
-          
-          switch (boundary.direction) {
-            case 'north':
-            case 'south':
-              bounds = {
-                minX: pos.x - bw / 2,
-                maxX: pos.x + bw / 2,
-                minZ: pos.z - transitionLength / 2,
-                maxZ: pos.z + transitionLength / 2,
-              };
-              break;
-            case 'east':
-            case 'west':
-            default:
-              bounds = {
-                minX: pos.x - transitionLength / 2,
-                maxX: pos.x + transitionLength / 2,
-                minZ: pos.z - bw / 2,
-                maxZ: pos.z + bw / 2,
-              };
-              break;
-          }
-          
-          // Check if position is within transition bounds
-          if (x >= bounds.minX && x <= bounds.maxX && z >= bounds.minZ && z <= bounds.maxZ) {
-            const heightDiff = boundary.heightDifference || FLOOR_HEIGHT;
-            const roomA = rooms.get(boundary.roomA);
-            const bottomY = roomA ? roomA.worldPosition.y : 0;
-            
-            // Calculate progress along transition (0 = start, 1 = end)
-            let progress: number;
-            switch (boundary.direction) {
-              case 'north':
-                progress = (z - bounds.minZ) / (bounds.maxZ - bounds.minZ);
-                break;
-              case 'south':
-                progress = 1 - (z - bounds.minZ) / (bounds.maxZ - bounds.minZ);
-                break;
-              case 'east':
-                progress = (x - bounds.minX) / (bounds.maxX - bounds.minX);
-                break;
-              case 'west':
-                progress = 1 - (x - bounds.minX) / (bounds.maxX - bounds.minX);
-                break;
-              default:
-                progress = 0;
-            }
-            
-            // Clamp and interpolate
-            progress = Math.max(0, Math.min(1, progress));
-            return bottomY + progress * Math.abs(heightDiff);
-          }
-        }
-      }
-      
-      return 0;
-    },
-    
-    isWalkable(x: number, z: number) {
-      for (const room of rooms.values()) {
-        const wx = room.worldPosition.x;
-        const wz = room.worldPosition.z;
-        const hw = room.size.width / 2;
-        const hh = room.size.height / 2;
-        
-        if (x >= wx - hw && x <= wx + hw && z >= wz - hh && z <= wz + hh) {
-          return true;
-        }
-      }
-      return false;
-    }
-  };
-  
-  return builtStage;
+
+  return buildNavigationHelpers(definition, seed, rooms, boundaries, entryRoom.id, exitRoom.id, floors);
 }
 
 // ============================================
@@ -955,6 +798,439 @@ function createVerticalConnection(
   }
   
   return null;
+}
+
+// ============================================
+// Archetype-Driven Generation
+// ============================================
+
+/**
+ * Build a stage using a layout archetype for multi-floor,
+ * pattern-driven room placement.
+ *
+ * This is the upgraded generation path. When a StageDefinition
+ * includes a `layout` section with an `archetypeId`, this function
+ * is called instead of the legacy flat generation.
+ *
+ * The archetype's per-level configs drive:
+ * - Which pattern to use (linear, branching, hub, etc.)
+ * - Where anchor rooms are placed
+ * - How many fillers to generate (totalRooms - anchors)
+ * - Vertical connections between floors
+ */
+export function buildStageFromArchetype(
+  definition: StageDefinition,
+  archetype: LayoutArchetype,
+  templates: SceneTemplate[],
+  seed: string
+): BuiltStage {
+  const rng = createRNG(hashSeed(seed));
+  const templateMap = new Map<string, SceneTemplate>();
+  templates.forEach(t => templateMap.set(t.id, t));
+
+  const rooms = new Map<string, PlacedRoom>();
+  const grid = new Map<string, string>();
+  const boundaries: Boundary[] = [];
+  const floors: FloorDefinition[] = [];
+
+  let entryRoomId = '';
+  let exitRoomId = '';
+
+  // Merge level overrides from stage definition onto archetype defaults
+  const levelConfigs = archetype.levels.map(archetypeLevel => {
+    const overrides = definition.layout?.levelOverrides?.[archetypeLevel.level];
+    if (!overrides) return archetypeLevel;
+    return { ...archetypeLevel, ...overrides } as LevelConfig;
+  });
+
+  // ─────────────────────────────────────────
+  // Process each floor level
+  // ─────────────────────────────────────────
+  for (const levelConfig of levelConfigs) {
+    const floorDef: FloorDefinition = {
+      level: levelConfig.level,
+      name: levelConfig.name,
+      yOffset: levelConfig.level * FLOOR_HEIGHT,
+      roomIds: []
+    };
+    floors.push(floorDef);
+
+    // Place anchor rooms first
+    for (const anchor of levelConfig.anchorRooms) {
+      const template = findTemplateForAnchor(anchor, templates, rng);
+      const room = placeRoom({
+        template,
+        purpose: anchor.purpose,
+        isAnchor: true,
+        floor: levelConfig.level,
+        gridPosition: anchor.gridPosition,
+        storyBeats: anchor.storyBeats || [],
+        questItems: anchor.questItems || [],
+        rng
+      });
+
+      rooms.set(room.id, room);
+      grid.set(`${levelConfig.level},${anchor.gridPosition.x},${anchor.gridPosition.z}`, room.id);
+      floorDef.roomIds.push(room.id);
+
+      if (anchor.isEntry) entryRoomId = room.id;
+      if (anchor.isExit) exitRoomId = room.id;
+    }
+
+    // Calculate filler count: target total - anchors placed
+    const anchorCount = levelConfig.anchorRooms.length;
+    const targetTotal = rng.nextInt(levelConfig.totalRooms.min, levelConfig.totalRooms.max);
+    const fillerCount = Math.max(0, targetTotal - anchorCount);
+
+    // Get filler templates
+    const fillerTemplates = levelConfig.fillerRules.allowedTemplates
+      .map(id => templateMap.get(id))
+      .filter((t): t is SceneTemplate => t !== undefined);
+
+    // Place fillers using pattern-appropriate strategy
+    for (let i = 0; i < fillerCount; i++) {
+      const position = findFillerPositionForPattern(
+        levelConfig.pattern,
+        levelConfig,
+        grid,
+        rooms,
+        rng
+      );
+      if (!position) break;
+
+      const template = fillerTemplates.length > 0
+        ? rng.pick(fillerTemplates)
+        : rng.pick(templates);
+
+      const room = placeRoom({
+        template,
+        purpose: 'filler',
+        isAnchor: false,
+        floor: levelConfig.level,
+        gridPosition: position,
+        storyBeats: [],
+        questItems: [],
+        rng
+      });
+
+      rooms.set(room.id, room);
+      grid.set(`${levelConfig.level},${position.x},${position.z}`, room.id);
+      floorDef.roomIds.push(room.id);
+    }
+
+    // Connect rooms on this floor based on pattern
+    connectRoomsOnFloor(levelConfig, floorDef, rooms, grid, boundaries, definition, archetype, rng);
+  }
+
+  // ─────────────────────────────────────────
+  // Create vertical connections between floors
+  // ─────────────────────────────────────────
+  for (const levelConfig of levelConfigs) {
+    for (const vc of levelConfig.verticalConnections) {
+      const sourceKey = `${levelConfig.level},${vc.gridPosition.x},${vc.gridPosition.z}`;
+      const targetKey = `${vc.targetLevel},${vc.gridPosition.x},${vc.gridPosition.z}`;
+
+      const sourceRoomId = grid.get(sourceKey);
+      const targetRoomId = grid.get(targetKey);
+
+      if (sourceRoomId && targetRoomId) {
+        const sourceRoom = rooms.get(sourceRoomId)!;
+        const targetRoom = rooms.get(targetRoomId)!;
+        const dir = vc.direction === 'down' ? 'down' as const : 'up' as const;
+        const oppositeDir = dir === 'down' ? 'up' as const : 'down' as const;
+
+        sourceRoom.connections.push({
+          direction: dir,
+          targetRoomId: targetRoomId,
+          type: vc.type as ConnectionType,
+          position: { x: 0, z: -sourceRoom.size.height / 2 + 2 },
+          locked: vc.locked || false,
+          lockId: vc.lockId
+        });
+
+        targetRoom.connections.push({
+          direction: oppositeDir,
+          targetRoomId: sourceRoomId,
+          type: vc.type as ConnectionType,
+          position: { x: 0, z: -targetRoom.size.height / 2 + 2 },
+          locked: false
+        });
+
+        boundaries.push({
+          id: `boundary_vertical_${sourceRoomId}_${targetRoomId}`,
+          roomA: sourceRoomId,
+          roomB: targetRoomId,
+          transitionType: vc.type as ConnectionType,
+          worldPosition: {
+            x: sourceRoom.worldPosition.x,
+            y: (sourceRoom.worldPosition.y + targetRoom.worldPosition.y) / 2,
+            z: sourceRoom.worldPosition.z - sourceRoom.size.height / 2 + 2
+          },
+          direction: dir,
+          width: 3,
+          heightDifference: FLOOR_HEIGHT,
+          locked: vc.locked || false,
+          lockId: vc.lockId
+        });
+      }
+    }
+  }
+
+  // Build the BuiltStage with navigation helpers
+  return buildNavigationHelpers(definition, seed, rooms, boundaries, entryRoomId, exitRoomId, floors);
+}
+
+/**
+ * Find a template matching an anchor room's requirements.
+ */
+function findTemplateForAnchor(
+  anchor: LevelAnchorRoom,
+  templates: SceneTemplate[],
+  rng: ReturnType<typeof createRNG>
+): SceneTemplate {
+  if (anchor.templateId) {
+    const exact = templates.find(t => t.id === anchor.templateId);
+    if (exact) return exact;
+  }
+  if (anchor.templateTags && anchor.templateTags.length > 0) {
+    const matching = templates.filter(t =>
+      anchor.templateTags!.some(tag => t.tags.includes(tag))
+    );
+    if (matching.length > 0) return rng.pick(matching);
+  }
+  return rng.pick(templates);
+}
+
+/**
+ * Find a filler position using the level's pattern strategy.
+ */
+function findFillerPositionForPattern(
+  _pattern: LayoutPattern,
+  levelConfig: LevelConfig,
+  grid: Map<string, string>,
+  rooms: Map<string, PlacedRoom>,
+  rng: ReturnType<typeof createRNG>
+): { x: number; z: number } | null {
+  const floor = levelConfig.level;
+
+  switch (levelConfig.fillerRules.growthStrategy) {
+    case 'path': {
+      // Place fillers between anchors along the pattern axis
+      const anchors = levelConfig.anchorRooms.map(a => a.gridPosition);
+      if (anchors.length < 2) return findFillerPosition(grid, floor, rooms, rng);
+
+      // Find empty cells between anchor positions
+      const candidates: { x: number; z: number }[] = [];
+      for (let i = 0; i < anchors.length - 1; i++) {
+        const from = anchors[i];
+        const to = anchors[i + 1];
+        const dx = Math.sign(to.x - from.x);
+        const dz = Math.sign(to.z - from.z);
+        let cx = from.x + dx;
+        let cz = from.z + dz;
+        while (cx !== to.x || cz !== to.z) {
+          const key = `${floor},${cx},${cz}`;
+          if (!grid.has(key)) candidates.push({ x: cx, z: cz });
+          if (cx !== to.x) cx += dx;
+          if (cz !== to.z) cz += dz;
+        }
+      }
+      return candidates.length > 0 ? rng.pick(candidates) : findFillerPosition(grid, floor, rooms, rng);
+    }
+
+    case 'ring': {
+      // Place fillers at distance 1 from center (intermediate ring)
+      const ringPositions = [
+        { x: 1, z: 0 }, { x: -1, z: 0 }, { x: 0, z: 1 }, { x: 0, z: -1 },
+        { x: 1, z: 1 }, { x: -1, z: 1 }, { x: 1, z: -1 }, { x: -1, z: -1 }
+      ];
+      const candidates = ringPositions.filter(p => !grid.has(`${floor},${p.x},${p.z}`));
+      return candidates.length > 0 ? rng.pick(candidates) : findFillerPosition(grid, floor, rooms, rng);
+    }
+
+    case 'adjacent':
+    default:
+      return findFillerPosition(grid, floor, rooms, rng);
+  }
+}
+
+/**
+ * Connect rooms on a floor based on the level's layout pattern.
+ */
+function connectRoomsOnFloor(
+  _levelConfig: LevelConfig,
+  floorDef: FloorDefinition,
+  rooms: Map<string, PlacedRoom>,
+  grid: Map<string, string>,
+  boundaries: Boundary[],
+  definition: StageDefinition,
+  archetype: LayoutArchetype,
+  rng: ReturnType<typeof createRNG>
+): void {
+  const floorRooms = floorDef.roomIds.map(id => rooms.get(id)!);
+
+  // Connect adjacent rooms (this works for all patterns)
+  for (const room of floorRooms) {
+    for (const [dir, offset] of Object.entries(DIRECTION_OFFSETS)) {
+      const neighborKey = `${floorDef.level},${room.gridPosition.x + offset.x},${room.gridPosition.z + offset.z}`;
+      const neighborId = grid.get(neighborKey);
+
+      if (neighborId && !room.connections.find(c => c.targetRoomId === neighborId)) {
+        const neighbor = rooms.get(neighborId)!;
+        const connectionType = determineArchetypeConnectionType(
+          room, neighbor, archetype, definition, rng
+        );
+
+        const connectionPos = getConnectionPosition(room, dir as any);
+        room.connections.push({
+          direction: dir as any,
+          targetRoomId: neighborId,
+          type: connectionType,
+          position: connectionPos,
+          locked: false
+        });
+
+        neighbor.connections.push({
+          direction: OPPOSITE_DIRECTION[dir] as any,
+          targetRoomId: room.id,
+          type: connectionType,
+          position: getConnectionPosition(neighbor, OPPOSITE_DIRECTION[dir] as any),
+          locked: false
+        });
+
+        boundaries.push({
+          id: `boundary_${room.id}_${neighborId}`,
+          roomA: room.id,
+          roomB: neighborId,
+          transitionType: connectionType,
+          worldPosition: calculateBoundaryPosition(room, neighbor, dir as any),
+          direction: dir as any,
+          width: 2,
+          locked: false
+        });
+      }
+    }
+  }
+}
+
+/**
+ * Determine connection type using archetype rules.
+ */
+function determineArchetypeConnectionType(
+  roomA: PlacedRoom,
+  roomB: PlacedRoom,
+  archetype: LayoutArchetype,
+  _definition: StageDefinition,
+  rng: ReturnType<typeof createRNG>
+): ConnectionType {
+  // Hallways get the hallway connection type
+  if (roomA.templateId.includes('hallway') || roomB.templateId.includes('hallway')) {
+    return archetype.connectionRules.hallwayType || archetype.connectionRules.defaultType;
+  }
+
+  // Exterior environments use open connections
+  if (archetype.environment === 'exterior') {
+    return archetype.connectionRules.buildingEntryType || 'open';
+  }
+
+  // Default with some randomization
+  const defaultType = archetype.connectionRules.defaultType;
+  if (defaultType === 'wall_door' && rng.next() > 0.7) {
+    return 'wall_archway';
+  }
+
+  return defaultType;
+}
+
+/**
+ * Build the BuiltStage object with navigation helpers.
+ * Shared between legacy and archetype-driven paths.
+ */
+function buildNavigationHelpers(
+  definition: StageDefinition,
+  seed: string,
+  rooms: Map<string, PlacedRoom>,
+  boundaries: Boundary[],
+  entryRoomId: string,
+  exitRoomId: string,
+  floors: FloorDefinition[]
+): BuiltStage {
+  return {
+    definition,
+    seed,
+    rooms,
+    boundaries,
+    entryRoomId,
+    exitRoomId,
+    floors,
+
+    getRoom(id: string) { return rooms.get(id); },
+
+    getRoomsOnFloor(floor: number) {
+      return Array.from(rooms.values()).filter(r => r.floor === floor);
+    },
+
+    getBoundariesForRoom(roomId: string) {
+      return boundaries.filter(b => b.roomA === roomId || b.roomB === roomId);
+    },
+
+    getGroundY(x: number, z: number) {
+      for (const room of rooms.values()) {
+        const wx = room.worldPosition.x;
+        const wz = room.worldPosition.z;
+        const hw = room.size.width / 2;
+        const hh = room.size.height / 2;
+        if (x >= wx - hw && x <= wx + hw && z >= wz - hh && z <= wz + hh) {
+          return room.worldPosition.y;
+        }
+      }
+      for (const boundary of boundaries) {
+        if (boundary.transitionType === 'stairs' || boundary.transitionType === 'ramp') {
+          const bw = boundary.width;
+          const transitionLength = (boundary.heightDifference || FLOOR_HEIGHT) *
+            (boundary.transitionType === 'stairs' ? 1.8 : 3.0);
+          let bounds: { minX: number; maxX: number; minZ: number; maxZ: number };
+          const pos = boundary.worldPosition;
+          switch (boundary.direction) {
+            case 'north': case 'south':
+              bounds = { minX: pos.x - bw / 2, maxX: pos.x + bw / 2, minZ: pos.z - transitionLength / 2, maxZ: pos.z + transitionLength / 2 };
+              break;
+            default:
+              bounds = { minX: pos.x - transitionLength / 2, maxX: pos.x + transitionLength / 2, minZ: pos.z - bw / 2, maxZ: pos.z + bw / 2 };
+              break;
+          }
+          if (x >= bounds.minX && x <= bounds.maxX && z >= bounds.minZ && z <= bounds.maxZ) {
+            const heightDiff = boundary.heightDifference || FLOOR_HEIGHT;
+            const roomA = rooms.get(boundary.roomA);
+            const bottomY = roomA ? roomA.worldPosition.y : 0;
+            let progress: number;
+            switch (boundary.direction) {
+              case 'north': progress = (z - bounds.minZ) / (bounds.maxZ - bounds.minZ); break;
+              case 'south': progress = 1 - (z - bounds.minZ) / (bounds.maxZ - bounds.minZ); break;
+              case 'east': progress = (x - bounds.minX) / (bounds.maxX - bounds.minX); break;
+              default: progress = 1 - (x - bounds.minX) / (bounds.maxX - bounds.minX); break;
+            }
+            progress = Math.max(0, Math.min(1, progress));
+            return bottomY + progress * Math.abs(heightDiff);
+          }
+        }
+      }
+      return 0;
+    },
+
+    isWalkable(x: number, z: number) {
+      for (const room of rooms.values()) {
+        const wx = room.worldPosition.x;
+        const wz = room.worldPosition.z;
+        const hw = room.size.width / 2;
+        const hh = room.size.height / 2;
+        if (x >= wx - hw && x <= wx + hw && z >= wz - hh && z <= wz + hh) {
+          return true;
+        }
+      }
+      return false;
+    }
+  };
 }
 
 // ============================================

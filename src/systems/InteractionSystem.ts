@@ -52,6 +52,7 @@
 
 import { CollisionSystem, PropCollider } from './CollisionSystem';
 import { getPropDialogue, getInteractPrompt } from '../data';
+import { getStoryManager } from './StoryManager';
 
 // Note: Prop dialogues are now loaded from src/data/dialogues/prop-dialogues.json
 // Use getPropDialogue(propType) to get dialogue for a prop
@@ -134,11 +135,12 @@ export interface InteractionSystem {
   /** Perform interaction with nearest prop (keyboard E fallback) */
   interact(character: 'carl' | 'paul'): boolean;
   
-  /** 
+  /**
    * Interact with a specific prop by type/id (for click/tap interactions).
+   * Pass itemDrop to trigger item_pickup story beats.
    * Returns true if interaction was handled.
    */
-  interactWithProp(propType: string, character: 'carl' | 'paul'): boolean;
+  interactWithProp(propType: string, character: 'carl' | 'paul', itemDrop?: string): boolean;
   
   /** Check for triggered story beats */
   checkStoryTrigger(beatId: string, character: 'carl' | 'paul'): void;
@@ -213,24 +215,36 @@ export function createInteractionSystem(): InteractionSystem {
       if (!currentState.nearbyInteractable || !callbacks) {
         return false;
       }
-      
+
       const prop = currentState.nearbyInteractable;
-      return this.interactWithProp(prop.type, character);
+      return this.interactWithProp(prop.type, character, prop.itemDrop);
     },
     
-    interactWithProp(propType: string, character: 'carl' | 'paul'): boolean {
+    interactWithProp(propType: string, character: 'carl' | 'paul', itemDrop?: string): boolean {
       if (!callbacks) {
         return false;
       }
-      
+
       // Get dialogue from data module (handles fallback to default)
       const dialogue = getPropDialogue(propType);
       const lines = character === 'carl' ? dialogue.carl : dialogue.paul;
-      
+
       // Dialogue variations are now handled by atmosphere system
       // Props can trigger atmosphere changes via their interaction actions
       callbacks.onDialogue(lines, character);
-      
+
+      // If the prop drops an item, fire item_pickup story trigger
+      if (itemDrop) {
+        callbacks.onItemPickup?.(itemDrop);
+        getStoryManager().checkTrigger('item_pickup', { itemId: itemDrop });
+      }
+
+      // Also fire npc_interact if this prop type matches an NPC id
+      // (NPCs are interactable props with their characterId as propType)
+      if (propType === 'carl' || propType === 'paul') {
+        getStoryManager().checkTrigger('npc_interact', { npcId: propType });
+      }
+
       return true;
     },
     

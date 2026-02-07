@@ -106,14 +106,14 @@ const ATMOSPHERE_PRESETS: Record<AtmospherePreset, AtmosphereState> = {
     ambientIntensity: 0.6,
     ambientColor: [1.0, 0.95, 0.85],
     accentLight: { enabled: false, color: [1, 1, 1], intensity: 0 },
-    musicTrack: 'apartment_calm',
+    musicTrack: 'cozy_ambient',
     musicVolume: 0.4,
     ambientSounds: ['clock_tick'],
     ambientVolume: 0.3,
     colorGrade: { saturation: 1.0, brightness: 1.0, tint: [1, 1, 1] },
     particleEffects: ['dust'],
   },
-  
+
   uneasy: {
     preset: 'uneasy',
     fogDensity: 0.015,
@@ -121,14 +121,14 @@ const ATMOSPHERE_PRESETS: Record<AtmospherePreset, AtmosphereState> = {
     ambientIntensity: 0.5,
     ambientColor: [0.9, 0.85, 0.75],
     accentLight: { enabled: false, color: [1, 1, 1], intensity: 0 },
-    musicTrack: 'apartment_tense',
+    musicTrack: 'uneasy_ambient',
     musicVolume: 0.3,
     ambientSounds: ['clock_tick', 'creak'],
     ambientVolume: 0.4,
     colorGrade: { saturation: 0.9, brightness: 0.95, tint: [1, 0.98, 0.95] },
     particleEffects: ['dust'],
   },
-  
+
   tense: {
     preset: 'tense',
     fogDensity: 0.025,
@@ -136,14 +136,14 @@ const ATMOSPHERE_PRESETS: Record<AtmospherePreset, AtmosphereState> = {
     ambientIntensity: 0.4,
     ambientColor: [0.8, 0.75, 0.65],
     accentLight: { enabled: true, color: [0.8, 0.4, 0.3], intensity: 0.2 },
-    musicTrack: 'horror_ambient',
+    musicTrack: 'tense_ambient',
     musicVolume: 0.5,
     ambientSounds: ['heartbeat', 'creak', 'whisper'],
     ambientVolume: 0.5,
     colorGrade: { saturation: 0.8, brightness: 0.9, tint: [1, 0.95, 0.9] },
     particleEffects: ['dust', 'fog_wisps'],
   },
-  
+
   dread: {
     preset: 'dread',
     fogDensity: 0.04,
@@ -151,14 +151,14 @@ const ATMOSPHERE_PRESETS: Record<AtmospherePreset, AtmosphereState> = {
     ambientIntensity: 0.25,
     ambientColor: [0.6, 0.5, 0.5],
     accentLight: { enabled: true, color: [0.8, 0.2, 0.1], intensity: 0.4 },
-    musicTrack: 'horror_ambient',
+    musicTrack: 'dread_ambient',
     musicVolume: 0.7,
     ambientSounds: ['heartbeat', 'whisper', 'drip', 'wind'],
     ambientVolume: 0.6,
     colorGrade: { saturation: 0.6, brightness: 0.8, tint: [1, 0.9, 0.85] },
     particleEffects: ['fog_wisps', 'embers'],
   },
-  
+
   panic: {
     preset: 'panic',
     fogDensity: 0.03,
@@ -166,14 +166,14 @@ const ATMOSPHERE_PRESETS: Record<AtmospherePreset, AtmosphereState> = {
     ambientIntensity: 0.3,
     ambientColor: [1.0, 0.6, 0.5],
     accentLight: { enabled: true, color: [1.0, 0.3, 0.2], intensity: 0.6 },
-    musicTrack: 'chase_theme',
+    musicTrack: 'panic_ambient',
     musicVolume: 0.8,
     ambientSounds: ['heartbeat'],
     ambientVolume: 0.8,
     colorGrade: { saturation: 1.2, brightness: 1.1, tint: [1, 0.8, 0.8] },
     particleEffects: ['embers'],
   },
-  
+
   absurd: {
     preset: 'absurd',
     fogDensity: 0.02,
@@ -181,7 +181,7 @@ const ATMOSPHERE_PRESETS: Record<AtmospherePreset, AtmosphereState> = {
     ambientIntensity: 0.5,
     ambientColor: [0.9, 0.8, 1.0],
     accentLight: { enabled: true, color: [0.8, 0.3, 0.8], intensity: 0.3 },
-    musicTrack: 'horror_ambient',  // But played slightly wrong
+    musicTrack: 'absurd_ambient',
     musicVolume: 0.5,
     ambientSounds: ['creak', 'paul_laugh'],
     ambientVolume: 0.5,
@@ -244,6 +244,7 @@ export interface AtmosphereManager {
   setAudioManager(audio: {
     playMusic: (track: string, opts?: { volume?: number; fadeIn?: number }) => void;
     stopMusic: (opts?: { fadeOut?: number }) => void;
+    crossfadeMusic: (track: string, opts?: { duration?: number; volume?: number }) => void;
     playSound: (id: string, opts?: { volume?: number }) => void;
   }): void;
   
@@ -275,6 +276,7 @@ export function createAtmosphereManager(): AtmosphereManager {
   let audioManager: {
     playMusic: (track: string, opts?: { volume?: number; fadeIn?: number }) => void;
     stopMusic: (opts?: { fadeOut?: number }) => void;
+    crossfadeMusic: (track: string, opts?: { duration?: number; volume?: number }) => void;
     playSound: (id: string, opts?: { volume?: number }) => void;
   } | null = null;
   
@@ -372,20 +374,27 @@ export function createAtmosphereManager(): AtmosphereManager {
     );
   }
   
+  // Track the last music track to avoid redundant crossfade calls
+  let lastMusicTrack: string | null = null;
+
   /**
    * Update audio to match atmosphere
    */
   function updateAudio(state: AtmosphereState) {
     if (!audioManager) return;
-    
-    // Music
+
+    // Music -- use crossfade for smooth atmosphere transitions
     if (state.musicTrack) {
-      audioManager.playMusic(state.musicTrack, { 
-        volume: state.musicVolume, 
-        fadeIn: 1000 
-      });
+      if (state.musicTrack !== lastMusicTrack) {
+        audioManager.crossfadeMusic(state.musicTrack, {
+          duration: 2000,
+          volume: state.musicVolume,
+        });
+        lastMusicTrack = state.musicTrack;
+      }
     } else {
       audioManager.stopMusic({ fadeOut: 1000 });
+      lastMusicTrack = null;
     }
     
     // Ambient sounds

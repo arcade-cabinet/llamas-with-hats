@@ -13,6 +13,7 @@ export interface SavedGame {
   id: string;
   worldSeed: WorldSeed;
   playerCharacter: CharacterType;
+  currentStageId: string;
   currentRoom: string;
   currentFloor: number;
   playerPosition: { x: number; y: number; z: number };
@@ -43,9 +44,12 @@ export interface RoomConfig {
 }
 
 export interface RoomExit {
+  id?: string;
   direction: 'north' | 'south' | 'east' | 'west';
   targetRoom: string;
   position: { x: number; z: number };
+  locked?: boolean;
+  requiredItem?: string;
 }
 
 export interface PropConfig {

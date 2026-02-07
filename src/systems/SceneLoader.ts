@@ -13,24 +13,30 @@ import {
   DirectionalLight,
   PointLight,
   SpotLight,
-  Light,
-  AbstractMesh
+  Light
 } from '@babylonjs/core';
 import {
+  getTexturesForRoom,
+  resolveTexturePath,
+  createFloorMaterial,
+  createWallMaterial,
+  clearTextureCache,
+} from './TextureLoader';
+import {
   SceneDefinition,
-  PropDefinition,
   ExitDefinition,
   LightDefinition,
   AtmosphereDefinition,
   vec3FromArray
 } from './SceneDefinition';
-import { 
-  archetypes, 
-  loadSceneEntities, 
+import {
+  archetypes,
+  loadSceneEntities,
   unloadSceneEntities,
-  Entity 
+  Entity
 } from './ECS';
 import { createCharacter, Character } from './Character';
+import { createPropMeshAsync } from './PropFactory';
 
 // ============================================
 // Scene Renderer State
@@ -110,14 +116,17 @@ export async function loadScene(
 
 export function unloadCurrentScene(): void {
   if (!currentScene) return;
-  
+
   // Unload ECS entities
   unloadSceneEntities(currentScene.id);
-  
+
   // Dispose Babylon nodes
   currentScene.lights.forEach(l => l.dispose());
   currentScene.rootNode.dispose();
-  
+
+  // Clear cached PBR materials so they are re-created for the next scene
+  clearTextureCache();
+
   currentScene = null;
 }
 
@@ -130,76 +139,122 @@ export function getCurrentScene(): LoadedScene | null {
 // ============================================
 
 function createFloor(scene: Scene, def: SceneDefinition, parent: TransformNode): void {
-  const floorMat = new StandardMaterial('floorMat', scene);
-  
+  // Flat-color fallback material
+  const floorFallbackMat = new StandardMaterial('floorMat', scene);
   if (def.floor?.color) {
-    floorMat.diffuseColor = new Color3(...def.floor.color);
+    floorFallbackMat.diffuseColor = new Color3(...def.floor.color);
   } else {
-    floorMat.diffuseColor = new Color3(0.35, 0.25, 0.18);
+    floorFallbackMat.diffuseColor = new Color3(0.35, 0.25, 0.18);
   }
-  floorMat.specularColor = new Color3(0.05, 0.05, 0.05);
-  
+  floorFallbackMat.specularColor = new Color3(0.05, 0.05, 0.05);
+
+  // Attempt PBR texture: use explicit material/texture hint, then infer from scene id/tags
+  let texturePath: string | null = null;
+  if (def.floor?.material || def.floor?.texture) {
+    texturePath = resolveTexturePath(def.floor.material ?? def.floor.texture);
+  }
+  if (!texturePath) {
+    const roomTextures = getTexturesForRoom(def.id, def.name);
+    texturePath = roomTextures.floor;
+  }
+
+  // Optional tint from the scene definition color
+  const tintColor = def.floor?.color ? new Color3(...def.floor.color) : undefined;
+
+  const floorPBR = texturePath
+    ? createFloorMaterial(scene, texturePath, def.bounds.width, def.bounds.height, tintColor)
+    : null;
+
   const floor = MeshBuilder.CreateGround('floor', {
     width: def.bounds.width,
     height: def.bounds.height
   }, scene);
-  floor.material = floorMat;
+  floor.material = floorPBR ?? floorFallbackMat;
   floor.receiveShadows = true;
   floor.parent = parent;
 }
 
 function createWalls(
-  scene: Scene, 
-  def: SceneDefinition, 
+  scene: Scene,
+  def: SceneDefinition,
   parent: TransformNode,
   shadowGen: ShadowGenerator | null
 ): void {
-  const wallMat = new StandardMaterial('wallMat', scene);
-  
+  // Flat-color fallback material
+  const wallFallbackMat = new StandardMaterial('wallMat', scene);
   if (def.walls?.color) {
-    wallMat.diffuseColor = new Color3(...def.walls.color);
+    wallFallbackMat.diffuseColor = new Color3(...def.walls.color);
   } else {
-    wallMat.diffuseColor = new Color3(0.55, 0.45, 0.38);
+    wallFallbackMat.diffuseColor = new Color3(0.55, 0.45, 0.38);
   }
-  
+
+  // Resolve wall texture path: explicit hint first, then infer from scene id/tags
+  let texturePath: string | null = null;
+  if (def.walls?.material || def.walls?.texture) {
+    texturePath = resolveTexturePath(def.walls.material ?? def.walls.texture);
+  }
+  if (!texturePath) {
+    const roomTextures = getTexturesForRoom(def.id, def.name);
+    texturePath = roomTextures.wall;
+  }
+
+  // Optional tint from the scene definition color
+  const tintColor = def.walls?.color ? new Color3(...def.walls.color) : undefined;
+
   const wallHeight = def.walls?.height ?? 2;
   const hw = def.bounds.width / 2;
   const hh = def.bounds.height / 2;
-  
+
   // Get exit directions
   const exitDirs = new Set(def.exits.map(e => e.direction));
-  
+
   const walls: [string, Vector3, number, number, boolean][] = [
     ['north', new Vector3(0, wallHeight/2, -hh), def.bounds.width, 0.2, exitDirs.has('north')],
     ['south', new Vector3(0, wallHeight/2, hh), def.bounds.width, 0.2, exitDirs.has('south')],
     ['east', new Vector3(hw, wallHeight/2, 0), 0.2, def.bounds.height, exitDirs.has('east')],
     ['west', new Vector3(-hw, wallHeight/2, 0), 0.2, def.bounds.height, exitDirs.has('west')],
   ];
-  
+
   for (const [name, pos, width, depth, hasExit] of walls) {
+    // Determine the visual length of this wall for UV tiling
+    const isHoriz = name === 'north' || name === 'south';
+    const wallLength = isHoriz ? def.bounds.width : def.bounds.height;
+
     if (hasExit) {
       // Create wall with doorway (two segments)
-      const segLen = ((name === 'north' || name === 'south') ? def.bounds.width : def.bounds.height) / 2 - 1;
-      
+      const segLen = wallLength / 2 - 1;
+
+      // PBR material sized for the segment
+      const segPBR = texturePath
+        ? createWallMaterial(scene, texturePath, segLen, wallHeight, tintColor)
+        : null;
+      const segMat = segPBR ?? wallFallbackMat;
+
       for (const side of [-1, 1]) {
         const wall = MeshBuilder.CreateBox(`wall_${name}_${side}`, {
-          width: name === 'north' || name === 'south' ? segLen : width,
+          width: isHoriz ? segLen : width,
           height: wallHeight,
-          depth: name === 'north' || name === 'south' ? depth : segLen
+          depth: isHoriz ? depth : segLen
         }, scene);
-        wall.material = wallMat;
+        wall.material = segMat;
         wall.position = pos.clone();
-        
-        if (name === 'north' || name === 'south') {
+
+        if (isHoriz) {
           wall.position.x = side * (segLen / 2 + 1);
         } else {
           wall.position.z = side * (segLen / 2 + 1);
         }
-        
+
         wall.parent = parent;
         shadowGen?.addShadowCaster(wall);
       }
     } else {
+      // Full-length wall with PBR material
+      const wallPBR = texturePath
+        ? createWallMaterial(scene, texturePath, wallLength, wallHeight, tintColor)
+        : null;
+      const wallMat = wallPBR ?? wallFallbackMat;
+
       const wall = MeshBuilder.CreateBox(`wall_${name}`, {
         width,
         height: wallHeight,
@@ -233,7 +288,7 @@ function createExits(scene: Scene, exits: ExitDefinition[], parent: TransformNod
 }
 
 // ============================================
-// Prop Mesh Creation
+// Prop Mesh Creation (delegates to PropFactory)
 // ============================================
 
 async function createPropMeshes(
@@ -245,91 +300,32 @@ async function createPropMeshes(
   const propEntities = [...archetypes.props].filter(
     e => e.scene?.sceneId === sceneId
   );
-  
-  for (const entity of propEntities) {
-    if (!entity.prop || !entity.transform) continue;
-    
-    const mesh = createPropMesh(scene, entity.prop.definition);
+
+  // Load all prop meshes in parallel via PropFactory (GLB with procedural fallback)
+  const loadPromises = propEntities.map(async (entity) => {
+    if (!entity.prop || !entity.transform) return;
+
+    const propType = entity.prop.definition.type;
+    const isInteractable = entity.prop.definition.interactable ?? false;
+
+    const mesh = await createPropMeshAsync(scene, propType, isInteractable);
     if (mesh) {
       mesh.position.set(entity.transform.x, 0, entity.transform.z);
       mesh.rotation.y = entity.transform.rotationY;
       mesh.scaling.setAll(entity.transform.scale);
       mesh.parent = parent;
-      
+
       if (shadowGen) {
         shadowGen.addShadowCaster(mesh);
       }
       mesh.receiveShadows = true;
-      
+
       // Store reference in entity
       entity.renderable = { node: mesh, visible: true };
     }
-  }
-}
+  });
 
-function createPropMesh(scene: Scene, def: PropDefinition): AbstractMesh | null {
-  const mat = new StandardMaterial(`${def.id}_mat`, scene);
-  let mesh: AbstractMesh;
-  
-  switch (def.type) {
-    case 'table':
-      mat.diffuseColor = new Color3(0.35, 0.25, 0.15);
-      mesh = MeshBuilder.CreateBox(def.id, { width: 1, height: 0.7, depth: 0.6 }, scene);
-      mesh.material = mat;
-      mesh.position.y = 0.35;
-      break;
-      
-    case 'chair':
-      mat.diffuseColor = new Color3(0.4, 0.28, 0.18);
-      mesh = MeshBuilder.CreateBox(def.id, { width: 0.45, height: 0.8, depth: 0.45 }, scene);
-      mesh.material = mat;
-      mesh.position.y = 0.4;
-      break;
-      
-    case 'bookshelf':
-      mat.diffuseColor = new Color3(0.3, 0.2, 0.12);
-      mesh = MeshBuilder.CreateBox(def.id, { width: 1.2, height: 1.8, depth: 0.35 }, scene);
-      mesh.material = mat;
-      mesh.position.y = 0.9;
-      break;
-      
-    case 'crate':
-    case 'chest':
-      mat.diffuseColor = new Color3(0.45, 0.32, 0.2);
-      mesh = MeshBuilder.CreateBox(def.id, { size: 0.6 }, scene);
-      mesh.material = mat;
-      mesh.position.y = 0.3;
-      break;
-      
-    case 'barrel':
-      mat.diffuseColor = new Color3(0.4, 0.28, 0.16);
-      mesh = MeshBuilder.CreateCylinder(def.id, { height: 0.9, diameter: 0.5 }, scene);
-      mesh.material = mat;
-      mesh.position.y = 0.45;
-      break;
-      
-    case 'pillar':
-      mat.diffuseColor = new Color3(0.5, 0.45, 0.4);
-      mesh = MeshBuilder.CreateCylinder(def.id, { height: 2, diameter: 0.4 }, scene);
-      mesh.material = mat;
-      mesh.position.y = 1;
-      break;
-      
-    case 'rug':
-      mat.diffuseColor = new Color3(0.4, 0.28, 0.2);
-      mesh = MeshBuilder.CreateGround(def.id, { width: 2, height: 3 }, scene);
-      mesh.material = mat;
-      mesh.position.y = 0.01;
-      break;
-      
-    default:
-      mat.diffuseColor = new Color3(0.4, 0.35, 0.3);
-      mesh = MeshBuilder.CreateBox(def.id, { size: 0.5 }, scene);
-      mesh.material = mat;
-      mesh.position.y = 0.25;
-  }
-  
-  return mesh;
+  await Promise.all(loadPromises);
 }
 
 // ============================================

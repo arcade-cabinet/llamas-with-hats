@@ -127,6 +127,125 @@
       "paul": ["Chairs are for sitting! Or standing on. Or..."],
       "horror": ["The seat is slightly warm. Someone was just here."],
       "prompt": "Examine chair"
+    },
+
+    "bloodstain": {
+      "carl": ["PAUL. What is that. What IS that."],
+      "paul": ["Oh that? That's from my art project. Finger painting!"],
+      "horror": ["It's still wet. And spreading."],
+      "prompt": "Look at bloodstain"
+    },
+
+    "torn_curtain": {
+      "carl": ["The curtain is destroyed. Was that you, Paul?"],
+      "paul": ["I needed fabric for a project! Curtains are basically just big napkins."],
+      "horror": ["Something tore through this from the other side."],
+      "prompt": "Examine torn curtain"
+    },
+
+    "broken_mirror": {
+      "carl": ["Seven years of bad luck. As if living with Paul wasn't enough."],
+      "paul": ["I didn't like what it was showing me. So I fixed it!"],
+      "horror": ["Your reflection is still moving even though you stopped."],
+      "prompt": "Look at broken mirror"
+    },
+
+    "dead_plant": {
+      "carl": ["This plant died. Everything dies around Paul eventually."],
+      "paul": ["I was feeding it! I just used... alternative nutrients."],
+      "horror": ["The soil is moving. Something is growing, but it isn't a plant."],
+      "prompt": "Examine dead plant"
+    },
+
+    "suspicious_box": {
+      "carl": ["I'm not opening that. I'm NOT opening that."],
+      "paul": ["That's my special delivery! Don't worry about the smell."],
+      "horror": ["It's humming. Boxes don't hum."],
+      "prompt": "Open suspicious box"
+    },
+
+    "sink": {
+      "carl": ["The sink. At least the water still-- why is it red?"],
+      "paul": ["Great for washing up! And washing... things... off."],
+      "horror": ["Hair is growing out of the drain. Long, dark hair."],
+      "prompt": "Examine sink"
+    },
+
+    "trash_can": {
+      "carl": ["I don't want to know what Paul has thrown away in there."],
+      "paul": ["One man's trash is another man's treasure! Or evidence."],
+      "horror": ["Something in there just blinked."],
+      "prompt": "Check trash can"
+    },
+
+    "rug": {
+      "carl": ["A rug. It really ties the room together. Wait, what's under it?"],
+      "paul": ["I picked this rug! The pattern hides stains wonderfully."],
+      "horror": ["There's a lump under the rug. A large, person-shaped lump."],
+      "prompt": "Look at rug"
+    },
+
+    "painting": {
+      "carl": ["One of Paul's paintings. I wish I could un-see it."],
+      "paul": ["My masterpiece! I call it 'Tuesday Afternoon'. The red is very authentic."],
+      "horror": ["The eyes in the painting follow you. All forty of them."],
+      "prompt": "Examine painting"
+    },
+
+    "curtain": {
+      "carl": ["A curtain. Keeping the outside world blissfully unaware."],
+      "paul": ["Curtains are great! They keep the neighbors from seeing my projects."],
+      "horror": ["There's a silhouette behind the curtain. It isn't yours."],
+      "prompt": "Examine curtain"
+    },
+
+    "cabinet": {
+      "carl": ["A cabinet. Locked. Why is it locked, Paul?"],
+      "paul": ["My supply cabinet! Very organized. By category and freshness date."],
+      "horror": ["Something inside is knocking. Rhythmically. Patiently."],
+      "prompt": "Open cabinet"
+    },
+
+    "wardrobe": {
+      "carl": ["I stopped using this wardrobe after I found what Paul hid in there."],
+      "paul": ["So much storage space! You can fit almost anything in here. Almost anyone."],
+      "horror": ["The door creaks open by itself at 3 AM. Every night."],
+      "prompt": "Open wardrobe"
+    },
+
+    "tv": {
+      "carl": ["The TV hasn't worked since the 'incident'."],
+      "paul": ["Sometimes I see things on the screen. Even when it's off! Fun!"],
+      "horror": ["The screen is showing this room. From an angle that doesn't exist."],
+      "prompt": "Examine TV"
+    },
+
+    "refrigerator": {
+      "carl": ["Same as the fridge. I'm still afraid to look inside."],
+      "paul": ["So many ingredients! All locally sourced, if you know what I mean."],
+      "horror": ["The temperature display reads 98.6 degrees. Body temperature."],
+      "prompt": "Open refrigerator"
+    },
+
+    "stool": {
+      "carl": ["A stool. Simple. Uncomplicated. Unlike my life."],
+      "paul": ["I love stools! Perfect height for all sorts of activities."],
+      "horror": ["There are deep gouge marks on the legs. From something dragging it."],
+      "prompt": "Examine stool"
+    },
+
+    "plant": {
+      "carl": ["A plant. Still alive somehow, despite Paul's 'care'."],
+      "paul": ["I talk to the plants! They're great listeners. Unlike some llamas."],
+      "horror": ["It turned toward you when you walked in. Plants don't do that."],
+      "prompt": "Examine plant"
+    },
+
+    "tub": {
+      "carl": ["The tub. I haven't used it since I found Paul's 'bath bombs'."],
+      "paul": ["Nothing like a relaxing soak! The fizzy red ones are my favorite."],
+      "horror": ["The drain gurgles when no one is using it. Words. It gurgles words."],
+      "prompt": "Examine tub"
     }
   },
   
