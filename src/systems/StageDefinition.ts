@@ -947,9 +947,16 @@ export interface StageDefinition {
     
     /** Ambient sound ID to play */
     ambientSound?: string;
-    
+
     /** Music track ID to play */
     musicTrack?: string;
+
+    /** Per-room atmosphere overrides keyed by room purpose */
+    perRoomOverrides?: Record<string, {
+      horrorLevel?: number;
+      ambientSound?: string;
+      musicTrack?: string;
+    }>;
   };
   
   // ─────────────────────────────────────────
