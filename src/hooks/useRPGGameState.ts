@@ -9,9 +9,10 @@ import {
   PlayerState,
   RoomConfig
 } from '../types/game';
-import { WorldGenerator, generateWorldSeed } from '../utils/worldGenerator';
-import { getStartingStage, loadStageDefinition } from '../data';
+import { generateWorldSeed } from '../utils/worldGenerator';
+import { getStartingStage } from '../data';
 import { getStoryManager, StoryState } from '../systems/StoryManager';
+import { initializeGame, getSpawnPosition, GameInstance } from '../systems/GameInitializer';
 
 const STORAGE_KEY = 'llamas-rpg-saves';
 const SETTINGS_KEY = 'llamas-rpg-settings';
@@ -29,7 +30,6 @@ export interface RPGGameState {
   currentStageId: string | null;
   currentStageDefinition: Record<string, unknown> | null;
   currentRoom: RoomConfig | null;
-  worldGenerator: WorldGenerator | null;
   player: PlayerState;
   opponentPosition: { x: number; y: number; z: number };
   opponentRotation: number;
@@ -69,7 +69,6 @@ export function useRPGGameState() {
     currentStageId: null,
     currentStageDefinition: null,
     currentRoom: null,
-    worldGenerator: null,
     player: DEFAULT_PLAYER,
     opponentPosition: { x: 0, y: 0, z: -2 },
     opponentRotation: Math.PI,
@@ -78,7 +77,7 @@ export function useRPGGameState() {
     isLoadingStage: false
   });
 
-  const worldGenRef = useRef<WorldGenerator | null>(null);
+  const gameInstanceRef = useRef<GameInstance | null>(null);
 
   // Load saved games and settings on mount
   useEffect(() => {
@@ -125,12 +124,12 @@ export function useRPGGameState() {
     setState(prev => ({ ...prev, isLoadingStage: true }));
 
     const stageId = getStartingStage();
-    const stageDef = await loadStageDefinition(stageId);
 
-    const generator = new WorldGenerator(worldSeed);
-    const startRoom = generator.generateStartRoom();
+    // Initialize game from stage definition DDL
+    const game = await initializeGame(stageId, selectedCharacter, worldSeed);
+    gameInstanceRef.current = game;
 
-    worldGenRef.current = generator;
+    const startRoom = game.getCurrentRoom();
 
     // Initialize story manager for new game
     const storyManager = getStoryManager();
@@ -144,12 +143,12 @@ export function useRPGGameState() {
       isLoadingStage: false,
       menuScreen: 'inGame',
       currentStageId: stageId,
-      currentStageDefinition: stageDef as Record<string, unknown>,
-      worldGenerator: generator,
+      currentStageDefinition: null,
       currentRoom: startRoom,
       player: {
         ...DEFAULT_PLAYER,
-        position: { x: 0, y: 0, z: 2 }
+        position: { x: 0, y: 0, z: 2 },
+        currentRoom: startRoom.id
       },
       opponentPosition: { x: 2, y: 0, z: 0 },
       opponentRotation: Math.PI
@@ -206,12 +205,14 @@ export function useRPGGameState() {
 
     // Load the stage definition for the saved stage
     const stageId = save.currentStageId || getStartingStage();
-    const stageDef = await loadStageDefinition(stageId);
 
-    const generator = new WorldGenerator(save.worldSeed);
-    const room = generator.generateRoomFromId(save.currentRoom);
+    // Initialize game from stage definition DDL (same seed = same stage)
+    const game = await initializeGame(stageId, save.playerCharacter, save.worldSeed);
+    gameInstanceRef.current = game;
 
-    worldGenRef.current = generator;
+    // Transition to the saved room within the generated stage
+    game.transitionTo(save.currentRoom);
+    const room = game.getCurrentRoom();
 
     // Restore story manager state
     const storyManager = getStoryManager();
@@ -222,7 +223,7 @@ export function useRPGGameState() {
     // Rebuild story state from saved data
     const savedStoryState: StoryState = {
       completedBeats: save.completedBeats,
-      currentBeat: null, // Will be inferred from completed beats
+      currentBeat: null,
       horrorLevel: save.horrorLevel,
       characterPath: save.playerCharacter === 'carl' ? 'order' : 'chaos',
     };
@@ -236,14 +237,14 @@ export function useRPGGameState() {
       worldSeed: save.worldSeed,
       selectedCharacter: save.playerCharacter,
       currentStageId: stageId,
-      currentStageDefinition: stageDef as Record<string, unknown>,
-      worldGenerator: generator,
+      currentStageDefinition: null,
       currentRoom: room,
       player: {
         ...DEFAULT_PLAYER,
         position: save.playerPosition,
         rotation: save.playerRotation,
-        inventory: save.collectedItems
+        inventory: save.collectedItems,
+        currentRoom: room.id
       },
       opponentPosition: { x: 0, y: 0, z: -2 },
       opponentRotation: Math.PI
@@ -308,6 +309,7 @@ export function useRPGGameState() {
   const returnToMainMenu = useCallback(() => {
     // Reset singleton managers to avoid stale state on next game start
     getStoryManager().reset();
+    gameInstanceRef.current = null;
     setState(prev => ({
       ...prev,
       isPlaying: false,
@@ -315,7 +317,6 @@ export function useRPGGameState() {
       currentRoom: null,
       currentStageId: null,
       currentStageDefinition: null,
-      worldGenerator: null,
       selectedCharacter: null,
       worldSeed: null
     }));
@@ -366,37 +367,25 @@ export function useRPGGameState() {
     });
   }, []);
 
-  // Room transitions — fires scene_enter story trigger
+  // Room transitions — uses GameInstance to move between stage scenes
   const transitionToRoom = useCallback((roomId: string, entryDirection: 'north' | 'south' | 'east' | 'west') => {
-    if (!worldGenRef.current) return;
+    const game = gameInstanceRef.current;
+    if (!game) return;
 
-    const newRoom = worldGenRef.current.generateRoomFromId(roomId);
+    // Transition to the target scene in the generated stage
+    game.transitionTo(roomId);
+    const newRoom = game.getCurrentRoom();
 
-    // Calculate entry position based on direction
-    let entryX = 0;
-    let entryZ = 0;
-
-    switch (entryDirection) {
-      case 'north':
-        entryZ = newRoom.height / 2 - 2;
-        break;
-      case 'south':
-        entryZ = -newRoom.height / 2 + 2;
-        break;
-      case 'east':
-        entryX = -newRoom.width / 2 + 2;
-        break;
-      case 'west':
-        entryX = newRoom.width / 2 - 2;
-        break;
-    }
+    // Get spawn position from the scene definition
+    const scene = game.getCurrentScene();
+    const spawnPos = getSpawnPosition(scene, entryDirection);
 
     setState(prev => ({
       ...prev,
       currentRoom: newRoom,
       player: {
         ...prev.player,
-        position: { x: entryX, y: prev.player.position.y, z: entryZ },
+        position: { x: spawnPos.x, y: prev.player.position.y, z: spawnPos.z },
         currentRoom: newRoom.id
       }
     }));
