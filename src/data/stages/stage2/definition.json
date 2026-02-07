@@ -9,7 +9,7 @@
     "archetypeId": "suburban_neighborhood",
     "levelOverrides": {
       "0": {
-        "totalRooms": { "min": 5, "max": 7 },
+        "totalRooms": { "min": 6, "max": 8 },
         "anchorRooms": [
           {
             "purpose": "neighborhood_entry",
@@ -24,26 +24,39 @@
             "gridPosition": { "x": 1, "z": 0 },
             "templateId": "street_section",
             "templateTags": ["street", "exterior"],
-            "storyBeats": ["meet_neighbor"]
+            "storyBeats": ["meet_neighbor", "missing_pets"],
+            "questItems": ["missing_flyer"]
+          },
+          {
+            "purpose": "yard",
+            "gridPosition": { "x": 1, "z": 1 },
+            "templateId": "yard",
+            "templateTags": ["yard", "exterior"],
+            "storyBeats": ["yard_discovery"],
+            "questItems": ["pet_collar"]
           },
           {
             "purpose": "neighbor_house",
             "gridPosition": { "x": 1, "z": -1 },
             "templateId": "room_medium",
-            "templateTags": ["house", "interior"]
+            "templateTags": ["house", "interior"],
+            "questItems": ["paul_recipe"]
           },
           {
             "purpose": "alley",
             "gridPosition": { "x": -1, "z": 0 },
             "templateId": "alley",
-            "templateTags": ["alley", "dark"]
+            "templateTags": ["alley", "dark"],
+            "storyBeats": ["alley_shortcut"],
+            "questItems": ["dirty_shovel"]
           },
           {
             "purpose": "parking_lot",
             "gridPosition": { "x": 2, "z": 0 },
             "templateId": "parking_lot",
             "templateTags": ["parking_lot", "exterior"],
-            "isExit": true
+            "isExit": true,
+            "storyBeats": ["reach_car"]
           }
         ]
       }
@@ -74,13 +87,79 @@
         },
         "consequences": {
           "horrorLevelChange": 1,
+          "nextBeat": "yard_discovery"
+        }
+      },
+      {
+        "id": "yard_discovery",
+        "description": "Discover Paul's gnome art installation in the yard",
+        "dialogueId": "stage2_yard_discovery",
+        "trigger": {
+          "type": "scene_enter",
+          "params": { "sceneId": "yard" }
+        },
+        "consequences": {
+          "horrorLevelChange": 1,
+          "nextBeat": "alley_shortcut"
+        }
+      },
+      {
+        "id": "missing_pets",
+        "description": "Notice the alarming number of missing pet flyers",
+        "dialogueId": "stage2_missing_pets",
+        "trigger": {
+          "type": "item_pickup",
+          "params": { "itemId": "missing_flyer" }
+        },
+        "consequences": {
+          "horrorLevelChange": 1,
+          "spawnItems": ["pet_collar"]
+        }
+      },
+      {
+        "id": "alley_shortcut",
+        "description": "Discover something dragged through the dark alley",
+        "dialogueId": "stage2_alley_shortcut",
+        "trigger": {
+          "type": "scene_enter",
+          "params": { "sceneId": "alley" }
+        },
+        "consequences": {
+          "horrorLevelChange": 1,
+          "spawnItems": ["dirty_shovel"],
+          "nextBeat": "mailbox_horror"
+        }
+      },
+      {
+        "id": "mailbox_horror",
+        "description": "Find the dripping mailbox",
+        "dialogueId": "stage2_mailbox_horror",
+        "trigger": {
+          "type": "item_pickup",
+          "params": { "itemId": "paul_recipe" }
+        },
+        "consequences": {
+          "horrorLevelChange": 1,
+          "unlockExits": ["parking_gate"],
           "nextBeat": "reach_car"
+        }
+      },
+      {
+        "id": "sprinkler_blood",
+        "description": "Witness the pink sprinkler water",
+        "dialogueId": "stage2_sprinkler_blood",
+        "trigger": {
+          "type": "scene_enter",
+          "params": { "sceneId": "neighbor_house" }
+        },
+        "consequences": {
+          "horrorLevelChange": 1
         }
       },
       {
         "id": "reach_car",
         "description": "Make it to the parking lot and escape",
-        "dialogueId": "stage2_reach_car",
+        "dialogueId": "stage2_reach_parking",
         "trigger": {
           "type": "scene_enter",
           "params": { "sceneId": "parking_lot" }
@@ -99,10 +178,39 @@
         "params": { "sceneId": "street" }
       },
       {
-        "id": "reach_car",
-        "description": "Get to the car",
+        "id": "talk_to_neighbor",
+        "description": "Talk to Mrs. Henderson",
+        "type": "interact",
+        "params": { "targetId": "mrs_henderson" },
+        "hiddenUntil": "exit_building"
+      },
+      {
+        "id": "investigate_yard",
+        "description": "Investigate the Henderson yard",
         "type": "reach_scene",
-        "params": { "sceneId": "parking_lot" }
+        "params": { "sceneId": "yard" },
+        "hiddenUntil": "meet_neighbor"
+      },
+      {
+        "id": "gather_evidence",
+        "description": "Gather evidence of Paul's activities",
+        "type": "collect_items",
+        "params": { "items": ["missing_flyer", "pet_collar", "paul_recipe"] },
+        "hiddenUntil": "yard_discovery"
+      },
+      {
+        "id": "explore_alley",
+        "description": "Check the dark alley",
+        "type": "reach_scene",
+        "params": { "sceneId": "alley" },
+        "hiddenUntil": "meet_neighbor"
+      },
+      {
+        "id": "reach_car",
+        "description": "Get to the car in the parking lot",
+        "type": "reach_scene",
+        "params": { "sceneId": "parking_lot" },
+        "hiddenUntil": "mailbox_horror"
       }
     ],
     "startingBeat": "exit_building",
@@ -127,6 +235,11 @@
         "purpose": "street"
       },
       {
+        "templateId": "yard",
+        "templateTags": ["yard", "exterior"],
+        "purpose": "yard"
+      },
+      {
         "templateId": "alley",
         "templateTags": ["alley", "dark"],
         "purpose": "alley"
@@ -136,8 +249,8 @@
     "allowedTemplates": ["yard", "street_section", "alley", "room_small"],
     "palettes": ["suburban_day"],
     "connectionRules": {
-      "type": "linear",
-      "maxDeadEnds": 1,
+      "type": "branching",
+      "maxDeadEnds": 2,
       "loopsAllowed": false,
       "maxDistanceFromEntry": 4
     },
@@ -146,9 +259,56 @@
   },
 
   "props": {
-    "density": "sparse",
-    "questItems": [],
-    "propPools": ["outdoor_props"]
+    "density": "medium",
+    "questItems": [
+      {
+        "id": "missing_flyer",
+        "name": "Missing Pet Flyer",
+        "description": "A crumpled MISSING poster for a golden retriever named Biscuit",
+        "pickupDialogue": "stage2_pickup_flyer",
+        "examineDialogue": "stage2_examine_flyer",
+        "spawnRules": {
+          "sceneTypes": ["street"],
+          "zones": ["visible"]
+        }
+      },
+      {
+        "id": "pet_collar",
+        "name": "Pet Collar",
+        "description": "A small blue collar with the tag 'Mr. Whiskers'",
+        "pickupDialogue": "stage2_pickup_collar",
+        "examineDialogue": "stage2_examine_collar",
+        "spawnRules": {
+          "sceneTypes": ["yard"],
+          "zones": ["hidden"],
+          "requiredBeat": "missing_pets"
+        }
+      },
+      {
+        "id": "paul_recipe",
+        "name": "Paul's Recipe Card",
+        "description": "A handwritten recipe card in Paul's meticulous handwriting",
+        "pickupDialogue": "stage2_pickup_recipe",
+        "examineDialogue": "stage2_examine_recipe",
+        "spawnRules": {
+          "sceneTypes": ["neighbor_house", "street"],
+          "zones": ["edge"]
+        }
+      },
+      {
+        "id": "dirty_shovel",
+        "name": "Dirty Shovel",
+        "description": "A shovel caked with fresh, dark dirt",
+        "pickupDialogue": "stage2_find_shovel",
+        "examineDialogue": "stage2_examine_shovel",
+        "spawnRules": {
+          "sceneTypes": ["alley"],
+          "zones": ["edge"],
+          "requiredBeat": "alley_shortcut"
+        }
+      }
+    ],
+    "propPools": ["outdoor_props", "urban_props"]
   },
 
   "npcs": {
@@ -159,7 +319,7 @@
         "dialogueId": "stage2_paul_dialogue",
         "interactable": true,
         "spawnRoom": "neighborhood_entry",
-        "wanderRooms": ["neighborhood_entry", "street"]
+        "wanderRooms": ["neighborhood_entry", "street", "yard"]
       }
     ],
     "optional": {
@@ -170,21 +330,29 @@
 
   "atmosphere": {
     "baseHorrorLevel": 3,
-    "horrorProgression": "static",
+    "horrorProgression": "increasing",
     "ambientSound": "ambient_suburban_day",
     "musicTrack": "music_tension_medium",
     "perRoomOverrides": {
+      "yard": {
+        "horrorLevel": 4,
+        "ambientSound": "ambient_suburban_day"
+      },
       "alley": {
+        "horrorLevel": 6,
+        "ambientSound": "ambient_dripping"
+      },
+      "neighbor_house": {
         "horrorLevel": 5,
         "ambientSound": "ambient_dripping"
       },
       "parking_lot": {
-        "horrorLevel": 4,
+        "horrorLevel": 5,
         "musicTrack": "music_tension_high"
       }
     }
   },
 
-  "estimatedDuration": 8,
+  "estimatedDuration": 12,
   "difficulty": "easy"
 }

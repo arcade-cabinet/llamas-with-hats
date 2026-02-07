@@ -9,7 +9,7 @@
     "archetypeId": "urban_downtown",
     "levelOverrides": {
       "0": {
-        "totalRooms": { "min": 7, "max": 9 },
+        "totalRooms": { "min": 8, "max": 10 },
         "anchorRooms": [
           {
             "purpose": "downtown_entry",
@@ -17,20 +17,23 @@
             "templateId": "city_block",
             "templateTags": ["city_block", "exterior"],
             "isEntry": true,
-            "storyBeats": ["arrive_downtown"]
+            "storyBeats": ["arrive_downtown"],
+            "questItems": ["dropped_keys"]
           },
           {
             "purpose": "city_block",
             "gridPosition": { "x": 1, "z": 0 },
             "templateId": "city_block",
             "templateTags": ["city_block", "exterior"],
-            "storyBeats": ["city_block_chaos"]
+            "storyBeats": ["explore_downtown", "city_block_chaos"],
+            "questItems": ["newspaper"]
           },
           {
             "purpose": "dark_alley",
             "gridPosition": { "x": 1, "z": -1 },
             "templateId": "alley",
-            "templateTags": ["alley", "dark"]
+            "templateTags": ["alley", "dark"],
+            "storyBeats": ["alley_ambush"]
           },
           {
             "purpose": "plaza",
@@ -43,19 +46,24 @@
             "purpose": "police_station",
             "gridPosition": { "x": 2, "z": 1 },
             "templateId": "building_interior",
-            "templateTags": ["building", "interior"]
+            "templateTags": ["building", "interior"],
+            "storyBeats": ["police_station_discovery"],
+            "questItems": ["police_badge", "police_radio"]
           },
           {
             "purpose": "workshop",
             "gridPosition": { "x": 1, "z": 1 },
             "templateId": "building_interior",
-            "templateTags": ["building", "interior"]
+            "templateTags": ["building", "interior"],
+            "storyBeats": ["paul_workshop"]
           },
           {
             "purpose": "office",
             "gridPosition": { "x": 0, "z": 1 },
             "templateId": "building_interior",
-            "templateTags": ["building", "interior"]
+            "templateTags": ["building", "interior"],
+            "storyBeats": ["building_interior_discovery"],
+            "questItems": ["marked_map"]
           },
           {
             "purpose": "highway_onramp",
@@ -111,6 +119,56 @@
         }
       },
       {
+        "id": "alley_ambush",
+        "description": "Discover Paul's graffiti tags and a fleeing figure in the dark alley",
+        "dialogueId": "stage3_alley_ambush",
+        "trigger": {
+          "type": "scene_enter",
+          "params": { "sceneId": "dark_alley" }
+        },
+        "consequences": {
+          "horrorLevelChange": 1
+        }
+      },
+      {
+        "id": "building_interior_discovery",
+        "description": "Find the abandoned office with coffee still steaming",
+        "dialogueId": "stage3_building_interior",
+        "trigger": {
+          "type": "scene_enter",
+          "params": { "sceneId": "office" }
+        },
+        "consequences": {
+          "horrorLevelChange": 1,
+          "spawnItems": ["marked_map"]
+        }
+      },
+      {
+        "id": "police_station_discovery",
+        "description": "Find the empty police station",
+        "dialogueId": "stage3_police_station",
+        "trigger": {
+          "type": "scene_enter",
+          "params": { "sceneId": "police_station" }
+        },
+        "consequences": {
+          "horrorLevelChange": 2,
+          "spawnItems": ["police_badge", "police_radio"]
+        }
+      },
+      {
+        "id": "paul_workshop",
+        "description": "Discover Paul's horrifying workshop",
+        "dialogueId": "stage3_paul_workshop",
+        "trigger": {
+          "type": "scene_enter",
+          "params": { "sceneId": "workshop" }
+        },
+        "consequences": {
+          "horrorLevelChange": 2
+        }
+      },
+      {
         "id": "plaza_discovery",
         "description": "Find the blood fountain in the plaza",
         "dialogueId": "stage3_plaza_discovery",
@@ -133,6 +191,7 @@
         },
         "consequences": {
           "horrorLevelChange": 1,
+          "unlockExits": ["highway_gate"],
           "nextBeat": "final_choice"
         }
       },
@@ -157,16 +216,39 @@
         "params": { "sceneId": "city_block" }
       },
       {
+        "id": "investigate_police",
+        "description": "Check the police station for help",
+        "type": "reach_scene",
+        "params": { "sceneId": "police_station" },
+        "hiddenUntil": "explore_downtown"
+      },
+      {
+        "id": "find_evidence",
+        "description": "Collect evidence of Paul's rampage",
+        "type": "collect_items",
+        "params": { "items": ["newspaper", "police_badge", "marked_map"] },
+        "hiddenUntil": "city_block_chaos"
+      },
+      {
         "id": "find_plaza",
         "description": "Reach the town plaza",
         "type": "reach_scene",
-        "params": { "sceneId": "plaza" }
+        "params": { "sceneId": "plaza" },
+        "hiddenUntil": "city_block_chaos"
+      },
+      {
+        "id": "confront_paul",
+        "description": "Confront Paul about the destruction",
+        "type": "interact",
+        "params": { "targetId": "paul" },
+        "hiddenUntil": "plaza_discovery"
       },
       {
         "id": "find_escape",
         "description": "Find the highway and escape the city",
         "type": "reach_scene",
-        "params": { "sceneId": "highway_onramp" }
+        "params": { "sceneId": "highway_onramp" },
+        "hiddenUntil": "confrontation"
       }
     ],
     "startingBeat": "arrive_downtown",
@@ -204,6 +286,11 @@
         "templateId": "building_interior",
         "templateTags": ["building", "interior"],
         "purpose": "police_station"
+      },
+      {
+        "templateId": "building_interior",
+        "templateTags": ["building", "interior"],
+        "purpose": "workshop"
       }
     ],
     "optionalSceneCount": { "min": 1, "max": 3 },
@@ -223,29 +310,62 @@
     "density": "cluttered",
     "questItems": [
       {
-        "itemId": "police_badge",
-        "requiredScene": "police_station",
-        "dialogueId": "stage3_pickup_badge"
+        "id": "police_badge",
+        "name": "Officer Martinez's Badge",
+        "description": "A half-crushed police badge. Badge number 4471.",
+        "pickupDialogue": "stage3_pickup_badge",
+        "examineDialogue": "stage3_examine_badge",
+        "spawnRules": {
+          "sceneTypes": ["police_station"],
+          "zones": ["visible"],
+          "requiredBeat": "police_station_discovery"
+        }
       },
       {
-        "itemId": "police_radio",
-        "requiredScene": "police_station",
-        "dialogueId": "stage3_pickup_radio"
+        "id": "police_radio",
+        "name": "Police Radio",
+        "description": "A police radio still crackling with panicked static",
+        "pickupDialogue": "stage3_pickup_radio",
+        "examineDialogue": "stage3_examine_radio",
+        "spawnRules": {
+          "sceneTypes": ["police_station"],
+          "zones": ["edge"],
+          "requiredBeat": "police_station_discovery"
+        }
       },
       {
-        "itemId": "newspaper",
-        "requiredScene": "city_block",
-        "dialogueId": "stage3_pickup_newspaper"
+        "id": "newspaper",
+        "name": "Today's Newspaper",
+        "description": "The headline reads: MYSTERIOUS DISAPPEARANCES REACH 200",
+        "pickupDialogue": "stage3_pickup_newspaper",
+        "examineDialogue": "stage3_examine_newspaper",
+        "spawnRules": {
+          "sceneTypes": ["city_block", "downtown_entry"],
+          "zones": ["visible"]
+        }
       },
       {
-        "itemId": "dropped_keys",
-        "requiredScene": "downtown_entry",
-        "dialogueId": "stage3_pickup_keys"
+        "id": "dropped_keys",
+        "name": "Dropped Keys",
+        "description": "A ring of keys dropped on the pavement, still swinging",
+        "pickupDialogue": "stage3_pickup_keys",
+        "examineDialogue": "stage3_examine_keys",
+        "spawnRules": {
+          "sceneTypes": ["downtown_entry"],
+          "zones": ["visible"]
+        }
       },
       {
-        "itemId": "marked_map",
-        "requiredScene": "office",
-        "dialogueId": "stage3_find_map"
+        "id": "marked_map",
+        "name": "Marked City Map",
+        "description": "A city map covered in red Xs tracking the disappearances",
+        "pickupDialogue": "stage3_find_map",
+        "examineDialogue": "stage3_examine_map",
+        "spawnRules": {
+          "sceneTypes": ["office"],
+          "zones": ["hidden"],
+          "requiredBeat": "building_interior_discovery"
+        }
       }
     ],
     "propPools": ["urban_props", "debris"]
@@ -304,6 +424,6 @@
     }
   },
 
-  "estimatedDuration": 15,
+  "estimatedDuration": 18,
   "difficulty": "medium"
 }
