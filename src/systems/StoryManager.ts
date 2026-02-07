@@ -42,8 +42,9 @@ import { StoryBeat, CharacterPath } from './StageDefinition';
 
 // Trigger types that can activate story beats
 // Must match StoryBeat.trigger.type from StageDefinition.ts
-export type TriggerType = 
+export type TriggerType =
   | 'scene_enter'
+  | 'scene_exit'
   | 'item_pickup'
   | 'npc_interact'
   | 'time_elapsed'
@@ -118,12 +119,23 @@ export interface StoryState {
 /**
  * Create story manager instance
  */
+/** Dialogue entry from story.json's storyDialogues */
+interface DialogueEntry {
+  id: string;
+  type?: string;
+  lines: Array<{ speaker: string; text: string; delay?: number }>;
+  nextBeat?: string;
+  effects?: Array<{ type: string; intensity?: number; duration?: number }>;
+}
+
 export function createStoryManager(): StoryManager {
   let beats: Map<string, StoryBeatRuntime> = new Map();
   let callbacks: StoryCallbacks = {};
   let characterPath: CharacterPath = 'order'; // Default to Carl's path
   let currentBeat: string | null = null;
   let horrorLevel = 0;
+  // Cached dialogue data loaded from stage story.json
+  const dialogueCache = new Map<string, DialogueEntry>();
   
   /**
    * Check if trigger matches a beat's trigger definition
@@ -144,19 +156,22 @@ export function createStoryManager(): StoryManager {
     switch (triggerType) {
       case 'scene_enter':
         return triggerParams.sceneId === params.sceneId;
-        
+
+      case 'scene_exit':
+        return triggerParams.sceneId === params.sceneId;
+
       case 'item_pickup':
         return triggerParams.itemId === params.itemId;
-        
+
       case 'npc_interact':
         return triggerParams.npcId === params.npcId;
-        
+
       case 'time_elapsed':
         return (params.timeSeconds ?? 0) >= (triggerParams.seconds as number ?? 0);
-        
+
       case 'kills_reached':
         return (params.killCount ?? 0) >= (triggerParams.count as number ?? 0);
-        
+
       default:
         return false;
     }
@@ -204,15 +219,20 @@ export function createStoryManager(): StoryManager {
   }
   
   /**
-   * Get dialogue for character path
+   * Get dialogue lines for a beat, looking up from cached dialogue data.
+   * Falls back to beat description if no dialogue data is found.
    */
   function getDialogueForPath(beat: StoryBeatRuntime): string[] {
-    // If beat has path-specific dialogue, use it
-    // Otherwise fall back to generic dialogue
-    // For now, we'll use the dialogueId to look up dialogue
-    // This would integrate with the dialogue system
-    
-    // Placeholder: Return beat description as dialogue
+    const entry = dialogueCache.get(beat.dialogueId);
+    if (entry && entry.lines.length > 0) {
+      return entry.lines.map(line => {
+        if (line.speaker === 'narrator') {
+          return line.text;
+        }
+        return `${line.speaker}: ${line.text}`;
+      });
+    }
+    // Fallback to description if no dialogue data loaded
     return [beat.description];
   }
   
@@ -244,6 +264,17 @@ export function createStoryManager(): StoryManager {
 
         if (stageData.beats && Array.isArray(stageData.beats)) {
           this.loadBeats(stageData.beats as any[]);
+        }
+
+        // Cache dialogue entries from storyDialogues
+        dialogueCache.clear();
+        const dialogues = stageData.storyDialogues as Record<string, DialogueEntry> | undefined;
+        if (dialogues && typeof dialogues === 'object') {
+          for (const [key, entry] of Object.entries(dialogues)) {
+            if (entry && Array.isArray(entry.lines)) {
+              dialogueCache.set(key, entry);
+            }
+          }
         }
 
         // Set starting beat if specified
@@ -339,6 +370,7 @@ export function createStoryManager(): StoryManager {
         beat.completed = false;
         beat.triggered = false;
       }
+      dialogueCache.clear();
       currentBeat = null;
       horrorLevel = 0;
     },

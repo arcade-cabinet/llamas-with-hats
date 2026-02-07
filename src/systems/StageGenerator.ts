@@ -374,19 +374,38 @@ function generateRequiredScene(
   
   if (req.templateId) {
     // Specific template requested
-    template = ctx.templates.get(req.templateId)!;
+    const found = ctx.templates.get(req.templateId);
+    if (!found) {
+      console.warn(`Template not found: "${req.templateId}" for purpose "${purpose}". Falling back to random template.`);
+      const fallback = Array.from(ctx.templates.values());
+      template = ctx.rng.pick(fallback);
+    } else {
+      template = found;
+    }
   } else if (req.templateTags) {
     // Find templates matching any tag
     const matching = Array.from(ctx.templates.values()).filter(t =>
       req.templateTags!.some(tag => t.tags.includes(tag))
     );
-    template = ctx.rng.pick(matching);
+    if (matching.length === 0) {
+      console.warn(`No templates match tags [${req.templateTags.join(', ')}] for purpose "${purpose}". Falling back to random template.`);
+      const fallback = Array.from(ctx.templates.values());
+      template = ctx.rng.pick(fallback);
+    } else {
+      template = ctx.rng.pick(matching);
+    }
   } else {
     // Pick from allowed templates
     const allowed = ctx.stageDef.generation.allowedTemplates
-      .map(id => ctx.templates.get(id)!)
-      .filter(Boolean);
-    template = ctx.rng.pick(allowed);
+      .map(id => ctx.templates.get(id))
+      .filter((t): t is SceneTemplate => t != null);
+    if (allowed.length === 0) {
+      console.warn(`No allowed templates resolved for purpose "${purpose}". Falling back to random template.`);
+      const fallback = Array.from(ctx.templates.values());
+      template = ctx.rng.pick(fallback);
+    } else {
+      template = ctx.rng.pick(allowed);
+    }
   }
   
   return generateSceneFromTemplate(ctx, template, purpose);
@@ -400,10 +419,18 @@ function generateRequiredScene(
  */
 function generateFillerScene(ctx: GeneratorContext): SceneDefinition {
   const allowed = ctx.stageDef.generation.allowedTemplates
-    .map(id => ctx.templates.get(id)!)
-    .filter(Boolean);
-  const template = ctx.rng.pick(allowed);
-  
+    .map(id => ctx.templates.get(id))
+    .filter((t): t is SceneTemplate => t != null);
+
+  let template: SceneTemplate;
+  if (allowed.length === 0) {
+    console.warn('No allowed templates resolved for filler scene. Falling back to random template.');
+    const fallback = Array.from(ctx.templates.values());
+    template = ctx.rng.pick(fallback);
+  } else {
+    template = ctx.rng.pick(allowed);
+  }
+
   return generateSceneFromTemplate(ctx, template, 'filler');
 }
 
@@ -467,7 +494,10 @@ function generateSceneFromTemplate(
 
   // Pick a random palette from stage's allowed palettes
   const paletteId = ctx.rng.pick(ctx.stageDef.generation.palettes);
-  const palette = ctx.palettes.get(paletteId)!;
+  const palette = ctx.palettes.get(paletteId) ?? Array.from(ctx.palettes.values())[0];
+  if (!ctx.palettes.has(paletteId)) {
+    console.warn(`Palette not found: "${paletteId}". Using fallback palette.`);
+  }
 
   // Generate props using template rules
   const props = generateProps(ctx, template, width, height, palette);
@@ -721,7 +751,13 @@ function connectScenes(
     case 'hub':
       connectHub(ctx, scenes, entryId, exitId);
       break;
+    case 'maze':
+    case 'open':
+      console.warn(`Connection type "${rules.type}" is not yet implemented. Falling back to branching layout.`);
+      connectBranching(ctx, scenes, entryId, exitId);
+      break;
     default:
+      console.warn(`Unknown connection type "${rules.type}". Falling back to linear layout.`);
       connectLinear(ctx, scenes, entryId, exitId);
   }
 }

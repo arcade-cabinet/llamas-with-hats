@@ -92,15 +92,16 @@ export interface StoryBeat {
    * The generator creates appropriate triggers in scenes.
    */
   trigger: {
-    /** 
+    /**
      * Type of trigger:
      * - `scene_enter`: Player enters a specific scene
+     * - `scene_exit`: Player leaves a specific scene
      * - `item_pickup`: Player picks up a specific item
      * - `npc_interact`: Player talks to an NPC
      * - `time_elapsed`: Certain time passes in stage
      * - `kills_reached`: (For chaos path) Body count threshold
      */
-    type: 'scene_enter' | 'item_pickup' | 'npc_interact' | 'time_elapsed' | 'kills_reached';
+    type: 'scene_enter' | 'scene_exit' | 'item_pickup' | 'npc_interact' | 'time_elapsed' | 'kills_reached';
     
     /** Parameters specific to trigger type */
     params: Record<string, unknown>;

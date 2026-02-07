@@ -122,7 +122,11 @@ export async function initializeGame(
     currentSceneId,
 
     getCurrentScene() {
-      return sceneMap.get(currentSceneId)!;
+      const scene = sceneMap.get(currentSceneId);
+      if (!scene) {
+        throw new Error(`Scene not found: "${currentSceneId}". Available scenes: ${Array.from(sceneMap.keys()).join(', ')}`);
+      }
+      return scene;
     },
 
     getCurrentRoom() {

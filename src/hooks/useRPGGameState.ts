@@ -11,7 +11,9 @@ import {
 } from '../types/game';
 import { generateWorldSeed } from '../utils/worldGenerator';
 import { getStartingStage } from '../data';
-import { getStoryManager, StoryState } from '../systems/StoryManager';
+import { getStoryManager, resetStoryManager, StoryState } from '../systems/StoryManager';
+import { resetAtmosphereManager } from '../systems/AtmosphereManager';
+import { resetAudioManager } from '../systems/AudioManager';
 import { initializeGame, getSpawnPosition, GameInstance } from '../systems/GameInitializer';
 
 const STORAGE_KEY = 'llamas-rpg-saves';
@@ -85,9 +87,21 @@ export function useRPGGameState() {
       const savedGamesJson = localStorage.getItem(STORAGE_KEY);
       const settingsJson = localStorage.getItem(SETTINGS_KEY);
 
+      // Validate saved games have required fields before using them
+      let savedGames: SavedGame[] = [];
+      if (savedGamesJson) {
+        const parsed = JSON.parse(savedGamesJson);
+        if (Array.isArray(parsed)) {
+          savedGames = parsed.filter((s: unknown): s is SavedGame =>
+            s != null && typeof s === 'object' &&
+            'id' in s && 'worldSeed' in s && 'playerCharacter' in s && 'timestamp' in s
+          );
+        }
+      }
+
       setState(prev => ({
         ...prev,
-        savedGames: savedGamesJson ? JSON.parse(savedGamesJson) : [],
+        savedGames,
         settings: settingsJson ? { ...DEFAULT_SETTINGS, ...JSON.parse(settingsJson) } : DEFAULT_SETTINGS
       }));
     } catch {
@@ -307,8 +321,10 @@ export function useRPGGameState() {
 
   // Return to main menu
   const returnToMainMenu = useCallback(() => {
-    // Reset singleton managers to avoid stale state on next game start
-    getStoryManager().reset();
+    // Reset all singleton managers to avoid stale state on next game start
+    resetStoryManager();
+    resetAtmosphereManager();
+    resetAudioManager();
     gameInstanceRef.current = null;
     setState(prev => ({
       ...prev,
@@ -371,6 +387,10 @@ export function useRPGGameState() {
   const transitionToRoom = useCallback((roomId: string, entryDirection: 'north' | 'south' | 'east' | 'west') => {
     const game = gameInstanceRef.current;
     if (!game) return;
+
+    // Fire scene_exit trigger for the room we're leaving
+    const previousSceneId = game.currentSceneId;
+    getStoryManager().checkTrigger('scene_exit', { sceneId: previousSceneId });
 
     // Transition to the target scene in the generated stage
     game.transitionTo(roomId);
