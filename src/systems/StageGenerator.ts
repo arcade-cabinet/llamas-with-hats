@@ -413,27 +413,68 @@ function generateFillerScene(ctx: GeneratorContext): SceneDefinition {
  * 
  * @internal
  */
+// Purpose-to-display-name mapping for semantic room names
+const ROOM_NAMES: Record<string, string> = {
+  entry: 'Living Room',
+  kitchen: 'The Kitchen',
+  bedroom: 'Master Bedroom',
+  bathroom: 'Bathroom',
+  hallway: 'Hallway',
+  basement_main: 'Basement',
+  basement_storage: 'Storage Room',
+  exit: 'Basement',
+  filler: 'Side Room',
+  closet: 'Closet',
+  storage: 'Storage',
+  // Stage 2
+  neighborhood_entry: 'Front Yard',
+  street: 'Neighborhood Street',
+  neighbor_house: "Neighbor's House",
+  park: 'Community Park',
+  parking_lot: 'Parking Lot',
+  alley: 'Dark Alley',
+  // Stage 3
+  downtown_entry: 'Downtown',
+  city_block: 'City Block',
+  dark_alley: 'Dark Alley',
+  office: 'Office Building',
+  police_station: 'Police Station',
+  workshop: "Paul's Workshop",
+  restaurant: 'Diner',
+  shop: 'Corner Shop',
+  plaza: 'Town Plaza',
+  highway_onramp: 'Highway On-Ramp',
+};
+
+function getSceneName(purpose: string, counter: number): string {
+  const baseName = ROOM_NAMES[purpose];
+  if (baseName) return baseName;
+  // Fallback for unknown purposes: title-case the purpose
+  const titleCase = purpose.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  return titleCase || `Room ${counter}`;
+}
+
 function generateSceneFromTemplate(
   ctx: GeneratorContext,
   template: SceneTemplate,
   purpose: string
 ): SceneDefinition {
   const sceneId = `scene_${++ctx.sceneCounter}_${purpose}`;
-  
+
   // Randomize size within template constraints
   const width = ctx.rng.nextInt(template.size.width.min, template.size.width.max);
   const height = ctx.rng.nextInt(template.size.height.min, template.size.height.max);
-  
+
   // Pick a random palette from stage's allowed palettes
   const paletteId = ctx.rng.pick(ctx.stageDef.generation.palettes);
   const palette = ctx.palettes.get(paletteId)!;
-  
+
   // Generate props using template rules
   const props = generateProps(ctx, template, width, height, palette);
-  
+
   // Create exits (will be filled in during connection phase)
   const exits: ExitDefinition[] = [];
-  
+
   // Create spawn points at each potential connection
   const spawnPoints: SpawnPointDefinition[] = [
     {
@@ -442,7 +483,7 @@ function generateSceneFromTemplate(
       default: true,
     },
   ];
-  
+
   for (const cp of template.connectionPoints) {
     const pos = getConnectionPointPosition(cp, width, height);
     spawnPoints.push({
@@ -450,36 +491,41 @@ function generateSceneFromTemplate(
       transform: { position: pos },
     });
   }
-  
+
+  // Determine atmosphere from per-room overrides or base horror level
+  const roomOverride = ctx.stageDef.atmosphere?.perRoomOverrides?.[purpose];
+  const horrorLevel = roomOverride?.horrorLevel ?? ctx.stageDef.atmosphere.baseHorrorLevel;
+
   // Assemble the scene definition
   const scene: SceneDefinition = {
     id: sceneId,
-    name: `${purpose} ${ctx.sceneCounter}`,
+    name: getSceneName(purpose, ctx.sceneCounter),
     description: `Generated ${template.type}`,
-    
+
     bounds: { width, height },
-    
+
     floor: { color: palette.floors.primary.color },
     walls: { color: palette.walls.primary.color },
-    
+
     atmosphere: {
-      preset: ctx.stageDef.atmosphere.baseHorrorLevel > 5 ? 'tense' 
-            : ctx.stageDef.atmosphere.baseHorrorLevel > 2 ? 'uneasy' 
+      preset: horrorLevel > 5 ? 'tense'
+            : horrorLevel > 2 ? 'uneasy'
             : 'cozy',
       fogEnabled: true,
-      fogDensity: 0.01 + (ctx.stageDef.atmosphere.baseHorrorLevel * 0.005),
+      fogDensity: 0.01 + (horrorLevel * 0.005),
       ambientColor: palette.lighting.ambient,
+      musicTrack: roomOverride?.musicTrack,
     },
-    
+
     props,
     npcs: [],
     triggers: [],
     exits,
     spawnPoints,
-    
+
     tags: [purpose, template.type, ...template.tags],
   };
-  
+
   ctx.generatedScenes.set(sceneId, scene);
   return scene;
 }
