@@ -1,0 +1,663 @@
+{
+  "storyDialogues": {
+    "stage2_exit_building": {
+      "id": "stage2_exit_building",
+      "type": "cutscene",
+      "lines": [
+        { "speaker": "narrator", "text": "The apartment door slams shut behind Carl.", "delay": 1000 },
+        { "speaker": "narrator", "text": "The suburban street stretches out in both directions. Quiet. Normal.", "delay": 1500 },
+        { "speaker": "carl", "text": "Fresh air. Finally.", "delay": 800 },
+        { "speaker": "carl", "text": "Okay. I just need to get to the car and drive far, far away.", "delay": 1200 },
+        { "speaker": "paul", "text": "Carl! Wait up, buddy!", "delay": 1000 },
+        { "speaker": "carl", "text": "PAUL?! Why are you following me?!", "delay": 800 },
+        { "speaker": "paul", "text": "We're roommates, Carl. We go places together.", "delay": 1000 },
+        { "speaker": "paul", "text": "Besides, I need to pick up a few things from the neighbors.", "delay": 1200 },
+        { "speaker": "carl", "text": "What THINGS, Paul?", "delay": 600 },
+        { "speaker": "paul", "text": "Oh, you know. Neighborly stuff!", "delay": 800 }
+      ],
+      "effects": [
+        { "type": "music_change", "track": "music_tension_medium" },
+        { "type": "ambient_change", "track": "ambient_suburban_day" }
+      ],
+      "nextBeat": "explore_street"
+    },
+
+    "stage2_explore_street": {
+      "id": "stage2_explore_street",
+      "type": "hint",
+      "lines": [
+        { "speaker": "carl", "text": "The parking lot should be at the end of the street." },
+        { "speaker": "carl", "text": "I just need to walk past a few houses. Simple." },
+        { "speaker": "narrator", "text": "Nothing about today has been simple." }
+      ]
+    },
+
+    "stage2_meet_neighbor": {
+      "id": "stage2_meet_neighbor",
+      "type": "cutscene",
+      "lines": [
+        { "speaker": "narrator", "text": "A middle-aged woman stands at the edge of her yard, arms crossed.", "delay": 1000 },
+        { "speaker": "mrs_henderson", "text": "Well, well. If it isn't the llamas from 42B.", "delay": 1200 },
+        { "speaker": "carl", "text": "Mrs. Henderson! Good morning!", "delay": 800 },
+        { "speaker": "mrs_henderson", "text": "Don't you 'good morning' me.", "delay": 1000 },
+        { "speaker": "mrs_henderson", "text": "What was all that noise last night? Sounded like someone was being murdered.", "delay": 1500 },
+        { "speaker": "paul", "text": "We were rearranging furniture!", "delay": 800 },
+        { "speaker": "carl", "text": "Paul, don't--", "delay": 600 },
+        { "speaker": "paul", "text": "Very heavy furniture. With lots of... fluid inside it.", "delay": 1200 },
+        { "speaker": "mrs_henderson", "text": "Fluid.", "delay": 800 },
+        { "speaker": "paul", "text": "Waterbeds! We got waterbeds. Very sloshy.", "delay": 1000 },
+        { "speaker": "carl", "text": "We should really keep moving.", "delay": 800 }
+      ],
+      "effects": [
+        { "type": "horror_pulse", "intensity": 0.3 }
+      ]
+    },
+
+    "stage2_yard_discovery": {
+      "id": "stage2_yard_discovery",
+      "type": "cutscene",
+      "lines": [
+        { "speaker": "narrator", "text": "Something is wrong with the Henderson yard.", "delay": 1000 },
+        { "speaker": "narrator", "text": "The garden gnomes are arranged in a circle. Facing inward.", "delay": 1500 },
+        { "speaker": "carl", "text": "Paul... did you do something to Mrs. Henderson's garden gnomes?", "delay": 1200 },
+        { "speaker": "paul", "text": "Oh THOSE. I made a little art installation last Tuesday.", "delay": 1000 },
+        { "speaker": "carl", "text": "An art installation.", "delay": 600 },
+        { "speaker": "paul", "text": "Yep! I call it 'The Summoning Circle of Gerald.'", "delay": 1200 },
+        { "speaker": "carl", "text": "Who is Gerald?!", "delay": 800 },
+        { "speaker": "paul", "text": "Oh, Gerald was the neighbor two doors down.", "delay": 1000 },
+        { "speaker": "paul", "text": "Was.", "delay": 1500 },
+        { "speaker": "carl", "text": "WAS?!", "delay": 600 },
+        { "speaker": "paul", "text": "He moved! To a farm! Upstate!", "delay": 800 },
+        { "speaker": "narrator", "text": "One of the gnomes has red paint on its hands. At least, it looks like paint.", "delay": 1500 }
+      ],
+      "effects": [
+        { "type": "horror_pulse", "intensity": 0.5 },
+        { "type": "screen_shake", "intensity": 0.15, "duration": 300 }
+      ]
+    },
+
+    "stage2_alley_shortcut": {
+      "id": "stage2_alley_shortcut",
+      "type": "cutscene",
+      "lines": [
+        { "speaker": "narrator", "text": "A narrow alley runs between two houses.", "delay": 800 },
+        { "speaker": "narrator", "text": "Trash cans are overturned. Something has been dragged through here.", "delay": 1200 },
+        { "speaker": "carl", "text": "We could cut through the alley to save time.", "delay": 1000 },
+        { "speaker": "paul", "text": "Oh, I wouldn't go that way.", "delay": 800 },
+        { "speaker": "carl", "text": "Why not?", "delay": 600 },
+        { "speaker": "paul", "text": "No reason! Just... the feng shui is all wrong back there.", "delay": 1200 },
+        { "speaker": "carl", "text": "Paul, is there something in the alley?", "delay": 1000 },
+        { "speaker": "paul", "text": "Define 'something.'", "delay": 800 },
+        { "speaker": "carl", "text": "Something that used to be alive.", "delay": 1000 },
+        { "speaker": "paul", "text": "...", "delay": 500 },
+        { "speaker": "paul", "text": "Define 'alive.'", "delay": 1200 }
+      ],
+      "effects": [
+        { "type": "fog_increase", "targetDensity": 0.02, "duration": 2000 },
+        { "type": "horror_pulse", "intensity": 0.4 }
+      ]
+    },
+
+    "stage2_mailbox_horror": {
+      "id": "stage2_mailbox_horror",
+      "type": "cutscene",
+      "lines": [
+        { "speaker": "narrator", "text": "A row of mailboxes lines the sidewalk.", "delay": 800 },
+        { "speaker": "narrator", "text": "One of them is dripping.", "delay": 1200 },
+        { "speaker": "carl", "text": "Is that mailbox... leaking?", "delay": 1000 },
+        { "speaker": "paul", "text": "I sent Mrs. Patterson a gift!", "delay": 800 },
+        { "speaker": "carl", "text": "What kind of gift LEAKS, Paul?", "delay": 1000 },
+        { "speaker": "paul", "text": "Homemade jam! Remember my jam?", "delay": 800 },
+        { "speaker": "carl", "text": "I am NEVER going to stop being suspicious of your jam.", "delay": 1000 },
+        { "speaker": "narrator", "text": "A fly buzzes lazily around the mailbox slot.", "delay": 1200 },
+        { "speaker": "narrator", "text": "Then another. Then a dozen.", "delay": 1500 }
+      ],
+      "effects": [
+        { "type": "horror_pulse", "intensity": 0.5 }
+      ]
+    },
+
+    "stage2_missing_pets": {
+      "id": "stage2_missing_pets",
+      "type": "cutscene",
+      "lines": [
+        { "speaker": "narrator", "text": "A telephone pole is covered in MISSING PET flyers.", "delay": 1000 },
+        { "speaker": "narrator", "text": "There must be thirty of them. All from the last two weeks.", "delay": 1500 },
+        { "speaker": "carl", "text": "Paul... why are there so many missing pets in this neighborhood?", "delay": 1200 },
+        { "speaker": "paul", "text": "It's migration season!", "delay": 800 },
+        { "speaker": "carl", "text": "Cats don't migrate, Paul.", "delay": 800 },
+        { "speaker": "paul", "text": "Not with that attitude they don't!", "delay": 1000 },
+        { "speaker": "carl", "text": "Please tell me you didn't eat anyone's cat.", "delay": 1200 },
+        { "speaker": "paul", "text": "Carl! I would NEVER eat a cat.", "delay": 800 },
+        { "speaker": "paul", "text": "...", "delay": 600 },
+        { "speaker": "paul", "text": "They're terrible with rosemary.", "delay": 1200 },
+        { "speaker": "carl", "text": "PAUL!", "delay": 500 }
+      ],
+      "effects": [
+        { "type": "horror_pulse", "intensity": 0.4 },
+        { "type": "screen_shake", "intensity": 0.1, "duration": 200 }
+      ]
+    },
+
+    "stage2_sprinkler_blood": {
+      "id": "stage2_sprinkler_blood",
+      "type": "cutscene",
+      "lines": [
+        { "speaker": "narrator", "text": "A lawn sprinkler sputters to life on the next yard over.", "delay": 1000 },
+        { "speaker": "narrator", "text": "The water is pink.", "delay": 1500 },
+        { "speaker": "carl", "text": "Is that sprinkler spraying... PINK water?", "delay": 1000 },
+        { "speaker": "paul", "text": "Oh, that must be the new mineral water system I installed for the Johnsons.", "delay": 1200 },
+        { "speaker": "carl", "text": "You installed a sprinkler system for the neighbors.", "delay": 800 },
+        { "speaker": "paul", "text": "Community service! Very important for property values.", "delay": 1000 },
+        { "speaker": "carl", "text": "What minerals turn water PINK, Paul?", "delay": 1000 },
+        { "speaker": "paul", "text": "Iron! Perfectly natural.", "delay": 800 },
+        { "speaker": "narrator", "text": "The grass where the sprinkler hits has died in a perfect circle.", "delay": 1500 }
+      ],
+      "effects": [
+        { "type": "horror_pulse", "intensity": 0.6 }
+      ]
+    },
+
+    "stage2_reach_parking": {
+      "id": "stage2_reach_parking",
+      "type": "cutscene",
+      "lines": [
+        { "speaker": "narrator", "text": "The parking lot comes into view. Almost there.", "delay": 1000 },
+        { "speaker": "carl", "text": "Finally! The car. We can just drive away from all this.", "delay": 1200 },
+        { "speaker": "paul", "text": "Oh, about the car...", "delay": 1000 },
+        { "speaker": "carl", "text": "What about the car, Paul?", "delay": 800 },
+        { "speaker": "paul", "text": "I may have used the trunk for a little project last night.", "delay": 1200 },
+        { "speaker": "carl", "text": "You... WHAT?", "delay": 600 },
+        { "speaker": "paul", "text": "It's fine! I cleaned most of it.", "delay": 800 },
+        { "speaker": "carl", "text": "MOST of it?!", "delay": 600 },
+        { "speaker": "paul", "text": "The important thing is we have a full tank of gas!", "delay": 1000 },
+        { "speaker": "narrator", "text": "Something thumps in the trunk.", "delay": 1500 },
+        { "speaker": "carl", "text": "Paul. Did the trunk just move?", "delay": 1200 },
+        { "speaker": "paul", "text": "The shocks on this car are terrible.", "delay": 800 },
+        { "speaker": "carl", "text": "We're going downtown. We're going to the police.", "delay": 1200 },
+        { "speaker": "paul", "text": "Oh, that sounds like a GREAT idea!", "delay": 1000 },
+        { "speaker": "narrator", "text": "Paul's enthusiasm is deeply concerning.", "delay": 1500 }
+      ],
+      "effects": [
+        { "type": "screen_shake", "intensity": 0.3, "duration": 500 },
+        { "type": "horror_pulse", "intensity": 0.7 },
+        { "type": "music_change", "track": "music_tension_high" }
+      ],
+      "transition": "stage3_downtown"
+    },
+
+    "stage2_pickup_flyer": {
+      "id": "stage2_pickup_flyer",
+      "type": "item",
+      "lines": [
+        { "speaker": "narrator", "text": "A crumpled MISSING poster. The photo shows a golden retriever named 'Biscuit.'" },
+        { "speaker": "carl", "text": "Last seen Tuesday... three blocks from our apartment." },
+        { "speaker": "carl", "text": "Oh no. Paul made 'biscuits' on Wednesday." }
+      ],
+      "itemId": "missing_flyer",
+      "effects": [
+        { "type": "horror_pulse", "intensity": 0.3 }
+      ]
+    },
+
+    "stage2_examine_flyer": {
+      "id": "stage2_examine_flyer",
+      "type": "examine",
+      "lines": [
+        { "speaker": "narrator", "text": "MISSING: Biscuit. Golden Retriever, 4 years old. Very friendly." },
+        { "speaker": "narrator", "text": "The phone number at the bottom has been torn off." },
+        { "speaker": "carl", "text": "I really hope this is a coincidence." }
+      ]
+    },
+
+    "stage2_pickup_collar": {
+      "id": "stage2_pickup_collar",
+      "type": "item",
+      "lines": [
+        { "speaker": "narrator", "text": "A pet collar, half-buried in a flower bed. The tag reads 'Mr. Whiskers.'" },
+        { "speaker": "carl", "text": "This is from the missing poster two blocks back." },
+        { "speaker": "carl", "text": "Why is it HERE? In PAUL'S flower bed?" }
+      ],
+      "itemId": "pet_collar",
+      "effects": [
+        { "type": "horror_pulse", "intensity": 0.4 }
+      ]
+    },
+
+    "stage2_examine_collar": {
+      "id": "stage2_examine_collar",
+      "type": "examine",
+      "lines": [
+        { "speaker": "narrator", "text": "A small blue collar with a bell. The tag reads 'Mr. Whiskers - If found, call 555-0147.'" },
+        { "speaker": "narrator", "text": "The collar has been cleanly cut. Not torn. Cut." }
+      ]
+    },
+
+    "stage2_pickup_recipe": {
+      "id": "stage2_pickup_recipe",
+      "type": "item",
+      "lines": [
+        { "speaker": "narrator", "text": "A handwritten recipe card, dropped on the sidewalk." },
+        { "speaker": "carl", "text": "That's Paul's handwriting." },
+        { "speaker": "note", "text": "'Step 1: Acquire fresh ingredients (check yard). Step 2: Remove the...'" },
+        { "speaker": "carl", "text": "I can't read the rest. I don't WANT to read the rest." }
+      ],
+      "itemId": "paul_recipe",
+      "effects": [
+        { "type": "horror_pulse", "intensity": 0.5 }
+      ]
+    },
+
+    "stage2_examine_recipe": {
+      "id": "stage2_examine_recipe",
+      "type": "examine",
+      "lines": [
+        { "speaker": "narrator", "text": "A recipe card in Paul's meticulous handwriting." },
+        { "speaker": "narrator", "text": "The ingredients list contains nothing you'd find at a grocery store." },
+        { "speaker": "narrator", "text": "Step 7 is circled twice: 'Dispose of leftovers in Mrs. Henderson's compost.'" }
+      ]
+    },
+
+    "stage2_find_shovel": {
+      "id": "stage2_find_shovel",
+      "type": "item",
+      "lines": [
+        { "speaker": "narrator", "text": "A shovel, leaning against the fence. The blade is caked with fresh dirt." },
+        { "speaker": "carl", "text": "Why is there a shovel out here? We don't have a garden." },
+        { "speaker": "carl", "text": "And why is the dirt so... dark?" }
+      ],
+      "itemId": "dirty_shovel",
+      "effects": [
+        { "type": "horror_pulse", "intensity": 0.3 }
+      ]
+    },
+
+    "stage2_examine_shovel": {
+      "id": "stage2_examine_shovel",
+      "type": "examine",
+      "lines": [
+        { "speaker": "narrator", "text": "A sturdy shovel. Recently used. The dirt on the blade smells of iron and something else." },
+        { "speaker": "narrator", "text": "There's a strand of something caught in the handle. Hair, maybe." }
+      ]
+    }
+  },
+
+  "npcDialogues": {
+    "stage2_paul_dialogue": {
+      "id": "stage2_paul_dialogue",
+      "character": "paul",
+      "tree": {
+        "initial": {
+          "lines": [
+            { "speaker": "paul", "text": "Great day for a walk, isn't it, Carl?" },
+            { "speaker": "carl", "text": "Paul, we need to talk about what's happening." },
+            { "speaker": "paul", "text": "Happening? Just two llamas enjoying the neighborhood!" }
+          ],
+          "options": [
+            { "text": "What did you do to the neighbors?", "next": "neighbors" },
+            { "text": "Where are all the pets?", "next": "pets" },
+            { "text": "What's in the trunk of the car?", "next": "trunk" },
+            { "text": "Let's just keep moving.", "next": "end" }
+          ]
+        },
+        "neighbors": {
+          "lines": [
+            { "speaker": "paul", "text": "The neighbors? I've been very neighborly!" },
+            { "speaker": "paul", "text": "I brought Mrs. Henderson a casserole last week." },
+            { "speaker": "carl", "text": "What was IN the casserole, Paul?" },
+            { "speaker": "paul", "text": "Protein! Very locally sourced." },
+            { "speaker": "carl", "text": "How local are we talking?" },
+            { "speaker": "paul", "text": "You know Gerald, two doors down?" },
+            { "speaker": "carl", "text": "No." },
+            { "speaker": "paul", "text": "Exactly." }
+          ],
+          "options": [
+            { "text": "Where are all the pets?", "next": "pets" },
+            { "text": "I don't want to know any more.", "next": "end" }
+          ]
+        },
+        "pets": {
+          "lines": [
+            { "speaker": "paul", "text": "Pets? What pets?" },
+            { "speaker": "carl", "text": "The THIRTY missing pets, Paul. Thirty!" },
+            { "speaker": "paul", "text": "Animals are unpredictable, Carl." },
+            { "speaker": "paul", "text": "Sometimes they run away. Sometimes they become part of something bigger." },
+            { "speaker": "carl", "text": "Bigger like WHAT?!" },
+            { "speaker": "paul", "text": "Like the circle of life! Very Lion King." },
+            { "speaker": "carl", "text": "The Lion King didn't involve casseroles!" },
+            { "speaker": "paul", "text": "Not the theatrical cut, no." }
+          ],
+          "options": [
+            { "text": "What's in the trunk?", "next": "trunk" },
+            { "text": "We need to go. Now.", "next": "end" }
+          ]
+        },
+        "trunk": {
+          "lines": [
+            { "speaker": "paul", "text": "The trunk? Supplies!" },
+            { "speaker": "carl", "text": "Supplies that MOVE?" },
+            { "speaker": "paul", "text": "Active supplies. Very fresh." },
+            { "speaker": "carl", "text": "Paul, is there something alive in our trunk?" },
+            { "speaker": "paul", "text": "Define 'alive.'" },
+            { "speaker": "carl", "text": "BREATHING. MOVING. CONSCIOUS." },
+            { "speaker": "paul", "text": "Then... partially?" },
+            { "speaker": "carl", "text": "We are going to the police." },
+            { "speaker": "paul", "text": "Oh FUN! I love field trips!" }
+          ],
+          "options": [
+            { "text": "Let's go. Right now.", "next": "end" }
+          ]
+        },
+        "end": {
+          "lines": [
+            { "speaker": "paul", "text": "Onward, then!" },
+            { "speaker": "paul", "text": "I think I see Mrs. Patterson waving from her window." },
+            { "speaker": "paul", "text": "Oh wait, that's just the mannequin I left there." },
+            { "speaker": "carl", "text": "The WHAT?!" },
+            { "speaker": "paul", "text": "So she wouldn't get lonely! While she's away." },
+            { "speaker": "carl", "text": "Where IS Mrs. Patterson, Paul?!" },
+            { "speaker": "paul", "text": "On vacation! Very extended vacation." }
+          ],
+          "options": []
+        }
+      }
+    },
+
+    "stage2_mrs_henderson_dialogue": {
+      "id": "stage2_mrs_henderson_dialogue",
+      "character": "mrs_henderson",
+      "tree": {
+        "initial": {
+          "lines": [
+            { "speaker": "mrs_henderson", "text": "You two have some explaining to do." },
+            { "speaker": "mrs_henderson", "text": "My garden has been RUINED." },
+            { "speaker": "carl", "text": "I'm very sorry, Mrs. Henderson. Paul has been... experimenting." }
+          ],
+          "options": [
+            { "text": "What happened to your garden?", "next": "garden" },
+            { "text": "Have you seen anything strange lately?", "next": "strange" },
+            { "text": "We're just passing through.", "next": "end" }
+          ]
+        },
+        "garden": {
+          "lines": [
+            { "speaker": "mrs_henderson", "text": "My prize-winning roses. DEAD. Overnight." },
+            { "speaker": "mrs_henderson", "text": "And someone rearranged all my gnomes into a pentagram!" },
+            { "speaker": "carl", "text": "Paul said it was a summoning circle." },
+            { "speaker": "mrs_henderson", "text": "A WHAT?!" },
+            { "speaker": "paul", "text": "It's abstract art! Very avant-garde." },
+            { "speaker": "mrs_henderson", "text": "And what's that SMELL coming from your apartment?" },
+            { "speaker": "paul", "text": "Potpourri!" },
+            { "speaker": "carl", "text": "It's not potpourri." }
+          ],
+          "options": [
+            { "text": "Have you noticed anything else?", "next": "strange" },
+            { "text": "We should go.", "next": "end" }
+          ]
+        },
+        "strange": {
+          "lines": [
+            { "speaker": "mrs_henderson", "text": "Strange? Where do I START?" },
+            { "speaker": "mrs_henderson", "text": "Gerald hasn't been home in a week." },
+            { "speaker": "mrs_henderson", "text": "Mrs. Patterson's lights are on but nobody answers the door." },
+            { "speaker": "mrs_henderson", "text": "And SOMETHING keeps digging in everyone's yard at 3 AM." },
+            { "speaker": "carl", "text": "Digging..." },
+            { "speaker": "mrs_henderson", "text": "I set up a camera. But the footage just shows a shadow." },
+            { "speaker": "mrs_henderson", "text": "A llama-shaped shadow." },
+            { "speaker": "paul", "text": "Could be any llama!" }
+          ],
+          "options": [
+            { "text": "I'm sorry, Mrs. Henderson. We'll sort this out.", "next": "end" }
+          ]
+        },
+        "end": {
+          "lines": [
+            { "speaker": "mrs_henderson", "text": "You'd better. I'm calling the neighborhood watch." },
+            { "speaker": "mrs_henderson", "text": "And tell your friend to stay OUT of my compost bin!" },
+            { "speaker": "paul", "text": "But that's where I keep my--" },
+            { "speaker": "carl", "text": "PAUL. Shut up." }
+          ],
+          "options": []
+        }
+      }
+    },
+
+    "stage2_neighbor_scared_dialogue": {
+      "id": "stage2_neighbor_scared_dialogue",
+      "character": "neighbor_scared",
+      "tree": {
+        "initial": {
+          "lines": [
+            { "speaker": "neighbor_scared", "text": "Oh god, it's YOU. The llamas from 42B." },
+            { "speaker": "neighbor_scared", "text": "Stay back! STAY BACK!" },
+            { "speaker": "carl", "text": "We're not going to hurt you!" },
+            { "speaker": "paul", "text": "I brought cookies!" },
+            { "speaker": "neighbor_scared", "text": "I am NOT eating anything you've made!" }
+          ],
+          "options": [
+            { "text": "What's wrong? Why are you scared?", "next": "scared" },
+            { "text": "Sorry to bother you.", "next": "end" }
+          ]
+        },
+        "scared": {
+          "lines": [
+            { "speaker": "neighbor_scared", "text": "I SAW what your roommate did to Gerald's lawn." },
+            { "speaker": "neighbor_scared", "text": "And I don't mean the gnomes." },
+            { "speaker": "neighbor_scared", "text": "There were HOLES. And they were SHAPED WRONG." },
+            { "speaker": "carl", "text": "Shaped wrong?" },
+            { "speaker": "neighbor_scared", "text": "Like... person-shaped. But not quite." },
+            { "speaker": "paul", "text": "Gardening! I was planting tulips!" },
+            { "speaker": "neighbor_scared", "text": "TULIPS DON'T SCREAM AT MIDNIGHT!" }
+          ],
+          "options": [
+            { "text": "We're leaving now.", "next": "end" }
+          ]
+        },
+        "end": {
+          "lines": [
+            { "speaker": "neighbor_scared", "text": "Good. Leave. And don't come back." },
+            { "speaker": "neighbor_scared", "text": "I'm boarding up my windows tonight." }
+          ],
+          "options": []
+        }
+      }
+    },
+
+    "stage2_neighbor_suspicious_dialogue": {
+      "id": "stage2_neighbor_suspicious_dialogue",
+      "character": "neighbor_suspicious",
+      "tree": {
+        "initial": {
+          "lines": [
+            { "speaker": "neighbor_suspicious", "text": "Hold it right there." },
+            { "speaker": "neighbor_suspicious", "text": "I've been keeping a log of every suspicious thing you two have done." },
+            { "speaker": "neighbor_suspicious", "text": "Three notebooks full." },
+            { "speaker": "paul", "text": "Ooh, a fan!" }
+          ],
+          "options": [
+            { "text": "What's in your notebooks?", "next": "evidence" },
+            { "text": "We don't want any trouble.", "next": "end" }
+          ]
+        },
+        "evidence": {
+          "lines": [
+            { "speaker": "neighbor_suspicious", "text": "October 5th: Large delivery at 2 AM. Crate-shaped. Moved by one llama." },
+            { "speaker": "neighbor_suspicious", "text": "October 12th: Garden hose borrowed. Returned with residue." },
+            { "speaker": "neighbor_suspicious", "text": "October 19th: Screaming from basement. Duration: 47 minutes." },
+            { "speaker": "carl", "text": "Forty-seven minutes?!" },
+            { "speaker": "paul", "text": "I was watching a scary movie!" },
+            { "speaker": "neighbor_suspicious", "text": "October 26th: Subject Paul seen carrying trash bags at 3 AM. Bags were MOVING." },
+            { "speaker": "paul", "text": "Raccoons! I was relocating raccoons!" },
+            { "speaker": "carl", "text": "To WHERE?" },
+            { "speaker": "paul", "text": "A better place, Carl. A much better place." }
+          ],
+          "options": [
+            { "text": "We have to go.", "next": "end" }
+          ]
+        },
+        "end": {
+          "lines": [
+            { "speaker": "neighbor_suspicious", "text": "This isn't over. I'm sending my notes to the authorities." },
+            { "speaker": "paul", "text": "Good luck with that! The postman stopped coming last week." },
+            { "speaker": "carl", "text": "WHY did the postman stop coming, Paul?" },
+            { "speaker": "paul", "text": "Career change! Very sudden." }
+          ],
+          "options": []
+        }
+      }
+    }
+  },
+
+  "propOverrides": {
+    "mailbox": {
+      "carl": [
+        "The mailbox is dented. And damp.",
+        "Something is leaking from the mail slot."
+      ],
+      "paul": [
+        "I love getting mail! Sending it too.",
+        "I sent all the neighbors something special this week."
+      ],
+      "horror": [
+        "The mailbox drips steadily onto the pavement.",
+        "Flies circle the opening in a lazy spiral."
+      ],
+      "prompt": "Check mailbox"
+    },
+    "garden_gnome": {
+      "carl": [
+        "Mrs. Henderson's garden gnome. It's facing our apartment.",
+        "Is that red paint on its hands? Please let it be paint."
+      ],
+      "paul": [
+        "Gerald! My favorite gnome.",
+        "I named them all. This one guards the perimeter."
+      ],
+      "horror": [
+        "The gnome's painted smile seems wider than before.",
+        "Its eyes follow you. That's not possible. But they do."
+      ],
+      "prompt": "Examine gnome"
+    },
+    "trash_can": {
+      "carl": [
+        "An overturned trash can. The lid has claw marks on it.",
+        "From the inside."
+      ],
+      "paul": [
+        "Waste management! Very important civic duty.",
+        "I've been helping the whole street with their garbage."
+      ],
+      "horror": [
+        "Something inside shifts and settles.",
+        "A low buzzing emanates from within."
+      ],
+      "prompt": "Check trash can"
+    },
+    "fence": {
+      "carl": [
+        "The neighborhood fence. There's a gap where a board is missing.",
+        "Something pushed through here. Something big."
+      ],
+      "paul": [
+        "Good fences make good neighbors!",
+        "But bad fences make it easier to visit them at night."
+      ],
+      "prompt": "Examine fence"
+    },
+    "car": {
+      "carl": [
+        "Someone's parked car. The windows are fogged up from the inside.",
+        "I don't want to know why."
+      ],
+      "paul": [
+        "Nice car! Reminds me of Gerald's.",
+        "Gerald won't be needing his anymore, of course."
+      ],
+      "horror": [
+        "A handprint appears on the fogged window. From inside.",
+        "Then slowly slides downward."
+      ],
+      "prompt": "Look at car"
+    },
+    "flower_bed": {
+      "carl": [
+        "A flower bed. The soil has been freshly turned.",
+        "At least I think it's soil. It's too dark to be soil."
+      ],
+      "paul": [
+        "I planted these! Using only organic fertilizer.",
+        "Very, very organic."
+      ],
+      "horror": [
+        "The flowers are growing impossibly fast.",
+        "They're the wrong color. Nothing in nature is that shade of red."
+      ],
+      "prompt": "Examine flowers"
+    },
+    "street_lamp": {
+      "carl": [
+        "The street lamp flickers on and off.",
+        "In the strobe-light effect, I swear I see shapes moving between the houses."
+      ],
+      "paul": [
+        "Ambiance! I adjusted all the bulbs on this street.",
+        "Creates a lovely horror movie atmosphere, don't you think?"
+      ],
+      "prompt": "Look at street lamp"
+    },
+    "sprinkler": {
+      "carl": [
+        "A lawn sprinkler. The water coming out of it is definitely not clear.",
+        "It has a pinkish tint that makes my stomach turn."
+      ],
+      "paul": [
+        "Hydration is important! For lawns AND people.",
+        "Well. For lawns, anyway."
+      ],
+      "horror": [
+        "The sprinkler pulses like a heartbeat.",
+        "The pink water pools in the gutter, thick and warm."
+      ],
+      "prompt": "Check sprinkler"
+    }
+  },
+
+  "genericLines": {
+    "cant_go_back": {
+      "carl": [
+        "I'm not going back to the apartment. Not after what I saw.",
+        "Forward. The car is ahead somewhere."
+      ],
+      "paul": ["Why would we go back? The fun is out here!"]
+    },
+    "wrong_direction": {
+      "carl": [
+        "The parking lot is the other way.",
+        "I need to stay focused."
+      ]
+    },
+    "paul_following": {
+      "carl": [
+        "Paul is still following me. I can't shake him.",
+        "Maybe that's for the best. At least I can keep an eye on him."
+      ]
+    },
+    "horror_ambient": {
+      "carl": [
+        "Something about this street doesn't feel right.",
+        "Where IS everybody?"
+      ],
+      "paul": [
+        "Isn't it peaceful? I love what I've done with the neighborhood.",
+        "Everyone's so quiet lately!"
+      ]
+    },
+    "approach_parking": {
+      "carl": [
+        "I can see the parking lot from here.",
+        "Almost there. Just a few more steps."
+      ]
+    }
+  }
+}

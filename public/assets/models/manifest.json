@@ -1,0 +1,1279 @@
+{
+  "version": "1.0.0",
+  "description": "3D model assets for Llamas with Hats BabylonJS RPG game",
+  "license": "CC0 1.0 Universal",
+  "sources": {
+    "kenney_furniture_kit": {
+      "name": "Kenney Furniture Kit",
+      "author": "Kenney.nl",
+      "license": "CC0 1.0",
+      "url": "https://kenney.nl/assets/furniture-kit"
+    },
+    "kaykit_dungeon_remastered": {
+      "name": "KayKit Dungeon Remastered",
+      "author": "Kay Lousberg",
+      "license": "CC0 1.0",
+      "url": "https://kaylousberg.itch.io/kaykit-dungeon-remastered"
+    },
+    "kenney_graveyard_kit": {
+      "name": "Kenney Graveyard Kit",
+      "author": "Kenney.nl",
+      "license": "CC0 1.0",
+      "url": "https://kenney.nl/assets/graveyard-kit"
+    },
+    "kenney_mini_dungeon": {
+      "name": "Kenney Mini Dungeon",
+      "author": "Kenney.nl",
+      "license": "CC0 1.0",
+      "url": "https://kenney.nl/assets/mini-dungeon"
+    },
+    "kenney_survival_kit": {
+      "name": "Kenney Survival Kit",
+      "author": "Kenney.nl",
+      "license": "CC0 1.0",
+      "url": "https://kenney.nl/assets/survival-kit"
+    },
+    "kaykit_skeletons": {
+      "name": "KayKit Skeletons",
+      "author": "Kay Lousberg",
+      "license": "CC0 1.0",
+      "url": "https://kaylousberg.itch.io/kaykit-skeletons"
+    }
+  },
+  "categories": {
+    "bathroom/fixtures": {
+      "models": [
+        {
+          "name": "bathtub",
+          "file": "bathtub.glb",
+          "path": "assets/models/bathroom/fixtures/bathtub.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "cabinet",
+          "file": "cabinet.glb",
+          "path": "assets/models/bathroom/fixtures/cabinet.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "dryer",
+          "file": "dryer.glb",
+          "path": "assets/models/bathroom/fixtures/dryer.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "mirror",
+          "file": "mirror.glb",
+          "path": "assets/models/bathroom/fixtures/mirror.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "shower",
+          "file": "shower.glb",
+          "path": "assets/models/bathroom/fixtures/shower.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "sink",
+          "file": "sink.glb",
+          "path": "assets/models/bathroom/fixtures/sink.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "toilet",
+          "file": "toilet.glb",
+          "path": "assets/models/bathroom/fixtures/toilet.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "toilet_square",
+          "file": "toilet_square.glb",
+          "path": "assets/models/bathroom/fixtures/toilet_square.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "trashcan",
+          "file": "trashcan.glb",
+          "path": "assets/models/bathroom/fixtures/trashcan.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "washer",
+          "file": "washer.glb",
+          "path": "assets/models/bathroom/fixtures/washer.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        }
+      ],
+      "count": 10
+    },
+    "characters": {
+      "models": [
+        {
+          "name": "carl",
+          "file": "carl.glb",
+          "path": "assets/models/characters/carl.glb",
+          "format": "glb",
+          "source": "unknown"
+        },
+        {
+          "name": "paul",
+          "file": "paul.glb",
+          "path": "assets/models/characters/paul.glb",
+          "format": "glb",
+          "source": "unknown"
+        }
+      ],
+      "count": 2
+    },
+    "decor/floor": {
+      "models": [
+        {
+          "name": "plant_small_1",
+          "file": "plant_small_1.glb",
+          "path": "assets/models/decor/floor/plant_small_1.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "plant_small_2",
+          "file": "plant_small_2.glb",
+          "path": "assets/models/decor/floor/plant_small_2.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "potted_plant",
+          "file": "potted_plant.glb",
+          "path": "assets/models/decor/floor/potted_plant.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "rug_rectangle",
+          "file": "rug_rectangle.glb",
+          "path": "assets/models/decor/floor/rug_rectangle.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "rug_round",
+          "file": "rug_round.glb",
+          "path": "assets/models/decor/floor/rug_round.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "rug_square",
+          "file": "rug_square.glb",
+          "path": "assets/models/decor/floor/rug_square.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        }
+      ],
+      "count": 6
+    },
+    "decor/misc": {
+      "models": [
+        {
+          "name": "books",
+          "file": "books.glb",
+          "path": "assets/models/decor/misc/books.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "bottle_brown",
+          "file": "bottle_brown.gltf",
+          "path": "assets/models/decor/misc/bottle_brown.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "bottle_green",
+          "file": "bottle_green.gltf",
+          "path": "assets/models/decor/misc/bottle_green.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "box_large",
+          "file": "box_large.gltf",
+          "path": "assets/models/decor/misc/box_large.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "box_small",
+          "file": "box_small.gltf",
+          "path": "assets/models/decor/misc/box_small.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "keyboard",
+          "file": "keyboard.glb",
+          "path": "assets/models/decor/misc/keyboard.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "laptop",
+          "file": "laptop.glb",
+          "path": "assets/models/decor/misc/laptop.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "plate",
+          "file": "plate.gltf",
+          "path": "assets/models/decor/misc/plate.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "plate_food",
+          "file": "plate_food.gltf",
+          "path": "assets/models/decor/misc/plate_food.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        }
+      ],
+      "count": 9
+    },
+    "decor/wall": {
+      "models": [
+        {
+          "name": "banner_red",
+          "file": "banner_red.gltf",
+          "path": "assets/models/decor/wall/banner_red.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "monitor",
+          "file": "monitor.glb",
+          "path": "assets/models/decor/wall/monitor.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "radio",
+          "file": "radio.glb",
+          "path": "assets/models/decor/wall/radio.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "speaker",
+          "file": "speaker.glb",
+          "path": "assets/models/decor/wall/speaker.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "tv_modern",
+          "file": "tv_modern.glb",
+          "path": "assets/models/decor/wall/tv_modern.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "tv_vintage",
+          "file": "tv_vintage.glb",
+          "path": "assets/models/decor/wall/tv_vintage.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        }
+      ],
+      "count": 6
+    },
+    "dungeon/doors": {
+      "models": [
+        {
+          "name": "doorway",
+          "file": "doorway.gltf",
+          "path": "assets/models/dungeon/doors/doorway.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "doorway_sides",
+          "file": "doorway_sides.gltf",
+          "path": "assets/models/dungeon/doors/doorway_sides.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "gate",
+          "file": "gate.glb",
+          "path": "assets/models/dungeon/doors/gate.glb",
+          "format": "glb",
+          "source": "kenney_mini_dungeon"
+        },
+        {
+          "name": "gate_arched",
+          "file": "gate_arched.gltf",
+          "path": "assets/models/dungeon/doors/gate_arched.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "gate_corner",
+          "file": "gate_corner.gltf",
+          "path": "assets/models/dungeon/doors/gate_corner.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        }
+      ],
+      "count": 5
+    },
+    "dungeon/props": {
+      "models": [
+        {
+          "name": "barrel",
+          "file": "barrel.glb",
+          "path": "assets/models/dungeon/props/barrel.glb",
+          "format": "glb",
+          "source": "kenney_mini_dungeon"
+        },
+        {
+          "name": "barrel_large",
+          "file": "barrel_large.gltf",
+          "path": "assets/models/dungeon/props/barrel_large.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "barrel_small",
+          "file": "barrel_small.gltf",
+          "path": "assets/models/dungeon/props/barrel_small.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "bucket",
+          "file": "bucket.glb",
+          "path": "assets/models/dungeon/props/bucket.glb",
+          "format": "glb",
+          "source": "kenney_survival_kit"
+        },
+        {
+          "name": "campfire",
+          "file": "campfire.glb",
+          "path": "assets/models/dungeon/props/campfire.glb",
+          "format": "glb",
+          "source": "kenney_survival_kit"
+        },
+        {
+          "name": "candle_lit",
+          "file": "candle_lit.gltf",
+          "path": "assets/models/dungeon/props/candle_lit.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "candle_triple",
+          "file": "candle_triple.gltf",
+          "path": "assets/models/dungeon/props/candle_triple.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "chest",
+          "file": "chest.gltf",
+          "path": "assets/models/dungeon/props/chest.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "chest_gold",
+          "file": "chest_gold.gltf",
+          "path": "assets/models/dungeon/props/chest_gold.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "chest_mini",
+          "file": "chest_mini.glb",
+          "path": "assets/models/dungeon/props/chest_mini.glb",
+          "format": "glb",
+          "source": "kenney_mini_dungeon"
+        },
+        {
+          "name": "coin",
+          "file": "coin.glb",
+          "path": "assets/models/dungeon/props/coin.glb",
+          "format": "glb",
+          "source": "kenney_mini_dungeon"
+        },
+        {
+          "name": "crate_large",
+          "file": "crate_large.glb",
+          "path": "assets/models/dungeon/props/crate_large.glb",
+          "format": "glb",
+          "source": "kenney_survival_kit"
+        },
+        {
+          "name": "crates_stacked",
+          "file": "crates_stacked.gltf",
+          "path": "assets/models/dungeon/props/crates_stacked.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "keg",
+          "file": "keg.gltf",
+          "path": "assets/models/dungeon/props/keg.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "key",
+          "file": "key.gltf",
+          "path": "assets/models/dungeon/props/key.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "keyring_hanging",
+          "file": "keyring_hanging.gltf",
+          "path": "assets/models/dungeon/props/keyring_hanging.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "shelf_candles",
+          "file": "shelf_candles.gltf",
+          "path": "assets/models/dungeon/props/shelf_candles.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "shelf_large",
+          "file": "shelf_large.gltf",
+          "path": "assets/models/dungeon/props/shelf_large.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "sword_shield",
+          "file": "sword_shield.gltf",
+          "path": "assets/models/dungeon/props/sword_shield.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "sword_shield_broken",
+          "file": "sword_shield_broken.gltf",
+          "path": "assets/models/dungeon/props/sword_shield_broken.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "torch_lit",
+          "file": "torch_lit.gltf",
+          "path": "assets/models/dungeon/props/torch_lit.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "torch_mounted",
+          "file": "torch_mounted.gltf",
+          "path": "assets/models/dungeon/props/torch_mounted.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "trap",
+          "file": "trap.glb",
+          "path": "assets/models/dungeon/props/trap.glb",
+          "format": "glb",
+          "source": "kenney_mini_dungeon"
+        }
+      ],
+      "count": 23
+    },
+    "dungeon/structural": {
+      "models": [
+        {
+          "name": "column",
+          "file": "column.gltf",
+          "path": "assets/models/dungeon/structural/column.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "floor_dirt_large",
+          "file": "floor_dirt_large.gltf",
+          "path": "assets/models/dungeon/structural/floor_dirt_large.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "floor_tile_large",
+          "file": "floor_tile_large.gltf",
+          "path": "assets/models/dungeon/structural/floor_tile_large.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "floor_tile_small",
+          "file": "floor_tile_small.gltf",
+          "path": "assets/models/dungeon/structural/floor_tile_small.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "floor_wood_large",
+          "file": "floor_wood_large.gltf",
+          "path": "assets/models/dungeon/structural/floor_wood_large.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "pillar",
+          "file": "pillar.gltf",
+          "path": "assets/models/dungeon/structural/pillar.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "pillar_decorated",
+          "file": "pillar_decorated.gltf",
+          "path": "assets/models/dungeon/structural/pillar_decorated.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "stairs",
+          "file": "stairs.gltf",
+          "path": "assets/models/dungeon/structural/stairs.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "stairs_narrow",
+          "file": "stairs_narrow.gltf",
+          "path": "assets/models/dungeon/structural/stairs_narrow.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "stairs_wide",
+          "file": "stairs_wide.gltf",
+          "path": "assets/models/dungeon/structural/stairs_wide.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "wall",
+          "file": "wall.gltf",
+          "path": "assets/models/dungeon/structural/wall.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "wall_arched",
+          "file": "wall_arched.gltf",
+          "path": "assets/models/dungeon/structural/wall_arched.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "wall_broken",
+          "file": "wall_broken.gltf",
+          "path": "assets/models/dungeon/structural/wall_broken.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "wall_corner",
+          "file": "wall_corner.gltf",
+          "path": "assets/models/dungeon/structural/wall_corner.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "wall_cracked",
+          "file": "wall_cracked.gltf",
+          "path": "assets/models/dungeon/structural/wall_cracked.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "wall_doorway",
+          "file": "wall_doorway.gltf",
+          "path": "assets/models/dungeon/structural/wall_doorway.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "wall_gated",
+          "file": "wall_gated.gltf",
+          "path": "assets/models/dungeon/structural/wall_gated.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "wall_half",
+          "file": "wall_half.gltf",
+          "path": "assets/models/dungeon/structural/wall_half.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        }
+      ],
+      "count": 18
+    },
+    "furniture/beds": {
+      "models": [
+        {
+          "name": "bed_bunk",
+          "file": "bed_bunk.glb",
+          "path": "assets/models/furniture/beds/bed_bunk.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "bed_double",
+          "file": "bed_double.glb",
+          "path": "assets/models/furniture/beds/bed_double.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "bed_single",
+          "file": "bed_single.glb",
+          "path": "assets/models/furniture/beds/bed_single.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "pillow",
+          "file": "pillow.glb",
+          "path": "assets/models/furniture/beds/pillow.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "pillow_long",
+          "file": "pillow_long.glb",
+          "path": "assets/models/furniture/beds/pillow_long.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        }
+      ],
+      "count": 5
+    },
+    "furniture/lighting": {
+      "models": [
+        {
+          "name": "ceiling_fan",
+          "file": "ceiling_fan.glb",
+          "path": "assets/models/furniture/lighting/ceiling_fan.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "lamp_ceiling",
+          "file": "lamp_ceiling.glb",
+          "path": "assets/models/furniture/lighting/lamp_ceiling.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "lamp_floor",
+          "file": "lamp_floor.glb",
+          "path": "assets/models/furniture/lighting/lamp_floor.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "lamp_table",
+          "file": "lamp_table.glb",
+          "path": "assets/models/furniture/lighting/lamp_table.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "lamp_wall",
+          "file": "lamp_wall.glb",
+          "path": "assets/models/furniture/lighting/lamp_wall.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        }
+      ],
+      "count": 5
+    },
+    "furniture/seating": {
+      "models": [
+        {
+          "name": "bench_cushion",
+          "file": "bench_cushion.glb",
+          "path": "assets/models/furniture/seating/bench_cushion.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "chair",
+          "file": "chair.glb",
+          "path": "assets/models/furniture/seating/chair.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "chair_cushion",
+          "file": "chair_cushion.glb",
+          "path": "assets/models/furniture/seating/chair_cushion.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "chair_desk",
+          "file": "chair_desk.glb",
+          "path": "assets/models/furniture/seating/chair_desk.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "chair_rounded",
+          "file": "chair_rounded.glb",
+          "path": "assets/models/furniture/seating/chair_rounded.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "lounge_chair",
+          "file": "lounge_chair.glb",
+          "path": "assets/models/furniture/seating/lounge_chair.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "recliner",
+          "file": "recliner.glb",
+          "path": "assets/models/furniture/seating/recliner.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "sofa",
+          "file": "sofa.glb",
+          "path": "assets/models/furniture/seating/sofa.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "sofa_corner",
+          "file": "sofa_corner.glb",
+          "path": "assets/models/furniture/seating/sofa_corner.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "stool_bar",
+          "file": "stool_bar.glb",
+          "path": "assets/models/furniture/seating/stool_bar.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        }
+      ],
+      "count": 10
+    },
+    "furniture/storage": {
+      "models": [
+        {
+          "name": "bookcase",
+          "file": "bookcase.glb",
+          "path": "assets/models/furniture/storage/bookcase.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "bookcase_doors",
+          "file": "bookcase_doors.glb",
+          "path": "assets/models/furniture/storage/bookcase_doors.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "bookcase_open",
+          "file": "bookcase_open.glb",
+          "path": "assets/models/furniture/storage/bookcase_open.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "bookcase_wide",
+          "file": "bookcase_wide.glb",
+          "path": "assets/models/furniture/storage/bookcase_wide.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "cardboard_box_closed",
+          "file": "cardboard_box_closed.glb",
+          "path": "assets/models/furniture/storage/cardboard_box_closed.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "cardboard_box_open",
+          "file": "cardboard_box_open.glb",
+          "path": "assets/models/furniture/storage/cardboard_box_open.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "coat_rack",
+          "file": "coat_rack.glb",
+          "path": "assets/models/furniture/storage/coat_rack.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "dresser",
+          "file": "dresser.glb",
+          "path": "assets/models/furniture/storage/dresser.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "tv_cabinet",
+          "file": "tv_cabinet.glb",
+          "path": "assets/models/furniture/storage/tv_cabinet.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "wardrobe",
+          "file": "wardrobe.glb",
+          "path": "assets/models/furniture/storage/wardrobe.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        }
+      ],
+      "count": 10
+    },
+    "furniture/tables": {
+      "models": [
+        {
+          "name": "coffee_table",
+          "file": "coffee_table.glb",
+          "path": "assets/models/furniture/tables/coffee_table.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "coffee_table_square",
+          "file": "coffee_table_square.glb",
+          "path": "assets/models/furniture/tables/coffee_table_square.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "desk",
+          "file": "desk.glb",
+          "path": "assets/models/furniture/tables/desk.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "desk_corner",
+          "file": "desk_corner.glb",
+          "path": "assets/models/furniture/tables/desk_corner.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "dining_table",
+          "file": "dining_table.glb",
+          "path": "assets/models/furniture/tables/dining_table.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "nightstand",
+          "file": "nightstand.glb",
+          "path": "assets/models/furniture/tables/nightstand.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "side_table",
+          "file": "side_table.glb",
+          "path": "assets/models/furniture/tables/side_table.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "table_round",
+          "file": "table_round.glb",
+          "path": "assets/models/furniture/tables/table_round.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        }
+      ],
+      "count": 8
+    },
+    "horror/blood": {
+      "models": [
+        {
+          "name": "bone_axe",
+          "file": "bone_axe.gltf",
+          "path": "assets/models/horror/blood/bone_axe.gltf",
+          "format": "gltf",
+          "source": "kaykit_skeletons"
+        },
+        {
+          "name": "bone_blade",
+          "file": "bone_blade.gltf",
+          "path": "assets/models/horror/blood/bone_blade.gltf",
+          "format": "gltf",
+          "source": "kaykit_skeletons"
+        },
+        {
+          "name": "floor_spikes",
+          "file": "floor_spikes.gltf",
+          "path": "assets/models/horror/blood/floor_spikes.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "rubble_half",
+          "file": "rubble_half.gltf",
+          "path": "assets/models/horror/blood/rubble_half.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "rubble_large",
+          "file": "rubble_large.gltf",
+          "path": "assets/models/horror/blood/rubble_large.gltf",
+          "format": "gltf",
+          "source": "kaykit_dungeon_remastered"
+        },
+        {
+          "name": "skeleton_minion",
+          "file": "skeleton_minion.glb",
+          "path": "assets/models/horror/blood/skeleton_minion.glb",
+          "format": "glb",
+          "source": "kaykit_skeletons"
+        },
+        {
+          "name": "skeleton_warrior",
+          "file": "skeleton_warrior.glb",
+          "path": "assets/models/horror/blood/skeleton_warrior.glb",
+          "format": "glb",
+          "source": "kaykit_skeletons"
+        }
+      ],
+      "count": 7
+    },
+    "horror/misc": {
+      "models": [
+        {
+          "name": "altar_stone",
+          "file": "altar_stone.glb",
+          "path": "assets/models/horror/misc/altar_stone.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "candle",
+          "file": "candle.glb",
+          "path": "assets/models/horror/misc/candle.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "candle_multiple",
+          "file": "candle_multiple.glb",
+          "path": "assets/models/horror/misc/candle_multiple.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "coffin",
+          "file": "coffin.glb",
+          "path": "assets/models/horror/misc/coffin.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "coffin_old",
+          "file": "coffin_old.glb",
+          "path": "assets/models/horror/misc/coffin_old.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "cross",
+          "file": "cross.glb",
+          "path": "assets/models/horror/misc/cross.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "crypt_door",
+          "file": "crypt_door.glb",
+          "path": "assets/models/horror/misc/crypt_door.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "debris",
+          "file": "debris.glb",
+          "path": "assets/models/horror/misc/debris.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "debris_wood",
+          "file": "debris_wood.glb",
+          "path": "assets/models/horror/misc/debris_wood.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "fire_basket",
+          "file": "fire_basket.glb",
+          "path": "assets/models/horror/misc/fire_basket.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "ghost",
+          "file": "ghost.glb",
+          "path": "assets/models/horror/misc/ghost.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "gravestone_broken",
+          "file": "gravestone_broken.glb",
+          "path": "assets/models/horror/misc/gravestone_broken.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "gravestone_cross",
+          "file": "gravestone_cross.glb",
+          "path": "assets/models/horror/misc/gravestone_cross.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "gravestone_decorative",
+          "file": "gravestone_decorative.glb",
+          "path": "assets/models/horror/misc/gravestone_decorative.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "gravestone_round",
+          "file": "gravestone_round.glb",
+          "path": "assets/models/horror/misc/gravestone_round.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "iron_fence",
+          "file": "iron_fence.glb",
+          "path": "assets/models/horror/misc/iron_fence.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "iron_fence_damaged",
+          "file": "iron_fence_damaged.glb",
+          "path": "assets/models/horror/misc/iron_fence_damaged.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "iron_gate",
+          "file": "iron_gate.glb",
+          "path": "assets/models/horror/misc/iron_gate.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "lantern",
+          "file": "lantern.glb",
+          "path": "assets/models/horror/misc/lantern.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "pumpkin_carved",
+          "file": "pumpkin_carved.glb",
+          "path": "assets/models/horror/misc/pumpkin_carved.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "pumpkin_tall_carved",
+          "file": "pumpkin_tall_carved.glb",
+          "path": "assets/models/horror/misc/pumpkin_tall_carved.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "shovel_dirt",
+          "file": "shovel_dirt.glb",
+          "path": "assets/models/horror/misc/shovel_dirt.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "skeleton",
+          "file": "skeleton.glb",
+          "path": "assets/models/horror/misc/skeleton.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "urn",
+          "file": "urn.glb",
+          "path": "assets/models/horror/misc/urn.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "vampire",
+          "file": "vampire.glb",
+          "path": "assets/models/horror/misc/vampire.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        },
+        {
+          "name": "zombie",
+          "file": "zombie.glb",
+          "path": "assets/models/horror/misc/zombie.glb",
+          "format": "glb",
+          "source": "kenney_graveyard_kit"
+        }
+      ],
+      "count": 26
+    },
+    "kitchen/appliances": {
+      "models": [
+        {
+          "name": "blender",
+          "file": "blender.glb",
+          "path": "assets/models/kitchen/appliances/blender.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "coffee_machine",
+          "file": "coffee_machine.glb",
+          "path": "assets/models/kitchen/appliances/coffee_machine.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "microwave",
+          "file": "microwave.glb",
+          "path": "assets/models/kitchen/appliances/microwave.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "range_hood",
+          "file": "range_hood.glb",
+          "path": "assets/models/kitchen/appliances/range_hood.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "refrigerator",
+          "file": "refrigerator.glb",
+          "path": "assets/models/kitchen/appliances/refrigerator.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "refrigerator_large",
+          "file": "refrigerator_large.glb",
+          "path": "assets/models/kitchen/appliances/refrigerator_large.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "stove",
+          "file": "stove.glb",
+          "path": "assets/models/kitchen/appliances/stove.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "toaster",
+          "file": "toaster.glb",
+          "path": "assets/models/kitchen/appliances/toaster.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        }
+      ],
+      "count": 8
+    },
+    "kitchen/fixtures": {
+      "models": [
+        {
+          "name": "cabinet_drawer",
+          "file": "cabinet_drawer.glb",
+          "path": "assets/models/kitchen/fixtures/cabinet_drawer.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "cabinet_lower",
+          "file": "cabinet_lower.glb",
+          "path": "assets/models/kitchen/fixtures/cabinet_lower.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "cabinet_upper",
+          "file": "cabinet_upper.glb",
+          "path": "assets/models/kitchen/fixtures/cabinet_upper.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "counter",
+          "file": "counter.glb",
+          "path": "assets/models/kitchen/fixtures/counter.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "counter_end",
+          "file": "counter_end.glb",
+          "path": "assets/models/kitchen/fixtures/counter_end.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        },
+        {
+          "name": "sink",
+          "file": "sink.glb",
+          "path": "assets/models/kitchen/fixtures/sink.glb",
+          "format": "glb",
+          "source": "kenney_furniture_kit"
+        }
+      ],
+      "count": 6
+    }
+  },
+  "total_models": 164
+}

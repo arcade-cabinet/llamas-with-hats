@@ -1,0 +1,129 @@
+{
+  "$schema": "./schemas/game.schema.json",
+  "_comment": "Master game definition - defines overall structure and stage progression",
+  
+  "id": "llamas_with_hats_rpg",
+  "name": "Llamas With Hats: The RPG",
+  "version": "0.1.0",
+  
+  "description": "A dark comedy RPG where you play as either Carl or Paul, two llamas with very different perspectives on recent events.",
+  
+  "characters": {
+    "carl": {
+      "id": "carl",
+      "name": "Carl",
+      "path": "order",
+      "description": "The methodical one. Increasingly horrified by Paul's 'activities'.",
+      "color": "#4A7C59"
+    },
+    "paul": {
+      "id": "paul", 
+      "name": "Paul",
+      "path": "chaos",
+      "description": "The oblivious one. Genuinely doesn't understand why Carl is upset.",
+      "color": "#8B4513"
+    }
+  },
+  
+  "paths": {
+    "order": {
+      "id": "order",
+      "name": "Carl's Path",
+      "description": "Experience the story through Carl's eyes - structured, investigative, horror-aware.",
+      "playableCharacter": "carl",
+      "aiCharacter": "paul"
+    },
+    "chaos": {
+      "id": "chaos", 
+      "name": "Paul's Path",
+      "description": "Experience the story through Paul's eyes - oblivious, comedic, accidentally destructive.",
+      "playableCharacter": "paul",
+      "aiCharacter": "carl"
+    }
+  },
+  
+  "stageProgression": {
+    "_comment": "Defines the linear progression of stages and transitions between them",
+    
+    "stages": [
+      {
+        "id": "stage1_apartment",
+        "name": "The Morning After",
+        "file": "stages/stage1/definition.json",
+        "availablePaths": ["order", "chaos"],
+        "unlockCondition": null,
+        "transitions": {
+          "next": "stage2_neighborhood",
+          "conditions": {
+            "goals": ["escape_apartment"]
+          }
+        }
+      },
+      {
+        "id": "stage2_neighborhood",
+        "name": "The Neighborhood",
+        "file": "stages/stage2/definition.json",
+        "availablePaths": ["order", "chaos"],
+        "unlockCondition": {
+          "completedStages": ["stage1_apartment"]
+        },
+        "transitions": {
+          "next": "stage3_downtown",
+          "conditions": {
+            "goals": ["reach_car"]
+          }
+        }
+      },
+      {
+        "id": "stage3_downtown",
+        "name": "Downtown",
+        "file": "stages/stage3/definition.json",
+        "availablePaths": ["order", "chaos"],
+        "unlockCondition": {
+          "completedStages": ["stage2_neighborhood"]
+        },
+        "transitions": {
+          "next": null,
+          "conditions": null
+        }
+      }
+    ],
+    
+    "startingStage": "stage1_apartment"
+  },
+  
+  "globalSettings": {
+    "horrorLevels": {
+      "min": 0,
+      "max": 10,
+      "thresholds": {
+        "low": 3,
+        "medium": 5,
+        "high": 7,
+        "extreme": 9
+      }
+    },
+    "difficulty": {
+      "easy": {
+        "horrorMultiplier": 0.8,
+        "hintFrequency": "high"
+      },
+      "medium": {
+        "horrorMultiplier": 1.0,
+        "hintFrequency": "medium"
+      },
+      "hard": {
+        "horrorMultiplier": 1.2,
+        "hintFrequency": "low"
+      }
+    }
+  },
+  
+  "globalData": {
+    "_comment": "References to global/reusable data files",
+    "props": "global/props.json",
+    "dialogues": "global/dialogues/prop-dialogues.json",
+    "templates": "global/templates/rooms.json",
+    "palettes": "global/palettes.json"
+  }
+}
