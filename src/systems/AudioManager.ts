@@ -149,6 +149,11 @@ const TRACK_FILES: Partial<Record<string, string>> = {
   [MusicTracks.PANIC_AMBIENT]: `${BASE}assets/sounds/revenge_theme.ogg`,
   [MusicTracks.CHASE]: `${BASE}assets/sounds/violence_theme.ogg`,
   [MusicTracks.MENU]: `${BASE}assets/sounds/dark_theme.ogg`,
+  // Aliases used in stage definition JSON musicTrack fields
+  music_uneasy: `${BASE}assets/sounds/spooky_dungeon.ogg`,
+  music_tense: `${BASE}assets/sounds/tense_horror.ogg`,
+  music_horror: `${BASE}assets/sounds/horror_ambience.ogg`,
+  music_dread: `${BASE}assets/sounds/dark_theme.ogg`,
 };
 
 /**
