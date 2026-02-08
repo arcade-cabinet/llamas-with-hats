@@ -222,13 +222,22 @@ export async function initializeGame(
           };
         });
 
+        // Convert GeneratedRoom props to PropConfig format
+        const roomProps: PropConfig[] = (room.props || []).map(p => ({
+          type: p.type,
+          position: { x: p.position.x, z: p.position.z },
+          rotation: p.rotation,
+          scale: 1,
+          interactive: false,
+        }));
+
         allRoomConfigs.set(roomId, {
           id: roomId,
           name: roomName,
           width: room.size.width,
           height: room.size.height,
           exits,
-          props: [],
+          props: roomProps,
           enemies: [],
         });
       }
@@ -597,21 +606,12 @@ const LAYOUT_ROOM_NAMES: Record<string, string> = {
   lighthouse: 'Lighthouse',
 };
 
-/** Map archetype purpose strings to AnchorRoomDef purpose enum. */
-function mapPurpose(purpose: string): AnchorRoomDef['purpose'] {
-  switch (purpose) {
-    case 'entry':
-    case 'entry_hall':
-    case 'docking_bay':
-    case 'beach':
-      return 'entry';
-    case 'exit':
-    case 'basement_main':
-    case 'airlock':
-    case 'lighthouse':
-      return 'exit';
-    default: return 'story_critical';
-  }
+/** Map archetype purpose strings to AnchorRoomDef purpose.
+ *  Preserves the original purpose string so LAYOUT_ROOM_NAMES can display
+ *  human-readable names (e.g. "kitchen" → "The Kitchen") instead of collapsing
+ *  everything to "story_critical". */
+function mapPurpose(purpose: string): string {
+  return purpose;
 }
 
 function reverseMapPurpose(purpose: AnchorRoomDef['purpose']): string {
