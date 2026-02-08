@@ -1,62 +1,70 @@
 {
-  "id": "stage2_neighborhood",
-  "name": "The Neighborhood",
-  "description": "After escaping the apartment, our llamas venture into the neighborhood. The neighbors have... concerns.",
+  "id": "stage2_space",
+  "name": "The Space Station",
+  "description": "The front door opens onto a docking bay. Someone has relocated the entire house into a space station. The crew is missing.",
 
   "path": "both",
 
   "layout": {
-    "archetypeId": "suburban_neighborhood",
+    "archetypeId": "space_station",
     "levelOverrides": {
       "0": {
-        "totalRooms": { "min": 6, "max": 8 },
+        "totalRooms": { "min": 7, "max": 9 },
         "anchorRooms": [
           {
-            "purpose": "neighborhood_entry",
+            "purpose": "docking_bay",
             "gridPosition": { "x": 0, "z": 0 },
-            "templateId": "street_section",
-            "templateTags": ["street", "exterior"],
-            "isEntry": true,
-            "storyBeats": ["exit_building"]
-          },
-          {
-            "purpose": "street",
-            "gridPosition": { "x": 1, "z": 0 },
-            "templateId": "street_section",
-            "templateTags": ["street", "exterior"],
-            "storyBeats": ["meet_neighbor", "missing_pets"],
-            "questItems": ["missing_flyer"]
-          },
-          {
-            "purpose": "yard",
-            "gridPosition": { "x": 1, "z": 1 },
-            "templateId": "yard",
-            "templateTags": ["yard", "exterior"],
-            "storyBeats": ["yard_discovery"],
-            "questItems": ["pet_collar"]
-          },
-          {
-            "purpose": "neighbor_house",
-            "gridPosition": { "x": 1, "z": -1 },
             "templateId": "room_medium",
-            "templateTags": ["house", "interior"],
-            "questItems": ["paul_recipe"]
+            "templateTags": ["large", "station"],
+            "isEntry": true,
+            "storyBeats": ["arrive_station"],
+            "questItems": ["crew_log"]
           },
           {
-            "purpose": "alley",
-            "gridPosition": { "x": -1, "z": 0 },
-            "templateId": "alley",
-            "templateTags": ["alley", "dark"],
-            "storyBeats": ["alley_shortcut"],
-            "questItems": ["dirty_shovel"]
+            "purpose": "corridor_a",
+            "gridPosition": { "x": 1, "z": 0 },
+            "templateId": "hallway_short",
+            "templateTags": ["hallway", "station"],
+            "storyBeats": ["flickering_corridor"]
           },
           {
-            "purpose": "parking_lot",
+            "purpose": "mess_hall",
             "gridPosition": { "x": 2, "z": 0 },
-            "templateId": "parking_lot",
-            "templateTags": ["parking_lot", "exterior"],
+            "templateId": "room_medium",
+            "templateTags": ["medium", "station"],
+            "storyBeats": ["mess_hall_discovery"]
+          },
+          {
+            "purpose": "crew_quarters",
+            "gridPosition": { "x": 2, "z": 1 },
+            "templateId": "room_medium",
+            "templateTags": ["medium", "station"],
+            "storyBeats": ["crew_quarters_search"],
+            "questItems": ["carl_mixtape"]
+          },
+          {
+            "purpose": "medical_bay",
+            "gridPosition": { "x": 3, "z": 0 },
+            "templateId": "room_medium",
+            "templateTags": ["medium", "station"],
+            "storyBeats": ["medical_horror"],
+            "questItems": ["medical_report"]
+          },
+          {
+            "purpose": "engine_room",
+            "gridPosition": { "x": 3, "z": -1 },
+            "templateId": "room_medium",
+            "templateTags": ["large", "station"],
+            "storyBeats": ["engine_room_workshop"],
+            "questItems": ["override_key"]
+          },
+          {
+            "purpose": "airlock",
+            "gridPosition": { "x": 4, "z": 0 },
+            "templateId": "room_small",
+            "templateTags": ["small", "station"],
             "isExit": true,
-            "storyBeats": ["reach_car"]
+            "storyBeats": ["airlock_escape"]
           }
         ]
       }
@@ -66,293 +74,421 @@
   "story": {
     "beats": [
       {
-        "id": "exit_building",
-        "description": "Leave the apartment building",
-        "dialogueId": "stage2_exit_building",
+        "id": "arrive_station",
+        "description": "Player enters the space station docking bay",
+        "dialogueId": "stage2_arrive_station",
         "trigger": {
           "type": "scene_enter",
-          "params": { "sceneId": "entry" }
+          "params": { "sceneId": "docking_bay" }
         },
         "consequences": {
-          "nextBeat": "meet_neighbor"
+          "nextBeat": "flickering_corridor"
         }
       },
       {
-        "id": "meet_neighbor",
-        "description": "Encounter a concerned neighbor",
-        "dialogueId": "stage2_meet_neighbor",
+        "id": "flickering_corridor",
+        "description": "The main corridor flickers with damaged lights. Drag marks on the floor.",
+        "dialogueId": "stage2_flickering_corridor",
         "trigger": {
-          "type": "npc_interact",
-          "params": { "npcId": "mrs_henderson" }
+          "type": "scene_enter",
+          "params": { "sceneId": "corridor_a" }
         },
         "consequences": {
           "horrorLevelChange": 1,
-          "nextBeat": "yard_discovery"
+          "nextBeat": "mess_hall_discovery"
         }
       },
       {
-        "id": "yard_discovery",
-        "description": "Discover Paul's gnome art installation in the yard",
-        "dialogueId": "stage2_yard_discovery",
+        "id": "mess_hall_discovery",
+        "description": "The mess hall food is... suspicious",
+        "dialogueId": "stage2_mess_hall",
         "trigger": {
           "type": "scene_enter",
-          "params": { "sceneId": "yard" }
+          "params": { "sceneId": "mess_hall" }
         },
         "consequences": {
           "horrorLevelChange": 1,
-          "nextBeat": "alley_shortcut"
+          "characterPathVariants": {
+            "chaos": {
+              "dialogue": [
+                "My gourmet space kitchen! I was the head chef, Paul!",
+                "Zero gravity really helps the flavor profiles. Trust me.",
+                "The secret ingredient is commitment. And also hands."
+              ],
+              "horrorLevelChange": 1
+            },
+            "order": {
+              "dialogue": [
+                "This cafeteria... all the trays are still laid out. Meals half-eaten.",
+                "The 'meat' in these portions doesn't look like any protein pack I've seen.",
+                "Carl, what did you serve these people?"
+              ],
+              "horrorLevelChange": 2
+            }
+          }
         }
       },
       {
-        "id": "missing_pets",
-        "description": "Notice the alarming number of missing pet flyers",
-        "dialogueId": "stage2_missing_pets",
+        "id": "crew_quarters_search",
+        "description": "Empty bunks, personal effects, and Paul's mixtape",
+        "dialogueId": "stage2_crew_quarters",
+        "trigger": {
+          "type": "scene_enter",
+          "params": { "sceneId": "crew_quarters" }
+        },
+        "consequences": {
+          "horrorLevelChange": 1,
+          "characterPathVariants": {
+            "chaos": {
+              "dialogue": [
+                "I made everyone personalized playlists! Very thoughtful.",
+                "This one is labeled 'Last Dance.' Get it? Because of the dance party!",
+                "Paul never appreciates my event planning."
+              ],
+              "horrorLevelChange": 1
+            },
+            "order": {
+              "dialogue": [
+                "Fifty bunks. Every single one is empty. Personal items just... abandoned.",
+                "Family photos, half-written letters home. They left in a hurry.",
+                "Or they didn't leave at all. Carl, what did you do to these people?"
+              ],
+              "horrorLevelChange": 2
+            }
+          }
+        }
+      },
+      {
+        "id": "find_crew_log",
+        "description": "Find the crew log detailing what happened",
+        "dialogueId": "stage2_find_crew_log",
         "trigger": {
           "type": "item_pickup",
-          "params": { "itemId": "missing_flyer" }
+          "params": { "itemId": "crew_log" }
         },
         "consequences": {
           "horrorLevelChange": 1,
-          "spawnItems": ["pet_collar"]
+          "nextBeat": "medical_horror"
         }
       },
       {
-        "id": "alley_shortcut",
-        "description": "Discover something dragged through the dark alley",
-        "dialogueId": "stage2_alley_shortcut",
+        "id": "medical_horror",
+        "description": "The medical bay reveals Carl's experiments",
+        "dialogueId": "stage2_medical_horror",
         "trigger": {
           "type": "scene_enter",
-          "params": { "sceneId": "alley" }
+          "params": { "sceneId": "medical_bay" }
         },
         "consequences": {
-          "horrorLevelChange": 1,
-          "spawnItems": ["dirty_shovel"],
-          "nextBeat": "mailbox_horror"
+          "horrorLevelChange": 2,
+          "nextBeat": "find_override_key",
+          "characterPathVariants": {
+            "chaos": {
+              "dialogue": [
+                "My science lab! I was conducting very important research!",
+                "Did you know llama hooves are surprisingly dexterous with a scalpel?",
+                "The crew volunteered! Well, they stopped objecting eventually."
+              ],
+              "horrorLevelChange": 1
+            },
+            "order": {
+              "dialogue": [
+                "The surgical tools are... everywhere. Used. Repeatedly.",
+                "These medical reports. 'Subject showed unexpected resilience.' Subject?!",
+                "Carl performed surgery. On the crew. Without training. Without consent."
+              ],
+              "horrorLevelChange": 3
+            }
+          }
         }
       },
       {
-        "id": "mailbox_horror",
-        "description": "Find the dripping mailbox",
-        "dialogueId": "stage2_mailbox_horror",
+        "id": "find_override_key",
+        "description": "Find the airlock override key in the engine room",
+        "dialogueId": "stage2_find_override_key",
         "trigger": {
           "type": "item_pickup",
-          "params": { "itemId": "paul_recipe" }
+          "params": { "itemId": "override_key" }
         },
         "consequences": {
-          "horrorLevelChange": 1,
-          "unlockExits": ["parking_gate"],
-          "nextBeat": "reach_car"
+          "unlockExits": ["airlock_door"],
+          "nextBeat": "engine_room_workshop"
         }
       },
       {
-        "id": "sprinkler_blood",
-        "description": "Witness the pink sprinkler water",
-        "dialogueId": "stage2_sprinkler_blood",
+        "id": "engine_room_workshop",
+        "description": "Carl's workshop in the engine room, horror level 8",
+        "dialogueId": "stage2_engine_room",
         "trigger": {
           "type": "scene_enter",
-          "params": { "sceneId": "neighbor_house" }
+          "params": { "sceneId": "engine_room" }
         },
         "consequences": {
-          "horrorLevelChange": 1
+          "horrorLevelChange": 2,
+          "nextBeat": "airlock_escape",
+          "characterPathVariants": {
+            "chaos": {
+              "dialogue": [
+                "Welcome to my art studio! In SPACE!",
+                "I had a wonderful time in the engine room, Paul. The acoustics are perfect for screaming.",
+                "I call this piece 'The Human Condition.' The materials are very authentic."
+              ],
+              "horrorLevelChange": 1
+            },
+            "order": {
+              "dialogue": [
+                "The engine room. He's turned it into a workshop.",
+                "These aren't spare parts. These are... oh god.",
+                "Carl built things. From the crew. He built THINGS."
+              ],
+              "horrorLevelChange": 3
+            }
+          }
         }
       },
       {
-        "id": "reach_car",
-        "description": "Make it to the parking lot and escape",
-        "dialogueId": "stage2_reach_parking",
+        "id": "airlock_escape",
+        "description": "Reach the airlock and escape the station",
+        "dialogueId": "stage2_airlock_escape",
         "trigger": {
-          "type": "scene_enter",
-          "params": { "sceneId": "parking_lot" }
+          "type": "reach_exit",
+          "params": {}
         },
         "consequences": {
           "stageComplete": true,
-          "nextStage": "stage3_downtown"
+          "nextStage": "stage3_pirate"
         }
       }
     ],
     "goals": [
       {
-        "id": "leave_building",
-        "description": "Get outside",
+        "id": "explore_station",
+        "character": "paul",
+        "description": "Explore the space station",
         "type": "reach_scene",
-        "params": { "sceneId": "street" }
+        "params": { "sceneId": "corridor_a" }
       },
       {
-        "id": "talk_to_neighbor",
-        "description": "Talk to Mrs. Henderson",
-        "type": "interact",
-        "params": { "targetId": "mrs_henderson" },
-        "hiddenUntil": "exit_building"
-      },
-      {
-        "id": "investigate_yard",
-        "description": "Investigate the Henderson yard",
-        "type": "reach_scene",
-        "params": { "sceneId": "yard" },
-        "hiddenUntil": "meet_neighbor"
-      },
-      {
-        "id": "gather_evidence",
-        "description": "Gather evidence of Paul's activities",
+        "id": "find_crew_logs",
+        "character": "paul",
+        "description": "Find the crew logs",
         "type": "collect_items",
-        "params": { "items": ["missing_flyer", "pet_collar", "paul_recipe"] },
-        "hiddenUntil": "yard_discovery"
+        "params": { "items": ["crew_log"] },
+        "hiddenUntil": "flickering_corridor"
       },
       {
-        "id": "explore_alley",
-        "description": "Check the dark alley",
+        "id": "search_medical",
+        "character": "paul",
+        "description": "Investigate the medical bay",
         "type": "reach_scene",
-        "params": { "sceneId": "alley" },
-        "hiddenUntil": "meet_neighbor"
+        "params": { "sceneId": "medical_bay" },
+        "hiddenUntil": "find_crew_log"
       },
       {
-        "id": "reach_car",
-        "description": "Get to the car in the parking lot",
+        "id": "find_key",
+        "character": "paul",
+        "description": "Find the airlock override key",
+        "type": "collect_items",
+        "params": { "items": ["override_key"] },
+        "hiddenUntil": "medical_horror"
+      },
+      {
+        "id": "inspect_mess_hall",
+        "character": "carl",
+        "description": "Visit the mess hall kitchen",
         "type": "reach_scene",
-        "params": { "sceneId": "parking_lot" },
-        "hiddenUntil": "mailbox_horror"
+        "params": { "sceneId": "mess_hall" }
+      },
+      {
+        "id": "setup_medical_lab",
+        "character": "carl",
+        "description": "Check on the medical bay experiments",
+        "type": "reach_scene",
+        "params": { "sceneId": "medical_bay" },
+        "hiddenUntil": "mess_hall_discovery"
+      },
+      {
+        "id": "complete_engine_mobile",
+        "character": "carl",
+        "description": "Finish the engine room art installation",
+        "type": "reach_scene",
+        "params": { "sceneId": "engine_room" },
+        "hiddenUntil": "medical_horror"
+      },
+      {
+        "id": "escape_station",
+        "description": "Complete this chapter",
+        "type": "reach_exit",
+        "params": {},
+        "hiddenUntil": "find_override_key"
       }
     ],
-    "startingBeat": "exit_building",
-    "completionGoals": ["reach_car"]
+    "startingBeat": "arrive_station",
+    "completionGoals": ["escape_station"]
   },
 
   "generation": {
     "entryScene": {
-      "templateId": "street_section",
-      "templateTags": ["street", "exterior"],
-      "purpose": "neighborhood_entry"
+      "templateId": "room_medium",
+      "templateTags": ["large", "station"],
+      "purpose": "docking_bay",
+      "mustContain": {
+        "features": ["crate", "barrel"]
+      }
     },
     "exitScene": {
-      "templateId": "parking_lot",
-      "templateTags": ["parking_lot", "exterior"],
-      "purpose": "parking_lot"
+      "templateId": "room_small",
+      "templateTags": ["small", "station"],
+      "purpose": "airlock",
+      "placement": {
+        "distanceFromEntry": { "min": 3, "max": 5 }
+      }
     },
     "requiredScenes": [
       {
-        "templateId": "street_section",
-        "templateTags": ["street", "exterior"],
-        "purpose": "street"
+        "templateId": "hallway_short",
+        "templateTags": ["hallway", "station"],
+        "purpose": "corridor_a"
       },
       {
-        "templateId": "yard",
-        "templateTags": ["yard", "exterior"],
-        "purpose": "yard"
+        "templateId": "room_medium",
+        "templateTags": ["medium", "station"],
+        "purpose": "mess_hall"
       },
       {
-        "templateId": "alley",
-        "templateTags": ["alley", "dark"],
-        "purpose": "alley"
+        "templateId": "room_medium",
+        "templateTags": ["medium", "station"],
+        "purpose": "crew_quarters"
+      },
+      {
+        "templateId": "room_medium",
+        "templateTags": ["medium", "station"],
+        "purpose": "medical_bay"
+      },
+      {
+        "templateId": "room_medium",
+        "templateTags": ["large", "station"],
+        "purpose": "engine_room"
       }
     ],
-    "optionalSceneCount": { "min": 1, "max": 3 },
-    "allowedTemplates": ["yard", "street_section", "alley", "room_small"],
-    "palettes": ["suburban_day"],
+    "optionalSceneCount": { "min": 1, "max": 2 },
+    "allowedTemplates": [
+      "room_small",
+      "hallway_short",
+      "closet"
+    ],
+    "palettes": ["station_sterile", "station_damaged"],
     "connectionRules": {
-      "type": "branching",
+      "type": "linear",
       "maxDeadEnds": 2,
       "loopsAllowed": false,
-      "maxDistanceFromEntry": 4
+      "maxDistanceFromEntry": 5
     },
-    "environment": "exterior",
-    "separation": "open"
+    "environment": "interior",
+    "separation": "wall_door"
   },
 
   "props": {
     "density": "medium",
     "questItems": [
       {
-        "id": "missing_flyer",
-        "name": "Missing Pet Flyer",
-        "description": "A crumpled MISSING poster for a golden retriever named Biscuit",
-        "pickupDialogue": "stage2_pickup_flyer",
-        "examineDialogue": "stage2_examine_flyer",
+        "id": "crew_log",
+        "name": "Crew Log Datapad",
+        "description": "A cracked datapad with the last crew log entry still glowing",
+        "pickupDialogue": "stage2_pickup_crew_log",
+        "examineDialogue": "stage2_examine_crew_log",
         "spawnRules": {
-          "sceneTypes": ["street"],
+          "sceneTypes": ["docking_bay"],
           "zones": ["visible"]
         }
       },
       {
-        "id": "pet_collar",
-        "name": "Pet Collar",
-        "description": "A small blue collar with the tag 'Mr. Whiskers'",
-        "pickupDialogue": "stage2_pickup_collar",
-        "examineDialogue": "stage2_examine_collar",
+        "id": "medical_report",
+        "name": "Medical Report",
+        "description": "A blood-spattered medical report detailing 'Patient Zero's activities'",
+        "pickupDialogue": "stage2_pickup_medical_report",
+        "examineDialogue": "stage2_examine_medical_report",
         "spawnRules": {
-          "sceneTypes": ["yard"],
-          "zones": ["hidden"],
-          "requiredBeat": "missing_pets"
-        }
-      },
-      {
-        "id": "paul_recipe",
-        "name": "Paul's Recipe Card",
-        "description": "A handwritten recipe card in Paul's meticulous handwriting",
-        "pickupDialogue": "stage2_pickup_recipe",
-        "examineDialogue": "stage2_examine_recipe",
-        "spawnRules": {
-          "sceneTypes": ["neighbor_house", "street"],
-          "zones": ["edge"]
-        }
-      },
-      {
-        "id": "dirty_shovel",
-        "name": "Dirty Shovel",
-        "description": "A shovel caked with fresh, dark dirt",
-        "pickupDialogue": "stage2_find_shovel",
-        "examineDialogue": "stage2_examine_shovel",
-        "spawnRules": {
-          "sceneTypes": ["alley"],
+          "sceneTypes": ["medical_bay"],
           "zones": ["edge"],
-          "requiredBeat": "alley_shortcut"
+          "requiredBeat": "medical_horror"
+        }
+      },
+      {
+        "id": "override_key",
+        "name": "Airlock Override Key",
+        "description": "A heavy metal key card labeled 'EMERGENCY AIRLOCK OVERRIDE'",
+        "pickupDialogue": "stage2_pickup_override_key",
+        "examineDialogue": "stage2_examine_override_key",
+        "spawnRules": {
+          "sceneTypes": ["engine_room"],
+          "zones": ["hidden"],
+          "requiredBeat": "medical_horror"
+        }
+      },
+      {
+        "id": "carl_mixtape",
+        "name": "Carl's Greatest Hits",
+        "description": "A data chip labeled 'Carl's Greatest Hits - DO NOT PLAY'",
+        "pickupDialogue": "stage2_pickup_mixtape",
+        "examineDialogue": "stage2_examine_mixtape",
+        "spawnRules": {
+          "sceneTypes": ["crew_quarters"],
+          "zones": ["visible"]
         }
       }
     ],
-    "propPools": ["outdoor_props", "urban_props"]
+    "propPools": ["station_furniture", "station_clutter", "horror_props"]
   },
 
   "npcs": {
     "required": [
       {
         "characterId": "paul",
-        "behavior": "follow",
+        "behavior": "idle",
         "dialogueId": "stage2_paul_dialogue",
         "interactable": true,
-        "spawnRoom": "neighborhood_entry",
-        "wanderRooms": ["neighborhood_entry", "street", "yard"]
+        "spawnRoom": "docking_bay",
+        "wanderRooms": ["docking_bay", "mess_hall", "engine_room"]
       }
     ],
     "optional": {
-      "pool": ["neighbor_scared", "neighbor_suspicious"],
-      "count": { "min": 1, "max": 2 }
+      "pool": [],
+      "count": { "min": 0, "max": 0 }
     }
   },
 
   "atmosphere": {
     "baseHorrorLevel": 3,
     "horrorProgression": "increasing",
-    "ambientSound": "ambient_suburban_day",
-    "musicTrack": "music_tension_medium",
+    "ambientSound": "ambient_station_hum",
+    "musicTrack": "music_space_exploration",
     "perRoomOverrides": {
-      "yard": {
+      "corridor_a": {
         "horrorLevel": 4,
-        "ambientSound": "ambient_suburban_day"
+        "ambientSound": "ambient_dripping"
       },
-      "alley": {
+      "mess_hall": {
+        "horrorLevel": 5,
+        "ambientSound": "ambient_station_hum"
+      },
+      "medical_bay": {
+        "horrorLevel": 7,
+        "ambientSound": "ambient_dripping",
+        "musicTrack": "music_space_tense"
+      },
+      "engine_room": {
+        "horrorLevel": 8,
+        "ambientSound": "ambient_basement_drip",
+        "musicTrack": "music_space_boss"
+      },
+      "airlock": {
         "horrorLevel": 6,
-        "ambientSound": "ambient_dripping"
-      },
-      "neighbor_house": {
-        "horrorLevel": 5,
-        "ambientSound": "ambient_dripping"
-      },
-      "parking_lot": {
-        "horrorLevel": 5,
-        "musicTrack": "music_tension_high"
+        "musicTrack": "music_space_tense"
       }
     }
   },
 
-  "estimatedDuration": 12,
-  "difficulty": "easy"
+  "estimatedDuration": 15,
+  "difficulty": "medium"
 }

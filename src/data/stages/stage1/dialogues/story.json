@@ -4,20 +4,20 @@
       "id": "stage1_wake_up",
       "type": "cutscene",
       "lines": [
-        { "speaker": "carl", "text": "Ugh... my head. What time is it?", "delay": 1000 },
+        { "speaker": "carl", "text": "What a WONDERFUL morning! I slept like an absolute angel.", "delay": 1000 },
         { "speaker": "narrator", "text": "The morning light filters through dusty curtains.", "delay": 2000 },
-        { "speaker": "narrator", "text": "Something feels... wrong.", "delay": 1500 },
-        { "speaker": "carl", "text": "Why does the couch smell like copper?", "delay": 1200 }
+        { "speaker": "narrator", "text": "Something feels... wrong. Or right, depending on your perspective.", "delay": 1500 },
+        { "speaker": "paul", "text": "Carl? Is that... why does the couch smell like copper?", "delay": 1200 }
       ],
-      "nextBeat": "explore_apartment"
+      "nextBeat": "explore_house"
     },
 
     "stage1_explore": {
       "id": "stage1_explore",
       "type": "hint",
       "lines": [
-        { "speaker": "carl", "text": "I should look around. Something doesn't feel right." },
-        { "speaker": "narrator", "text": "The apartment is quiet. Too quiet." }
+        { "speaker": "carl", "text": "I should show Paul around. He's going to LOVE what I've done with the place." },
+        { "speaker": "paul", "text": "The house is quiet. Too quiet. Something isn't right." }
       ]
     },
 
@@ -26,9 +26,9 @@
       "type": "cutscene",
       "lines": [
         { "speaker": "narrator", "text": "The bedroom door creaks open.", "delay": 800 },
-        { "speaker": "carl", "text": "The sheets are torn off the bed.", "delay": 1000 },
-        { "speaker": "carl", "text": "And there are drag marks on the floor.", "delay": 1200 },
-        { "speaker": "carl", "text": "Leading to... no. I need to focus.", "delay": 1000 },
+        { "speaker": "paul", "text": "The sheets are torn off the bed.", "delay": 1000 },
+        { "speaker": "paul", "text": "And there are drag marks on the floor.", "delay": 1200 },
+        { "speaker": "carl", "text": "Oh that? I was rearranging. Feng shui, Paul!", "delay": 1000 },
         { "speaker": "narrator", "text": "Something glints under the overturned nightstand.", "delay": 1500 }
       ],
       "effects": [
@@ -42,9 +42,9 @@
       "lines": [
         { "speaker": "narrator", "text": "The bathroom mirror is fogged over.", "delay": 1000 },
         { "speaker": "narrator", "text": "Someone has written on it with a finger.", "delay": 1500 },
-        { "speaker": "carl", "text": "'SORRY'", "delay": 800 },
-        { "speaker": "carl", "text": "That's Paul's handwriting.", "delay": 1000 },
-        { "speaker": "carl", "text": "Sorry for WHAT, Paul?", "delay": 1200 }
+        { "speaker": "paul", "text": "'SORRY'", "delay": 800 },
+        { "speaker": "paul", "text": "That's Carl's handwriting.", "delay": 1000 },
+        { "speaker": "carl", "text": "Oh that was just a note to myself! Sorry I used all the hot water!" }
       ],
       "effects": [
         { "type": "horror_pulse", "intensity": 0.4 },
@@ -56,12 +56,12 @@
       "id": "stage1_blood_discovery",
       "type": "cutscene",
       "lines": [
-        { "speaker": "carl", "text": "What... what is this?", "delay": 500 },
-        { "speaker": "carl", "text": "Is that... blood?", "delay": 1000 },
+        { "speaker": "paul", "text": "What... what is this?", "delay": 500 },
+        { "speaker": "paul", "text": "Is that... blood?", "delay": 1000 },
         { "speaker": "narrator", "text": "The kitchen counter is smeared with dark crimson.", "delay": 1200 },
         { "speaker": "narrator", "text": "A trail leads from the sink to the basement door.", "delay": 1500 },
-        { "speaker": "carl", "text": "No. No no no.", "delay": 800 },
-        { "speaker": "carl", "text": "Not again. Please not again.", "delay": 1200 }
+        { "speaker": "carl", "text": "My cranberry sauce experiment! The viscosity is PERFECT.", "delay": 800 },
+        { "speaker": "paul", "text": "That is NOT cranberry sauce, Carl.", "delay": 1200 }
       ],
       "effects": [
         { "type": "screen_shake", "intensity": 0.3, "duration": 500 },
@@ -73,9 +73,9 @@
       "id": "stage1_pickup_key",
       "type": "item",
       "lines": [
-        { "speaker": "carl", "text": "A key? It says 'BASEMENT' on the tag." },
-        { "speaker": "carl", "text": "Why is it covered in... I don't want to know." },
-        { "speaker": "carl", "text": "But I have to know." }
+        { "speaker": "paul", "text": "A key? It says 'BASEMENT' on the tag." },
+        { "speaker": "paul", "text": "Why is it covered in... I don't want to know." },
+        { "speaker": "carl", "text": "Oh you found my studio key! Let me give you the tour!" }
       ],
       "itemId": "basement_key"
     },
@@ -93,8 +93,8 @@
       "id": "stage1_key_found",
       "type": "hint",
       "lines": [
-        { "speaker": "carl", "text": "The basement. I have to check the basement." },
-        { "speaker": "carl", "text": "I don't want to. But I have to know." }
+        { "speaker": "paul", "text": "The basement. I have to check the basement." },
+        { "speaker": "carl", "text": "You're going to LOVE it down there, Paul!" }
       ]
     },
 
@@ -105,8 +105,8 @@
         { "speaker": "narrator", "text": "The lock clicks. The door swings open to darkness.", "delay": 1000 },
         { "speaker": "narrator", "text": "The stairs creak with each step.", "delay": 1200 },
         { "speaker": "narrator", "text": "The air grows cold and damp.", "delay": 1500 },
-        { "speaker": "carl", "text": "What's that smell?", "delay": 1000 },
-        { "speaker": "carl", "text": "It's getting stronger...", "delay": 800 },
+        { "speaker": "paul", "text": "What's that smell?", "delay": 1000 },
+        { "speaker": "carl", "text": "Art, Paul. That's the smell of ART.", "delay": 800 },
         { "speaker": "narrator", "text": "A single bare bulb flickers overhead.", "delay": 1200 }
       ],
       "effects": [
@@ -120,13 +120,13 @@
       "id": "stage1_discover_horror",
       "type": "cutscene",
       "lines": [
-        { "speaker": "carl", "text": "Oh god.", "delay": 500 },
-        { "speaker": "carl", "text": "Oh god oh god oh god.", "delay": 1000 },
-        { "speaker": "carl", "text": "PAUL!", "delay": 800 },
-        { "speaker": "carl", "text": "PAUL WHAT DID YOU DO?!", "delay": 1200 },
+        { "speaker": "paul", "text": "Oh god.", "delay": 500 },
+        { "speaker": "paul", "text": "Oh god oh god oh god.", "delay": 1000 },
+        { "speaker": "paul", "text": "CARL!", "delay": 800 },
+        { "speaker": "paul", "text": "CARL WHAT DID YOU DO?!", "delay": 1200 },
         { "speaker": "narrator", "text": "In the corner, something that was once human.", "delay": 2000 },
-        { "speaker": "narrator", "text": "Paul's 'culinary experiments' have gone too far this time.", "delay": 2000 },
-        { "speaker": "carl", "text": "I... I have to get out of here.", "delay": 1500 }
+        { "speaker": "carl", "text": "Ta-da! What do you think of my gallery? The symmetry is important.", "delay": 2000 },
+        { "speaker": "paul", "text": "I... I have to get out of here.", "delay": 1500 }
       ],
       "effects": [
         { "type": "screen_shake", "intensity": 0.6, "duration": 1000 },
@@ -140,14 +140,14 @@
       "id": "stage1_escape",
       "type": "cutscene",
       "lines": [
-        { "speaker": "carl", "text": "I have to get out of here.", "delay": 800 },
-        { "speaker": "carl", "text": "I have to tell someone.", "delay": 1000 },
-        { "speaker": "carl", "text": "But who would believe me?", "delay": 1200 },
-        { "speaker": "carl", "text": "Who would believe any of this?", "delay": 1000 },
-        { "speaker": "narrator", "text": "The morning air hits Carl like a wall of cold water.", "delay": 1500 },
-        { "speaker": "narrator", "text": "Behind him, Paul waves from the kitchen window.", "delay": 1500 }
+        { "speaker": "paul", "text": "I have to get out of here.", "delay": 800 },
+        { "speaker": "paul", "text": "I have to tell someone.", "delay": 1000 },
+        { "speaker": "carl", "text": "Paul? Paul, where are you going? You haven't seen the best part!", "delay": 1200 },
+        { "speaker": "carl", "text": "I made it JUST for you!", "delay": 1000 },
+        { "speaker": "narrator", "text": "The morning air hits Paul like a wall of cold water.", "delay": 1500 },
+        { "speaker": "narrator", "text": "Behind him, Carl waves from the kitchen window, beaming.", "delay": 1500 }
       ],
-      "transition": "stage2_town"
+      "transition": "stage2_space"
     },
 
     "stage1_read_note": {
@@ -155,8 +155,8 @@
       "type": "item",
       "lines": [
         { "speaker": "narrator", "text": "The note reads:" },
-        { "speaker": "note", "text": "'DON'T GO TO THE BASEMENT. -P'" },
-        { "speaker": "carl", "text": "Paul... what did you do?" }
+        { "speaker": "note", "text": "'DON'T GO TO THE BASEMENT. -C'" },
+        { "speaker": "paul", "text": "Carl... what is down there?" }
       ],
       "itemId": "bloody_note"
     },
@@ -166,8 +166,8 @@
       "type": "examine",
       "lines": [
         { "speaker": "narrator", "text": "A crumpled piece of paper, stained with what looks like blood." },
-        { "speaker": "narrator", "text": "The handwriting is hasty, almost frantic." },
-        { "speaker": "narrator", "text": "Paul wrote this recently. The ink is still slightly wet." }
+        { "speaker": "narrator", "text": "The handwriting is cheerful, with a smiley face drawn at the bottom." },
+        { "speaker": "narrator", "text": "Carl wrote this recently. The ink is still slightly wet." }
       ]
     },
 
@@ -176,13 +176,13 @@
       "type": "item",
       "lines": [
         { "speaker": "narrator", "text": "A leather-bound journal. The pages are warped from moisture." },
-        { "speaker": "carl", "text": "Paul's handwriting... this goes back months." },
-        { "speaker": "narrator", "text": "The entries start cheerful, then grow increasingly erratic." },
-        { "speaker": "note", "text": "'Tuesday: Made something special today. Carl doesn't need to know.'" },
-        { "speaker": "note", "text": "'Friday: The basement is filling up. Need more barrels.'" },
-        { "speaker": "carl", "text": "Oh Paul. Oh no." }
+        { "speaker": "paul", "text": "Carl's handwriting... this goes back months." },
+        { "speaker": "narrator", "text": "The entries start cheerful, then grow increasingly... creative." },
+        { "speaker": "note", "text": "'Tuesday: Made something special today. Paul doesn't appreciate my art yet.'" },
+        { "speaker": "note", "text": "'Friday: The basement is filling up. Need more barrels. What a productive week!'" },
+        { "speaker": "paul", "text": "Oh Carl. Oh no." }
       ],
-      "itemId": "paul_journal",
+      "itemId": "carl_journal",
       "effects": [
         { "type": "horror_pulse", "intensity": 0.6 }
       ]
@@ -192,8 +192,8 @@
       "id": "stage1_examine_journal",
       "type": "examine",
       "lines": [
-        { "speaker": "narrator", "text": "Paul's journal. Dozens of entries, each more disturbing than the last." },
-        { "speaker": "narrator", "text": "The final entry is just the word 'SORRY' written over and over." }
+        { "speaker": "narrator", "text": "Carl's journal. Dozens of entries, each more cheerfully horrifying than the last." },
+        { "speaker": "narrator", "text": "The final entry is just the word 'MASTERPIECE' written over and over, surrounded by drawings." }
       ]
     },
 
@@ -203,8 +203,8 @@
       "lines": [
         { "speaker": "narrator", "text": "A phone with a shattered screen. One unsent message glows dimly." },
         { "speaker": "note", "text": "'HELP IM AT 42 ELM STREET THE LL'" },
-        { "speaker": "carl", "text": "Someone tried to call for help." },
-        { "speaker": "carl", "text": "They didn't finish typing." }
+        { "speaker": "paul", "text": "Someone tried to call for help." },
+        { "speaker": "paul", "text": "They didn't finish typing." }
       ],
       "itemId": "broken_phone",
       "effects": [
@@ -218,7 +218,7 @@
       "lines": [
         { "speaker": "narrator", "text": "The phone is cracked and barely functional." },
         { "speaker": "narrator", "text": "The battery is dead. No way to send the unfinished message." },
-        { "speaker": "carl", "text": "Whoever this belonged to... they were here. Recently." }
+        { "speaker": "paul", "text": "Whoever this belonged to... they were here. Recently." }
       ]
     },
 
@@ -227,9 +227,9 @@
       "type": "examine",
       "lines": [
         { "speaker": "narrator", "text": "A photograph in a cracked frame." },
-        { "speaker": "narrator", "text": "Two figures stand side by side - one smiling widely, the other looking uncertain." },
-        { "speaker": "carl", "text": "That was a good day. Before..." },
-        { "speaker": "carl", "text": "Before everything changed." }
+        { "speaker": "narrator", "text": "Two llamas stand side by side - one grinning manically, the other looking exasperated." },
+        { "speaker": "carl", "text": "Great times! Remember that day, Paul? The picnic?" },
+        { "speaker": "paul", "text": "You mean the day you brought 'homemade sausages' and nobody could identify the meat?" }
       ]
     }
   },
@@ -241,39 +241,36 @@
       "tree": {
         "initial": {
           "lines": [
-            { "speaker": "paul", "text": "Morning, Carl! Sleep well?" },
-            { "speaker": "carl", "text": "Paul... what happened last night?" },
-            { "speaker": "carl", "text": "I can't remember anything." },
-            { "speaker": "paul", "text": "Oh, you know. The usual." },
-            { "speaker": "paul", "text": "Nothing to worry about!" }
+            { "speaker": "paul", "text": "Carl... what happened last night?" },
+            { "speaker": "paul", "text": "I can't remember anything. But the house smells terrible." },
+            { "speaker": "carl", "text": "Morning, Paul! Wonderful morning, isn't it?" }
           ],
           "options": [
             { "text": "What's that smell?", "next": "smell" },
-            { "text": "Why is there red on your hands?", "next": "hands" },
+            { "text": "Why are there stains everywhere?", "next": "stains" },
             { "text": "What happened to the bedroom?", "next": "bedroom" },
             { "text": "I need to look around.", "next": "end" }
           ]
         },
         "smell": {
           "lines": [
-            { "speaker": "paul", "text": "Smell? I don't smell anything." },
-            { "speaker": "paul", "text": "Maybe check the kitchen?" },
-            { "speaker": "carl", "text": "Paul..." }
+            { "speaker": "paul", "text": "Carl, something smells like death in here." },
+            { "speaker": "carl", "text": "Probably my cranberry sauce! It's still reducing in the kitchen." },
+            { "speaker": "carl", "text": "Or maybe it's my basement project. Art can be pungent, Paul." },
+            { "speaker": "paul", "text": "Art doesn't smell like this, Carl." }
           ],
           "options": [
-            { "text": "Why is there red on your hands?", "next": "hands" },
+            { "text": "Why are there stains everywhere?", "next": "stains" },
             { "text": "I'm going to look around.", "next": "end" }
           ]
         },
-        "hands": {
+        "stains": {
           "lines": [
-            { "speaker": "paul", "text": "Oh this?" },
-            { "speaker": "paul", "text": "I was... making jam." },
-            { "speaker": "paul", "text": "Yes. Strawberry jam." },
-            { "speaker": "carl", "text": "At 6 AM?" },
-            { "speaker": "carl", "text": "We don't even have strawberries." },
-            { "speaker": "paul", "text": "I improvised!" },
-            { "speaker": "paul", "text": "You know me, always creative in the kitchen!" }
+            { "speaker": "paul", "text": "Carl, why is there red on... everything?" },
+            { "speaker": "carl", "text": "Oh that? Art supplies! Finger painting!" },
+            { "speaker": "carl", "text": "You should try it sometime, Paul. Very therapeutic." },
+            { "speaker": "paul", "text": "Carl, that is not paint." },
+            { "speaker": "carl", "text": "It's paint-ADJACENT. The important thing is the artistic process!" }
           ],
           "options": [
             { "text": "I need to check the kitchen.", "next": "end" }
@@ -281,11 +278,11 @@
         },
         "bedroom": {
           "lines": [
-            { "speaker": "paul", "text": "The bedroom? Oh, I was rearranging." },
-            { "speaker": "paul", "text": "Feng shui! Very important for positive energy." },
-            { "speaker": "carl", "text": "There are drag marks on the floor, Paul." },
-            { "speaker": "paul", "text": "Heavy furniture! You know how it is." },
-            { "speaker": "paul", "text": "Nothing a good carpet can't fix!" }
+            { "speaker": "paul", "text": "Carl, the bedroom is destroyed. There are drag marks." },
+            { "speaker": "carl", "text": "I was rearranging! Feng shui, Paul!" },
+            { "speaker": "paul", "text": "There are claw marks on the floor, Carl." },
+            { "speaker": "carl", "text": "Heavy furniture! You know how it is." },
+            { "speaker": "carl", "text": "Besides, I got all the stains out. Eventually." }
           ],
           "options": [
             { "text": "What about the bathroom mirror?", "next": "mirror" },
@@ -294,13 +291,11 @@
         },
         "mirror": {
           "lines": [
-            { "speaker": "paul", "text": "Mirror? What about it?" },
-            { "speaker": "carl", "text": "Someone wrote 'SORRY' on it." },
-            { "speaker": "paul", "text": "..." },
-            { "speaker": "paul", "text": "Must have been the steam. You know how condensation works." },
-            { "speaker": "carl", "text": "In YOUR handwriting?" },
-            { "speaker": "paul", "text": "Look, Carl, buddy, pal..." },
-            { "speaker": "paul", "text": "Some things are better left unexamined!" }
+            { "speaker": "paul", "text": "Someone wrote 'SORRY' on the bathroom mirror." },
+            { "speaker": "carl", "text": "Oh that! I was apologizing for using all the hot water." },
+            { "speaker": "paul", "text": "In blood, Carl?" },
+            { "speaker": "carl", "text": "Look, Paul, buddy, pal..." },
+            { "speaker": "carl", "text": "Sometimes art happens on unexpected canvases!" }
           ],
           "options": [
             { "text": "What's in the basement?", "next": "basement" },
@@ -309,12 +304,11 @@
         },
         "basement": {
           "lines": [
-            { "speaker": "paul", "text": "The basement?" },
-            { "speaker": "paul", "text": "Oh Carl, you don't want to go down there." },
-            { "speaker": "paul", "text": "Trust me. Please." },
-            { "speaker": "carl", "text": "That's exactly what someone says when there's something horrible down there." },
-            { "speaker": "paul", "text": "..." },
-            { "speaker": "paul", "text": "I'm sure I don't know what you mean." }
+            { "speaker": "paul", "text": "What's in the basement, Carl?" },
+            { "speaker": "carl", "text": "My GALLERY! Oh Paul, you're going to love it!" },
+            { "speaker": "carl", "text": "I've been working on something really special." },
+            { "speaker": "paul", "text": "That's exactly what someone says when there's something horrible down there." },
+            { "speaker": "carl", "text": "Horrible? It's BEAUTIFUL, Paul. I put weeks into this." }
           ],
           "options": [
             { "text": "Give me the key.", "next": "demand_key" },
@@ -323,19 +317,82 @@
         },
         "demand_key": {
           "lines": [
-            { "speaker": "paul", "text": "What key? I don't have any key." },
-            { "speaker": "paul", "text": "Keys are a social construct anyway!" },
-            { "speaker": "carl", "text": "Paul..." },
-            { "speaker": "paul", "text": "Fine! But don't say I didn't warn you." },
-            { "speaker": "paul", "text": "Check the bedroom. Under the nightstand." }
+            { "speaker": "carl", "text": "The key? Oh, I hid it for safekeeping!" },
+            { "speaker": "carl", "text": "Can't have just ANYONE seeing the gallery before it's ready." },
+            { "speaker": "paul", "text": "Carl..." },
+            { "speaker": "carl", "text": "Fine! Check the bedroom. Under the nightstand." },
+            { "speaker": "carl", "text": "But prepare yourself, Paul. It's going to blow your mind." }
           ],
           "options": []
         },
         "end": {
           "lines": [
-            { "speaker": "paul", "text": "Sure thing, buddy!" },
-            { "speaker": "paul", "text": "Let me know if you need anything!" },
-            { "speaker": "paul", "text": "I'll be in the kitchen. Making... jam." }
+            { "speaker": "carl", "text": "Sure thing, buddy!" },
+            { "speaker": "carl", "text": "Let me know if you want a guided tour!" },
+            { "speaker": "carl", "text": "I'll be in the kitchen. Working on my reduction." }
+          ],
+          "options": []
+        }
+      }
+    },
+
+    "stage1_carl_dialogue": {
+      "id": "stage1_carl_dialogue",
+      "character": "carl",
+      "tree": {
+        "initial": {
+          "lines": [
+            { "speaker": "carl", "text": "PAUL! Wonderful morning! Did you see what I did with the kitchen?" },
+            { "speaker": "carl", "text": "I've been SO productive. You wouldn't believe." }
+          ],
+          "options": [
+            { "text": "What did you do in the kitchen?", "next": "kitchen" },
+            { "text": "What's that smell?", "next": "smell" },
+            { "text": "I don't want to know.", "next": "end" }
+          ]
+        },
+        "kitchen": {
+          "lines": [
+            { "speaker": "carl", "text": "Cranberry sauce! Well, SAUCE. The cranberry part is... optional." },
+            { "speaker": "carl", "text": "I tried a new gravity-assisted technique. Very avant-garde." },
+            { "speaker": "carl", "text": "The ceiling got a little messy, but art is messy, Paul!" }
+          ],
+          "options": [
+            { "text": "That's not sauce, Carl.", "next": "not_sauce" },
+            { "text": "I need to go.", "next": "end" }
+          ]
+        },
+        "not_sauce": {
+          "lines": [
+            { "speaker": "carl", "text": "Not sauce? Of COURSE it's sauce!" },
+            { "speaker": "carl", "text": "Well, it's sauce-adjacent. The viscosity is right." },
+            { "speaker": "carl", "text": "You always focus on the negative, Paul. Appreciate the texture!" }
+          ],
+          "options": []
+        },
+        "smell": {
+          "lines": [
+            { "speaker": "carl", "text": "Isn't it wonderful? That's the smell of CREATIVITY." },
+            { "speaker": "carl", "text": "I've been working on my basement gallery. It's almost ready!" },
+            { "speaker": "carl", "text": "The centerpiece is going to be LEGENDARY, Paul." }
+          ],
+          "options": [
+            { "text": "What's in the basement?", "next": "basement" },
+            { "text": "I'm leaving.", "next": "end" }
+          ]
+        },
+        "basement": {
+          "lines": [
+            { "speaker": "carl", "text": "My MASTERPIECE! Oh Paul, I can't wait to show you!" },
+            { "speaker": "carl", "text": "I've been curating for weeks. The symmetry is PERFECT." },
+            { "speaker": "carl", "text": "Every piece tells a story. A short story, but still!" }
+          ],
+          "options": []
+        },
+        "end": {
+          "lines": [
+            { "speaker": "carl", "text": "Okay! I'll be here if you change your mind!" },
+            { "speaker": "carl", "text": "The gallery isn't going anywhere. Neither are the exhibits!" }
           ],
           "options": []
         }
@@ -346,34 +403,34 @@
   "propOverrides": {
     "couch": {
       "carl": [
-        "Our couch. Paul's been sleeping on it lately.",
-        "There's a suspicious stain I don't want to examine."
+        "Ah, the couch! Perfect for post-project napping.",
+        "I did some of my best planning right here."
       ],
       "paul": [
-        "Ah, the couch! My throne!",
-        "Best naps happen right here."
+        "Our couch. Carl's been sleeping on it lately.",
+        "There's a suspicious stain I don't want to examine."
       ],
       "prompt": "Examine couch"
     },
     "table": {
       "carl": [
-        "The dining table. We used to eat here together.",
-        "Now I'm not sure what happens at this table anymore."
+        "Great table! Perfect for laying out blueprints.",
+        "And other activities."
       ],
       "paul": [
-        "Great for breakfast!",
-        "And other activities."
+        "The dining table. We used to eat here together.",
+        "Now I'm not sure what happens at this table anymore."
       ],
       "prompt": "Examine table"
     },
     "counter": {
       "carl": [
-        "The kitchen counter is... sticky.",
-        "Is that... no, I don't want to know."
+        "Perfect workspace for my culinary experiments!",
+        "Don't worry about the mess, it'll wash right off. Probably."
       ],
       "paul": [
-        "Perfect workspace for my culinary experiments!",
-        "Don't worry about the mess, it'll wash right off."
+        "The kitchen counter is... sticky.",
+        "Is that... no, I don't want to know."
       ],
       "horror": [
         "Dark stains cover the surface.",
@@ -383,69 +440,70 @@
     },
     "bed": {
       "carl": [
-        "The sheets are in a heap on the floor.",
-        "There's an impression in the mattress. Like something heavy was dragged across it."
+        "Ah, the bed! I made it extra comfy.",
+        "The stains? Night chocolate. Obviously."
       ],
       "paul": [
-        "Ah, the bed! I made it extra comfy.",
-        "The stains? That's just... chocolate. Night chocolate."
+        "The sheets are in a heap on the floor.",
+        "There's an impression in the mattress. Like something heavy was dragged across it."
       ],
       "prompt": "Examine bed"
     },
     "barrel": {
       "carl": [
-        "Why do we have barrels in the apartment?",
-        "I'm afraid to ask what's inside."
+        "Storage! Very practical for my projects.",
+        "Don't look inside though. It's a surprise."
       ],
       "paul": [
-        "Storage! Very practical.",
-        "Don't look inside though. Trust me."
+        "Why do we have barrels in the house?",
+        "I'm afraid to ask what Carl put inside."
       ],
       "prompt": "Check barrel"
     },
     "bookshelf": {
       "carl": [
-        "Paul's reading collection. Mostly cookbooks.",
-        "Wait... 'Advanced Butchery Techniques'? 'Disposing of Evidence: A Practical Guide'?",
-        "That second one has to be a joke. Right?"
+        "Light reading! Broadens the mind.",
+        "The butchery one has excellent sauce recipes!",
+        "'Disposing of Evidence'? That's fiction, Paul. FICTION."
       ],
       "paul": [
-        "Light reading! Broadens the mind.",
-        "The butchery one has excellent sauce recipes!"
+        "Carl's reading collection. Mostly cookbooks.",
+        "Wait... 'Advanced Butchery Techniques'? 'Disposing of Evidence: A Practical Guide'?",
+        "That second one has to be a joke. Right?"
       ],
       "prompt": "Browse bookshelf"
     },
     "suspicious_box": {
       "carl": [
-        "Oh god. Oh god no.",
-        "What did you put in there, Paul?",
-        "I can hear... dripping."
+        "My special project!",
+        "Don't open it, it's a surprise! A WONDERFUL surprise."
       ],
       "paul": [
-        "My special project!",
-        "Don't open it, it's a surprise!"
+        "Oh god. Oh god no.",
+        "What did you put in there, Carl?",
+        "I can hear... dripping."
       ],
       "prompt": "Examine box"
     },
     "pillar": {
       "carl": [
-        "A concrete support pillar.",
-        "There are scratches on it. Like fingernails."
+        "Structural integrity! Very important!",
+        "Those marks? Cats. Definitely cats. Big cats."
       ],
       "paul": [
-        "Structural integrity! Very important!",
-        "Those marks? Cats. Definitely cats."
+        "A concrete support pillar.",
+        "There are scratches on it. Like fingernails."
       ],
       "prompt": "Examine pillar"
     },
     "crate": {
       "carl": [
-        "Wooden crate. Sealed shut.",
-        "Something inside shifts when I nudge it."
+        "Supplies! For my hobbies.",
+        "Nothing you need to worry about, Paul."
       ],
       "paul": [
-        "Supplies! For my hobbies.",
-        "Nothing you need to worry about."
+        "Wooden crate. Sealed shut.",
+        "Something inside shifts when I nudge it."
       ],
       "horror": [
         "The wood is warped from moisture.",
@@ -457,32 +515,35 @@
 
   "genericLines": {
     "locked_door": {
-      "carl": ["It's locked. I need to find a key."],
-      "paul": ["Hmm, locked! That's unusual. Wonder where the key went?"]
+      "carl": ["Oh, that's locked! I wonder where I put the key..."],
+      "paul": ["It's locked. I need to find a key."]
     },
     "basement_door_locked": {
       "carl": [
-        "The basement door. It's locked.",
-        "Paul always said never to go down there."
+        "The basement door! My gallery is down there!",
+        "I think I hid the key somewhere upstairs."
       ],
-      "paul": ["Oh, we keep that locked for a reason!"]
+      "paul": [
+        "The basement door. It's locked.",
+        "Carl always said never to go down there. That terrifies me."
+      ]
     },
     "basement_door_unlocked": {
-      "carl": [
+      "paul": [
         "The key fits. The lock clicks open.",
         "Here we go..."
       ]
     },
     "return_upstairs": {
-      "carl": [
+      "paul": [
         "I should go back up. There's nothing else I want to see down here.",
         "Or maybe... I should look around more."
       ]
     },
     "cant_leave_yet": {
-      "carl": [
-        "I can't just leave. I need to know what happened.",
-        "The answers are somewhere in this apartment."
+      "paul": [
+        "I can't just leave. I need to know what Carl has done.",
+        "The answers are somewhere in this house."
       ]
     }
   }

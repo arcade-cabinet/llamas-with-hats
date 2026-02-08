@@ -8,6 +8,8 @@ import { MenuOverlay } from './components/ui/MenuOverlay';
 import { GameView } from './components/game/GameView';
 import { LlamaAI, AIState, createLlamaAI } from './systems/AIController';
 import { initializeGame } from './systems/GameInitializer';
+import { getStoryManager } from './systems/StoryManager';
+import { getAudioManager } from './systems/AudioManager';
 import { getStartingStage } from './data';
 import { DevAIOverlay } from './components/game/DevAIOverlay';
 import type { GeneratedLayout } from './systems/LayoutGenerator';
@@ -17,8 +19,8 @@ import type { RoomConfig, WorldSeed } from './types/game';
 const MENU_SEED: WorldSeed = {
   adjective1: 'Dark',
   adjective2: 'Twisted',
-  noun: 'Apartment',
-  seedString: 'Dark-Twisted-Apartment'
+  noun: 'House',
+  seedString: 'Dark-Twisted-House'
 };
 
 // Check URL params for dev mode
@@ -45,7 +47,8 @@ const App: React.FC = () => {
     handleRoomChange,
     addToInventory,
     unlockExit,
-    advanceStage
+    advanceStage,
+    dismissStageTransition
   } = useRPGGameState();
 
   const device = useDeviceInfo();
@@ -79,6 +82,13 @@ const App: React.FC = () => {
   // AI state tracking for dev overlay
   const [playerAIState, setPlayerAIState] = useState<AIState>('idle');
   const [opponentAIState, setOpponentAIState] = useState<AIState>('idle');
+
+  // Wire settings volume to AudioManager
+  useEffect(() => {
+    const audio = getAudioManager();
+    audio.setMusicVolume(state.settings.musicVolume);
+    audio.setSFXVolume(state.settings.sfxVolume);
+  }, [state.settings.musicVolume, state.settings.sfxVolume]);
 
   // Lock to landscape and fullscreen when entering game on phone/folded foldable
   useEffect(() => {
@@ -163,7 +173,10 @@ const App: React.FC = () => {
       const deltaTime = (now - lastUpdateRef.current) / 1000;
       lastUpdateRef.current = now;
 
+      // Sync horror level from story manager to AI — drives Paul's escalating behavior
+      const horrorLevel = getStoryManager().getHorrorLevel();
       if (aiRef.current) {
+        aiRef.current.setHorrorLevel(horrorLevel);
         aiRef.current.update(deltaTime);
       }
       if (playerAIRef.current) {
@@ -259,6 +272,8 @@ const App: React.FC = () => {
           allRoomConfigs={activeAllRoomConfigs}
           seed={activeSeed}
           onRoomChange={handleRoomChange}
+          stageAtmosphere={state.isPlaying ? state.stageAtmosphere ?? undefined : undefined}
+          stageGoals={state.isPlaying ? state.stageGoals : undefined}
         />
       )}
 
@@ -300,25 +315,55 @@ const App: React.FC = () => {
         />
       )}
 
+      {/* Stage Transition Screen — shown between stages */}
+      {state.showStageTransition && (
+        <div className="fixed inset-0 z-[90] bg-black/90 flex items-center justify-center p-8">
+          <div className="text-center max-w-lg">
+            <p className="text-gray-500 text-sm uppercase tracking-widest mb-2">
+              Stage Complete
+            </p>
+            <h1 className="text-3xl md:text-5xl font-serif text-wood mb-4">
+              {state.stageName || 'Next Stage'}
+            </h1>
+            {state.stageDescription && (
+              <p className="text-gray-400 mb-6 font-serif italic leading-relaxed">
+                {state.stageDescription}
+              </p>
+            )}
+            <div className="border-t border-wood/20 my-6" />
+            <button
+              onClick={dismissStageTransition}
+              className="px-8 py-3 bg-wood/20 hover:bg-wood/40 text-wood border border-wood/50 rounded-lg font-serif transition-colors"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Victory Screen Overlay */}
       {state.showVictory && (
         <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-8">
           <div className="text-center max-w-lg">
             <h1 className="text-4xl md:text-6xl font-serif text-blood mb-6">
-              CAAAAARL!
+              {state.selectedCharacter === 'carl' ? 'CAAAAARL!' : 'Oh hey Paul.'}
             </h1>
             <p className="text-xl text-wood mb-4 font-serif">
-              That kills people!
+              {state.selectedCharacter === 'carl'
+                ? 'I had the rumblies that only hands could satisfy.'
+                : 'That kills people, Carl!'}
             </p>
             <div className="border-t border-wood/30 my-6" />
             <p className="text-gray-400 mb-2">
-              You survived all three stages as{' '}
-              <span className="text-carl font-bold">
-                {state.selectedCharacter === 'carl' ? 'Carl' : 'Paul'}
-              </span>
+              {state.selectedCharacter === 'carl'
+                ? 'You embraced Carl\'s ecstatic artistry across all three stages.'
+                : 'You navigated Paul through Carl\'s escalating madness and lived to tell the tale.'}
             </p>
-            <p className="text-gray-500 text-sm mb-8">
+            <p className="text-gray-500 text-sm mb-2">
               The {state.worldSeed?.adjective1} {state.worldSeed?.adjective2} {state.worldSeed?.noun} will never be the same.
+            </p>
+            <p className="text-gray-600 text-xs mb-8">
+              All three stages complete
             </p>
             <div className="flex flex-col gap-3 items-center">
               <button

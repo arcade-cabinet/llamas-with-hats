@@ -1,52 +1,68 @@
 {
-  "id": "stage1_apartment",
+  "id": "stage1_house",
   "name": "The Morning After",
-  "description": "Carl wakes up to find something terrible has happened. Again.",
+  "description": "Someone wakes up to find something terrible has happened in their house. Again.",
 
   "path": "both",
 
   "layout": {
-    "archetypeId": "apartment_interior",
+    "archetypeId": "house_two_story",
     "levelOverrides": {
       "0": {
         "totalRooms": { "min": 6, "max": 8 },
         "anchorRooms": [
           {
-            "purpose": "entry",
+            "purpose": "entry_hall",
             "gridPosition": { "x": 0, "z": 0 },
             "templateId": "room_medium",
-            "templateTags": ["living_room", "apartment"],
+            "templateTags": ["hallway", "house"],
             "isEntry": true,
             "storyBeats": ["wake_up"],
             "questItems": ["bloody_note"]
           },
           {
+            "purpose": "living_room",
+            "gridPosition": { "x": -1, "z": 0 },
+            "templateId": "room_medium",
+            "templateTags": ["living_room", "house"]
+          },
+          {
             "purpose": "kitchen",
-            "gridPosition": { "x": 0, "z": -1 },
+            "gridPosition": { "x": 1, "z": 0 },
             "templateId": "room_kitchen",
-            "templateTags": ["kitchen", "apartment"],
+            "templateTags": ["kitchen", "house"],
             "storyBeats": ["discover_blood"]
           },
           {
-            "purpose": "bedroom",
-            "gridPosition": { "x": 1, "z": 0 },
+            "purpose": "dining_room",
+            "gridPosition": { "x": 0, "z": -1 },
+            "templateId": "room_medium",
+            "templateTags": ["medium", "house"]
+          }
+        ]
+      },
+      "1": {
+        "totalRooms": { "min": 3, "max": 5 },
+        "anchorRooms": [
+          {
+            "purpose": "upstairs_hall",
+            "gridPosition": { "x": 0, "z": 1 },
+            "templateTags": ["hallway", "house"]
+          },
+          {
+            "purpose": "master_bedroom",
+            "gridPosition": { "x": -1, "z": 1 },
             "templateId": "room_bedroom",
-            "templateTags": ["bedroom", "apartment"],
+            "templateTags": ["bedroom", "house"],
             "storyBeats": ["search_bedroom"],
             "questItems": ["basement_key"]
           },
           {
             "purpose": "bathroom",
-            "gridPosition": { "x": -1, "z": -1 },
+            "gridPosition": { "x": 1, "z": 1 },
             "templateId": "room_bathroom",
-            "templateTags": ["bathroom", "apartment"],
+            "templateTags": ["bathroom", "house"],
             "storyBeats": ["bathroom_mirror"]
-          },
-          {
-            "purpose": "hallway",
-            "gridPosition": { "x": -1, "z": 0 },
-            "templateId": "hallway_short",
-            "templateTags": ["hallway", "apartment"]
           }
         ]
       },
@@ -55,7 +71,7 @@
         "anchorRooms": [
           {
             "purpose": "basement_main",
-            "gridPosition": { "x": 0, "z": -2 },
+            "gridPosition": { "x": 1, "z": -1 },
             "templateId": "room_basement",
             "templateTags": ["basement", "dark"],
             "isExit": true,
@@ -63,9 +79,9 @@
           },
           {
             "purpose": "basement_storage",
-            "gridPosition": { "x": 1, "z": -2 },
+            "gridPosition": { "x": 2, "z": -1 },
             "templateTags": ["storage", "dark"],
-            "questItems": ["paul_journal"]
+            "questItems": ["carl_journal"]
           }
         ]
       }
@@ -76,23 +92,23 @@
     "beats": [
       {
         "id": "wake_up",
-        "description": "Player wakes up on the couch in the living room",
+        "description": "Player wakes up in the entry hall of the house",
         "dialogueId": "stage1_wake_up",
         "trigger": {
           "type": "scene_enter",
-          "params": { "sceneId": "entry" }
+          "params": { "sceneId": "entry_hall" }
         },
         "consequences": {
-          "nextBeat": "explore_apartment"
+          "nextBeat": "explore_house"
         }
       },
       {
-        "id": "explore_apartment",
-        "description": "Player explores the apartment freely",
+        "id": "explore_house",
+        "description": "Player explores the house freely",
         "dialogueId": "stage1_explore",
         "trigger": {
           "type": "scene_exit",
-          "params": { "sceneId": "entry" }
+          "params": { "sceneId": "entry_hall" }
         },
         "consequences": {
           "nextBeat": "discover_blood"
@@ -100,11 +116,11 @@
       },
       {
         "id": "search_bedroom",
-        "description": "Player searches the bedroom and finds signs of struggle",
+        "description": "Player searches the master bedroom and finds signs of struggle",
         "dialogueId": "stage1_bedroom_search",
         "trigger": {
           "type": "scene_enter",
-          "params": { "sceneId": "bedroom" }
+          "params": { "sceneId": "master_bedroom" }
         },
         "consequences": {
           "horrorLevelChange": 1
@@ -132,12 +148,30 @@
         },
         "consequences": {
           "horrorLevelChange": 2,
-          "nextBeat": "find_key"
+          "nextBeat": "find_key",
+          "characterPathVariants": {
+            "chaos": {
+              "dialogue": [
+                "My cranberry sauce experiment! The viscosity is PERFECT.",
+                "I tried a new technique. Gravity-assisted reduction, Carl style.",
+                "Paul's going to flip when he sees the kitchen. In a good way."
+              ],
+              "horrorLevelChange": 1
+            },
+            "order": {
+              "dialogue": [
+                "This is... this is definitely blood. Carl has been busy again.",
+                "The splatter pattern suggests something was dragged across the floor.",
+                "I need to document this. Methodically. Before Carl destroys the evidence."
+              ],
+              "horrorLevelChange": 2
+            }
+          }
         }
       },
       {
         "id": "find_key",
-        "description": "Player finds the basement key hidden in the bedroom",
+        "description": "Player finds the basement key hidden in the master bedroom",
         "dialogueId": "stage1_pickup_key",
         "trigger": {
           "type": "item_pickup",
@@ -157,26 +191,62 @@
           "params": { "sceneId": "basement_main" }
         },
         "consequences": {
-          "horrorLevelChange": 3,
-          "nextBeat": "discover_horror"
+          "horrorLevelChange": 2,
+          "nextBeat": "discover_horror",
+          "characterPathVariants": {
+            "chaos": {
+              "dialogue": [
+                "Welcome to my art studio! I've been working down here for WEEKS.",
+                "The acoustics are perfect for creative expression.",
+                "Wait until Paul sees the centerpiece. He's going to lose it."
+              ],
+              "horrorLevelChange": 1
+            },
+            "order": {
+              "dialogue": [
+                "The stairs creak under my weight. Each step feels like a mistake.",
+                "The air down here is thick. Carl has been doing something terrible.",
+                "I have to keep going. I need evidence of what he's done."
+              ],
+              "horrorLevelChange": 2
+            }
+          }
         }
       },
       {
         "id": "discover_horror",
-        "description": "Player discovers what Paul has been hiding in the basement",
+        "description": "Player discovers what Carl has been hiding in the basement",
         "dialogueId": "stage1_discover_horror",
         "trigger": {
           "type": "interact",
           "params": { "targetId": "basement_evidence" }
         },
         "consequences": {
-          "horrorLevelChange": 5,
-          "nextBeat": "escape"
+          "horrorLevelChange": 2,
+          "nextBeat": "escape",
+          "characterPathVariants": {
+            "chaos": {
+              "dialogue": [
+                "Ta-da! My basement gallery! What do you think?",
+                "I've been curating this for weeks. The symmetry is important.",
+                "Paul? Paul, where are you going? You haven't seen the best part!"
+              ],
+              "horrorLevelChange": 1
+            },
+            "order": {
+              "dialogue": [
+                "No. No, no, no. This can't be real.",
+                "Carl... what have you done? These are... these are people.",
+                "I need to get out. I need to call someone. Anyone."
+              ],
+              "horrorLevelChange": 2
+            }
+          }
         }
       },
       {
         "id": "escape",
-        "description": "Player must escape the apartment",
+        "description": "Player must escape the house",
         "dialogueId": "stage1_escape",
         "trigger": {
           "type": "reach_exit",
@@ -184,26 +254,29 @@
         },
         "consequences": {
           "stageComplete": true,
-          "nextStage": "stage2_town"
+          "nextStage": "stage2_space"
         }
       }
     ],
     "goals": [
       {
-        "id": "investigate_apartment",
-        "description": "Look around the apartment",
+        "id": "investigate_house",
+        "character": "paul",
+        "description": "Look around the house",
         "type": "reach_scene",
         "params": { "sceneId": "kitchen" }
       },
       {
         "id": "search_rooms",
+        "character": "paul",
         "description": "Search every room",
         "type": "visit_scenes",
-        "params": { "scenes": ["bedroom", "bathroom", "kitchen"] },
-        "hiddenUntil": "explore_apartment"
+        "params": { "scenes": ["master_bedroom", "bathroom", "kitchen"] },
+        "hiddenUntil": "explore_house"
       },
       {
         "id": "find_basement_key",
+        "character": "paul",
         "description": "Find the basement key",
         "type": "collect_items",
         "params": { "items": ["basement_key"] },
@@ -211,6 +284,7 @@
       },
       {
         "id": "enter_basement",
+        "character": "paul",
         "description": "Descend into the basement",
         "type": "reach_scene",
         "params": { "sceneId": "basement_main" },
@@ -218,28 +292,52 @@
       },
       {
         "id": "discover_truth",
-        "description": "Discover what Paul has done",
+        "character": "paul",
+        "description": "Discover the truth",
         "type": "interact",
         "params": { "targetId": "basement_evidence" },
         "hiddenUntil": "basement_descent"
       },
       {
-        "id": "escape_apartment",
-        "description": "Get out of here",
+        "id": "check_kitchen_masterpiece",
+        "character": "carl",
+        "description": "Check on the kitchen experiment",
+        "type": "reach_scene",
+        "params": { "sceneId": "kitchen" }
+      },
+      {
+        "id": "prepare_gallery",
+        "character": "carl",
+        "description": "Prepare the basement gallery",
+        "type": "reach_scene",
+        "params": { "sceneId": "basement_main" },
+        "hiddenUntil": "discover_blood"
+      },
+      {
+        "id": "show_paul_the_art",
+        "character": "carl",
+        "description": "Show Paul your basement masterpiece",
+        "type": "interact",
+        "params": { "targetId": "basement_evidence" },
+        "hiddenUntil": "basement_descent"
+      },
+      {
+        "id": "escape_house",
+        "description": "Complete this chapter",
         "type": "reach_exit",
         "params": {},
         "hiddenUntil": "discover_horror"
       }
     ],
     "startingBeat": "wake_up",
-    "completionGoals": ["escape_apartment"]
+    "completionGoals": ["escape_house"]
   },
 
   "generation": {
     "entryScene": {
       "templateId": "room_medium",
-      "templateTags": ["living_room", "apartment"],
-      "purpose": "entry",
+      "templateTags": ["hallway", "house"],
+      "purpose": "entry_hall",
       "mustContain": {
         "features": ["couch", "table"]
       }
@@ -254,8 +352,13 @@
     },
     "requiredScenes": [
       {
+        "templateId": "room_medium",
+        "templateTags": ["living_room", "house"],
+        "purpose": "living_room"
+      },
+      {
         "templateId": "room_kitchen",
-        "templateTags": ["kitchen", "apartment"],
+        "templateTags": ["kitchen", "house"],
         "purpose": "kitchen",
         "mustContain": {
           "features": ["sink", "counter"]
@@ -263,12 +366,12 @@
       },
       {
         "templateId": "room_bedroom",
-        "templateTags": ["bedroom", "apartment"],
-        "purpose": "bedroom"
+        "templateTags": ["bedroom", "house"],
+        "purpose": "master_bedroom"
       },
       {
         "templateId": "room_bathroom",
-        "templateTags": ["bathroom", "apartment"],
+        "templateTags": ["bathroom", "house"],
         "purpose": "bathroom"
       }
     ],
@@ -281,13 +384,13 @@
       "closet"
     ],
 
-    "palettes": ["apartment_worn", "apartment_dark"],
+    "palettes": ["house_worn", "house_dark"],
 
     "connectionRules": {
       "type": "branching",
       "maxDeadEnds": 2,
       "loopsAllowed": false,
-      "maxDistanceFromEntry": 4
+      "maxDistanceFromEntry": 5
     },
 
     "environment": "interior",
@@ -304,7 +407,7 @@
         "pickupDialogue": "stage1_pickup_key",
         "examineDialogue": "stage1_examine_key",
         "spawnRules": {
-          "sceneTypes": ["bedroom"],
+          "sceneTypes": ["master_bedroom"],
           "zones": ["hidden"],
           "requiredBeat": "discover_blood"
         }
@@ -316,14 +419,14 @@
         "pickupDialogue": "stage1_read_note",
         "examineDialogue": "stage1_examine_note",
         "spawnRules": {
-          "sceneTypes": ["entry"],
+          "sceneTypes": ["entry_hall"],
           "zones": ["visible"]
         }
       },
       {
-        "id": "paul_journal",
-        "name": "Paul's Journal",
-        "description": "A leather-bound notebook with Paul's handwriting",
+        "id": "carl_journal",
+        "name": "Carl's Journal",
+        "description": "A leather-bound notebook with Carl's handwriting",
         "pickupDialogue": "stage1_read_journal",
         "examineDialogue": "stage1_examine_journal",
         "spawnRules": {
@@ -339,12 +442,12 @@
         "pickupDialogue": "stage1_find_phone",
         "examineDialogue": "stage1_examine_phone",
         "spawnRules": {
-          "sceneTypes": ["bedroom", "kitchen"],
+          "sceneTypes": ["master_bedroom", "kitchen"],
           "zones": ["edge"]
         }
       }
     ],
-    "propPools": ["apartment_furniture", "apartment_clutter", "horror_props"]
+    "propPools": ["house_furniture", "house_clutter", "horror_props"]
   },
 
   "npcs": {
@@ -354,8 +457,8 @@
         "behavior": "idle",
         "dialogueId": "stage1_paul_dialogue",
         "interactable": true,
-        "spawnRoom": "entry",
-        "wanderRooms": ["entry", "kitchen", "hallway"]
+        "spawnRoom": "entry_hall",
+        "wanderRooms": ["entry_hall", "kitchen", "living_room"]
       }
     ],
     "optional": {
@@ -367,7 +470,7 @@
   "atmosphere": {
     "baseHorrorLevel": 1,
     "horrorProgression": "increasing",
-    "ambientSound": "ambient_apartment_morning",
+    "ambientSound": "ambient_house_morning",
     "musicTrack": "music_uneasy",
     "perRoomOverrides": {
       "kitchen": {

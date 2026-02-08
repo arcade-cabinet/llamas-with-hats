@@ -12,31 +12,31 @@
     "carl": {
       "id": "carl",
       "name": "Carl",
-      "path": "order",
-      "description": "The methodical one. Increasingly horrified by Paul's 'activities'.",
+      "path": "chaos",
+      "description": "The artist. Finds ecstasy in destruction and beauty in anarchy.",
       "color": "#4A7C59"
     },
     "paul": {
-      "id": "paul", 
+      "id": "paul",
       "name": "Paul",
-      "path": "chaos",
-      "description": "The oblivious one. Genuinely doesn't understand why Carl is upset.",
+      "path": "order",
+      "description": "The curator. Seeks the bliss of pristine order and absolute stillness.",
       "color": "#8B4513"
     }
   },
-  
+
   "paths": {
-    "order": {
-      "id": "order",
+    "chaos": {
+      "id": "chaos",
       "name": "Carl's Path",
-      "description": "Experience the story through Carl's eyes - structured, investigative, horror-aware.",
+      "description": "Experience the story as Carl — joyful, creative, and utterly psychopathic.",
       "playableCharacter": "carl",
       "aiCharacter": "paul"
     },
-    "chaos": {
-      "id": "chaos", 
+    "order": {
+      "id": "order",
       "name": "Paul's Path",
-      "description": "Experience the story through Paul's eyes - oblivious, comedic, accidentally destructive.",
+      "description": "Experience the story as Paul — methodical, horrified, desperately seeking order.",
       "playableCharacter": "paul",
       "aiCharacter": "carl"
     }
@@ -44,43 +44,43 @@
   
   "stageProgression": {
     "_comment": "Defines the linear progression of stages and transitions between them",
-    
+
     "stages": [
       {
-        "id": "stage1_apartment",
+        "id": "stage1_house",
         "name": "The Morning After",
         "file": "stages/stage1/definition.json",
         "availablePaths": ["order", "chaos"],
         "unlockCondition": null,
         "transitions": {
-          "next": "stage2_neighborhood",
+          "next": "stage2_space",
           "conditions": {
-            "goals": ["escape_apartment"]
+            "goals": ["escape_house"]
           }
         }
       },
       {
-        "id": "stage2_neighborhood",
-        "name": "The Neighborhood",
+        "id": "stage2_space",
+        "name": "The Space Station",
         "file": "stages/stage2/definition.json",
         "availablePaths": ["order", "chaos"],
         "unlockCondition": {
-          "completedStages": ["stage1_apartment"]
+          "completedStages": ["stage1_house"]
         },
         "transitions": {
-          "next": "stage3_downtown",
+          "next": "stage3_pirate",
           "conditions": {
-            "goals": ["reach_car"]
+            "goals": ["escape_station"]
           }
         }
       },
       {
-        "id": "stage3_downtown",
-        "name": "Downtown",
+        "id": "stage3_pirate",
+        "name": "Pirate's Cove",
         "file": "stages/stage3/definition.json",
         "availablePaths": ["order", "chaos"],
         "unlockCondition": {
-          "completedStages": ["stage2_neighborhood"]
+          "completedStages": ["stage2_space"]
         },
         "transitions": {
           "next": null,
@@ -88,8 +88,8 @@
         }
       }
     ],
-    
-    "startingStage": "stage1_apartment"
+
+    "startingStage": "stage1_house"
   },
   
   "globalSettings": {

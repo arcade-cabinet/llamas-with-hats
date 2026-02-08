@@ -43,6 +43,8 @@ import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { clsx } from 'clsx';
 import { CharacterType, RoomConfig } from '../../types/game';
 import type { GeneratedLayout } from '../../systems/LayoutGenerator';
+import type { StageAtmosphere, StageGoal } from '../../systems/GameInitializer';
+import { getStoryManager, NpcDialogueTree } from '../../systems/StoryManager';
 import { DeviceType } from '../../hooks/useDeviceInfo';
 import { GameRenderer } from './GameRenderer';
 import { useInputController } from '../../hooks/useInputController';
@@ -87,6 +89,8 @@ interface GameViewProps {
   allRoomConfigs: Map<string, RoomConfig>;
   seed?: string;
   onRoomChange?: (roomId: string) => void;
+  stageAtmosphere?: StageAtmosphere;
+  stageGoals?: StageGoal[];
 }
 
 export const GameView: React.FC<GameViewProps> = ({
@@ -121,7 +125,9 @@ export const GameView: React.FC<GameViewProps> = ({
   layout,
   allRoomConfigs,
   seed,
-  onRoomChange
+  onRoomChange,
+  stageAtmosphere,
+  stageGoals = []
 }) => {
   const gameContainerRef = useRef<HTMLDivElement>(null);
   
@@ -137,6 +143,56 @@ export const GameView: React.FC<GameViewProps> = ({
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
   const [showDialogue, setShowDialogue] = useState(false);
   
+  // Dialogue tree state (branching NPC conversations)
+  const [dialogueTree, setDialogueTree] = useState<NpcDialogueTree | null>(null);
+  const [treeNodeId, setTreeNodeId] = useState<string>('initial');
+  const [treeLineIndex, setTreeLineIndex] = useState(0);
+  const [showTreeOptions, setShowTreeOptions] = useState(false);
+  const [showDialogueTree, setShowDialogueTree] = useState(false);
+
+  // Handle NPC dialogue tree
+  const handleDialogueTree = useCallback((tree: NpcDialogueTree) => {
+    setDialogueTree(tree);
+    setTreeNodeId('initial');
+    setTreeLineIndex(0);
+    setShowTreeOptions(false);
+    setShowDialogueTree(true);
+  }, []);
+
+  // Advance dialogue tree lines
+  const advanceTreeLine = useCallback(() => {
+    if (!dialogueTree) return;
+    const node = dialogueTree.tree[treeNodeId];
+    if (!node) return;
+
+    if (treeLineIndex < node.lines.length - 1) {
+      setTreeLineIndex(prev => prev + 1);
+    } else {
+      // All lines shown — show options or close
+      if (node.options.length > 0) {
+        setShowTreeOptions(true);
+      } else {
+        // No options = end of conversation
+        setShowDialogueTree(false);
+        setDialogueTree(null);
+      }
+    }
+  }, [dialogueTree, treeNodeId, treeLineIndex]);
+
+  // Select a dialogue tree option
+  const selectTreeOption = useCallback((nextNodeId: string) => {
+    if (!dialogueTree) return;
+    const nextNode = dialogueTree.tree[nextNodeId];
+    if (!nextNode) {
+      setShowDialogueTree(false);
+      setDialogueTree(null);
+      return;
+    }
+    setTreeNodeId(nextNodeId);
+    setTreeLineIndex(0);
+    setShowTreeOptions(false);
+  }, [dialogueTree]);
+
   // Handle dialogue from interaction system
   const handleDialogue = useCallback((lines: string[], speaker: 'carl' | 'paul') => {
     setDialogueLines(lines);
@@ -156,43 +212,42 @@ export const GameView: React.FC<GameViewProps> = ({
     }
   }, [currentLineIndex, dialogueLines.length]);
   
-  // Track touch input for visual feedback
-  const [touchInput, setTouchInput] = useState({ x: 0, z: 0, active: false });
-  
-  // Unified input controller with gesture support
-  const { getInput, inputMode, showTouchControls } = useInputController({
+  // Unified input controller with fixed joystick
+  const { getInput, inputMode, showTouchControls, joystickState, setJoystickCenter } = useInputController({
     enabled: !isPaused,
     onPause,
     onAction: () => {
-      // If dialogue is showing, advance it
-      if (showDialogue) {
+      if (showDialogueTree && !showTreeOptions) {
+        advanceTreeLine();
+      } else if (showDialogue) {
         advanceDialogue();
       } else {
-        // Trigger interaction via typed bridge
         GameBridge.triggerInteraction();
       }
     },
     gameContainerRef: gameContainerRef as React.RefObject<HTMLElement>
   });
-  
-  // Poll input for visual feedback on touch
+
+  // Joystick DOM ref — measure center position for touch input
+  const joystickElRef = useRef<HTMLDivElement>(null);
+
+  // Register joystick center position on mount and resize
   useEffect(() => {
-    if (!showTouchControls) {
-      setTouchInput({ x: 0, z: 0, active: false });
-      return;
-    }
-    
-    let animationId: number;
-    const poll = () => {
-      const input = getInput();
-      const isActive = Math.abs(input.x) > 0.1 || Math.abs(input.z) > 0.1;
-      setTouchInput({ x: input.x, z: input.z, active: isActive });
-      animationId = requestAnimationFrame(poll);
+    const updateCenter = () => {
+      if (joystickElRef.current) {
+        const rect = joystickElRef.current.getBoundingClientRect();
+        setJoystickCenter(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      }
     };
-    animationId = requestAnimationFrame(poll);
-    
-    return () => cancelAnimationFrame(animationId);
-  }, [showTouchControls, getInput]);
+    updateCenter();
+    window.addEventListener('resize', updateCenter);
+    // Re-measure after a short delay for layout settling
+    const timeout = setTimeout(updateCenter, 100);
+    return () => {
+      window.removeEventListener('resize', updateCenter);
+      clearTimeout(timeout);
+    };
+  }, [setJoystickCenter, showTouchControls]);
   
   // Expose getInput to GameRenderer
   const getInputCallback = useCallback(() => {
@@ -222,8 +277,9 @@ export const GameView: React.FC<GameViewProps> = ({
         opponentRotation={opponentRotation}
         onPlayerMove={onPlayerMove}
         onRoomTransition={onRoomTransition}
-        isPaused={isPaused || showDialogue}
+        isPaused={isPaused || showDialogue || showDialogueTree}
         onDialogue={handleDialogue}
+        onDialogueTree={handleDialogueTree}
         onInteractionStateChange={handleInteractionStateChange}
         onItemPickup={onItemPickup}
         onUnlockExit={onUnlockExit}
@@ -237,6 +293,7 @@ export const GameView: React.FC<GameViewProps> = ({
         allRoomConfigs={allRoomConfigs}
         seed={seed}
         onRoomChange={onRoomChange}
+        stageAtmosphere={stageAtmosphere}
       />
       
       {/* HUD Overlay - hidden when menu is showing */}
@@ -306,20 +363,27 @@ export const GameView: React.FC<GameViewProps> = ({
             </div>
           </div>
           
-          {/* Inventory */}
+          {/* Inventory — shows abbreviated item names */}
           <div>
             <p className="text-gray-600 text-[10px] uppercase tracking-wider mb-1">Items</p>
             <div className="grid grid-cols-2 gap-1">
               {[0, 1, 2, 3].map(i => (
-                <div 
+                <div
                   key={i}
                   className={clsx(
                     'bg-shadow-light/80 rounded border border-wood-dark/30 flex items-center justify-center',
-                    isCompact ? 'w-7 h-7' : 'w-9 h-9'
+                    isCompact ? 'w-7 h-7' : 'w-9 h-9',
+                    playerInventory[i] && 'border-wood/50'
                   )}
+                  title={playerInventory[i]?.replace(/_/g, ' ')}
                 >
                   {playerInventory[i] && (
-                    <div className="w-4 h-4 bg-wood rounded" />
+                    <span className={clsx(
+                      'text-wood font-bold leading-none',
+                      isCompact ? 'text-[8px]' : 'text-[9px]'
+                    )}>
+                      {getItemIcon(playerInventory[i])}
+                    </span>
                   )}
                 </div>
               ))}
@@ -327,16 +391,21 @@ export const GameView: React.FC<GameViewProps> = ({
           </div>
         </div>
         
-        {/* Right Side - Minimap */}
-        {showMinimap && (
-          <div className={clsx(
-            'absolute pointer-events-auto',
-            isCompact ? 'top-14 right-2' : 'top-16 right-4'
-          )}>
-            <p className="text-gray-600 text-[10px] uppercase tracking-wider mb-1">Map</p>
-            <Minimap room={currentRoom} isCompact={isCompact} />
-          </div>
-        )}
+        {/* Right Side - Minimap & Quest Tracker */}
+        <div className={clsx(
+          'absolute pointer-events-auto flex flex-col gap-3',
+          isCompact ? 'top-14 right-2' : 'top-16 right-4'
+        )}>
+          {showMinimap && (
+            <div>
+              <p className="text-gray-600 text-[10px] uppercase tracking-wider mb-1">Map</p>
+              <Minimap room={currentRoom} isCompact={isCompact} />
+            </div>
+          )}
+          {stageGoals.length > 0 && (
+            <QuestTracker goals={stageGoals} isCompact={isCompact} />
+          )}
+        </div>
         
         {/* Interaction Prompt - only shown on keyboard mode when near interactable */}
         {inputMode === 'keyboard' && interactionState?.canInteract && !showDialogue && (
@@ -367,39 +436,39 @@ export const GameView: React.FC<GameViewProps> = ({
             </div>
           )}
           
-          {/* Touch gesture hint and direction indicator */}
+          {/* Fixed branded joystick — always visible on touch devices */}
           {showTouchControls && (
-            <>
-              {/* Direction indicator - shows when actively dragging */}
-              {touchInput.active && (
-                <div 
-                  className="absolute left-1/2 -translate-x-1/2 pointer-events-none transition-opacity"
-                  style={{ bottom: isCompact ? '3rem' : '4rem' }}
-                >
-                  <div 
-                    className="w-10 h-10 rounded-full border-2 border-wood/40 flex items-center justify-center bg-shadow/30 backdrop-blur-sm"
-                  >
-                    {/* Arrow indicator */}
-                    <svg 
-                      className="w-5 h-5 text-wood" 
-                      viewBox="0 0 24 24" 
-                      fill="currentColor"
-                      style={{
-                        transform: `rotate(${Math.atan2(touchInput.z, touchInput.x) * 180 / Math.PI + 90}deg)`,
-                        opacity: Math.min(1, Math.sqrt(touchInput.x ** 2 + touchInput.z ** 2) * 1.5)
-                      }}
-                    >
-                      <path d="M12 4l-8 8h6v8h4v-8h6z" />
-                    </svg>
-                  </div>
-                </div>
-              )}
-              
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-gray-500 text-xs">
-                <span>Drag to move</span>
-                <span>Tap objects to interact</span>
+            <div
+              ref={joystickElRef}
+              className="absolute bottom-8 left-8 pointer-events-auto"
+              style={{ width: 120, height: 120 }}
+            >
+              {/* Outer ring */}
+              <div className="absolute inset-0 rounded-full border-2 border-wood-dark/50 bg-shadow/40 backdrop-blur-sm">
+                {/* Dead zone indicator — subtle inner circle at 30% radius */}
+                <div
+                  className="absolute rounded-full border border-dashed border-wood-dark/20"
+                  style={{
+                    width: '36%', height: '36%',
+                    top: '32%', left: '32%',
+                  }}
+                />
               </div>
-            </>
+              {/* Inner knob — follows finger within outer ring */}
+              <div
+                className="absolute rounded-full"
+                style={{
+                  width: 50, height: 50,
+                  background: joystickState.active
+                    ? 'linear-gradient(135deg, #8B6914 0%, #7A1B1B 100%)'
+                    : 'linear-gradient(135deg, #8B691480 0%, #7A1B1B80 100%)',
+                  border: '2px solid rgba(139, 105, 20, 0.6)',
+                  left: 60 + joystickState.knobX * 35 - 25,
+                  top: 60 + joystickState.knobY * 35 - 25,
+                  transition: joystickState.active ? 'none' : 'left 0.15s, top 0.15s',
+                }}
+              />
+            </div>
           )}
           
           {/* Gamepad hint */}
@@ -421,6 +490,19 @@ export const GameView: React.FC<GameViewProps> = ({
           text={dialogueLines[currentLineIndex]}
           isLast={currentLineIndex === dialogueLines.length - 1}
           onAdvance={advanceDialogue}
+          isCompact={isCompact}
+        />
+      )}
+
+      {/* Dialogue Tree Box (branching NPC conversations) */}
+      {showDialogueTree && dialogueTree && (
+        <DialogueTreeBox
+          tree={dialogueTree}
+          nodeId={treeNodeId}
+          lineIndex={treeLineIndex}
+          showOptions={showTreeOptions}
+          onAdvanceLine={advanceTreeLine}
+          onSelectOption={selectTreeOption}
           isCompact={isCompact}
         />
       )}
@@ -485,6 +567,183 @@ const DialogueBox: React.FC<{
   </div>
 );
 
+// Dialogue Tree Box — branching NPC conversation UI
+const DialogueTreeBox: React.FC<{
+  tree: NpcDialogueTree;
+  nodeId: string;
+  lineIndex: number;
+  showOptions: boolean;
+  onAdvanceLine: () => void;
+  onSelectOption: (nextNodeId: string) => void;
+  isCompact: boolean;
+}> = ({ tree, nodeId, lineIndex, showOptions, onAdvanceLine, onSelectOption, isCompact }) => {
+  const node = tree.tree[nodeId];
+  if (!node) return null;
+
+  const line = node.lines[lineIndex];
+  if (!line && !showOptions) return null;
+
+  const speakerColor = line?.speaker === 'carl' ? 'border-carl' : 'border-paul';
+  const speakerBg = line?.speaker === 'carl' ? 'bg-carl' : 'bg-paul';
+  const speakerName = line?.speaker === 'narrator'
+    ? null
+    : line?.speaker === 'carl' ? 'Carl' : 'Paul';
+
+  return (
+    <div className="absolute inset-x-0 bottom-0 pointer-events-auto z-40">
+      {/* Darkened background above dialogue */}
+      <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-transparent to-black/60" />
+
+      {/* Dialogue container */}
+      <div className={clsx(
+        'relative bg-shadow-light border-t-2',
+        speakerColor,
+        isCompact ? 'p-4' : 'p-6'
+      )}>
+        {/* Speaker name */}
+        {speakerName && (
+          <div className={clsx(
+            'absolute -top-4 left-4 px-3 py-1 rounded-full font-serif font-bold',
+            speakerBg, 'text-shadow'
+          )}>
+            {speakerName}
+          </div>
+        )}
+
+        {/* Show current line text, or options */}
+        {!showOptions && line && (
+          <div onClick={onAdvanceLine} className="cursor-pointer">
+            <p className={clsx(
+              'text-gray-200 leading-relaxed mt-2',
+              isCompact ? 'text-sm' : 'text-base'
+            )}>
+              {line.text}
+            </p>
+            <div className="absolute bottom-2 right-4 text-gray-500 text-xs animate-pulse">
+              Click to continue
+            </div>
+          </div>
+        )}
+
+        {/* Options — shown after all lines in a node have been read */}
+        {showOptions && node.options.length > 0 && (
+          <div className="mt-2 space-y-2">
+            {node.options.map((option, i) => (
+              <button
+                key={i}
+                onClick={() => onSelectOption(option.next)}
+                className={clsx(
+                  'w-full text-left px-4 py-2 rounded-lg border transition-colors',
+                  'border-wood-dark/50 bg-shadow hover:bg-wood/20 hover:border-wood',
+                  'text-gray-300 hover:text-white',
+                  isCompact ? 'text-sm' : 'text-base'
+                )}
+              >
+                {option.text}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/** Map item IDs to short icon-like labels for the inventory grid */
+function getItemIcon(itemId: string): string {
+  const map: Record<string, string> = {
+    basement_key: 'KEY',
+    bloody_note: 'NOTE',
+    carl_journal: 'BOOK',
+    broken_phone: 'PHONE',
+    missing_flyer: 'FLYR',
+    pet_collar: 'COLR',
+    paul_recipe: 'RCPE',
+    dirty_shovel: 'SHVL',
+    police_badge: 'BDGE',
+    police_radio: 'RDIO',
+    newspaper: 'NEWS',
+    dropped_keys: 'KEYS',
+    marked_map: 'MAP',
+  };
+  return map[itemId] ?? itemId.slice(0, 3).toUpperCase();
+}
+
+// Quest Tracker — shows visible goals from the stage definition
+const QuestTracker: React.FC<{
+  goals: StageGoal[];
+  isCompact: boolean;
+}> = ({ goals, isCompact }) => {
+  const storyManager = getStoryManager();
+  const completedBeats = storyManager.getCompletedBeats();
+
+  // Filter to visible goals (hiddenUntil beat must be completed, or no hiddenUntil)
+  const visibleGoals = goals.filter(g =>
+    !g.hiddenUntil || completedBeats.includes(g.hiddenUntil)
+  );
+
+  if (visibleGoals.length === 0) return null;
+
+  return (
+    <div className={clsx('max-w-[140px]', isCompact && 'max-w-[120px]')}>
+      <p className="text-gray-600 text-[10px] uppercase tracking-wider mb-1">Objectives</p>
+      <div className="bg-shadow-light/80 rounded-lg border border-wood-dark/30 p-2 space-y-1">
+        {visibleGoals.map(goal => {
+          // Check if goal is completed based on its type
+          const isComplete = checkGoalComplete(goal, storyManager, completedBeats);
+          return (
+            <div key={goal.id} className="flex items-start gap-1.5">
+              <span className={clsx(
+                'text-[10px] mt-0.5 flex-shrink-0',
+                isComplete ? 'text-carl' : 'text-gray-600'
+              )}>
+                {isComplete ? '\u2713' : '\u25CB'}
+              </span>
+              <span className={clsx(
+                'text-[10px] leading-tight',
+                isComplete ? 'text-gray-500 line-through' : 'text-gray-300'
+              )}>
+                {goal.description}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+/** Check if a goal is complete based on its type and story state */
+function checkGoalComplete(
+  goal: StageGoal,
+  storyManager: ReturnType<typeof getStoryManager>,
+  completedBeats: string[]
+): boolean {
+  switch (goal.type) {
+    case 'reach_scene':
+    case 'reach_exit': {
+      // Goal is complete if there's a beat with the scene's ID that's been completed
+      const sceneId = goal.params.sceneId as string | undefined;
+      if (!sceneId) return false;
+      // Check if any beat triggered by entering this scene has completed
+      return completedBeats.some(b => b.includes(sceneId) || b === goal.id);
+    }
+    case 'collect_items': {
+      const items = goal.params.items as string[] | undefined;
+      if (!items) return false;
+      // We can't easily check inventory from here, so just check if the goal's beat completed
+      return completedBeats.includes(goal.id);
+    }
+    case 'interact': {
+      const targetId = goal.params.targetId as string | undefined;
+      if (!targetId) return false;
+      return completedBeats.some(b => b.includes(targetId) || b === goal.id);
+    }
+    default:
+      return storyManager.isCompleted(goal.id);
+  }
+}
+
 // Minimap
 const Minimap: React.FC<{ room: RoomConfig; isCompact: boolean }> = ({ room, isCompact }) => {
   const size = isCompact ? 60 : 80;
@@ -497,9 +756,9 @@ const Minimap: React.FC<{ room: RoomConfig; isCompact: boolean }> = ({ room, isC
       <div className="absolute inset-2 border border-wood-dark/50 rounded" />
       
       {/* Exits */}
-      {room.exits.map(exit => (
-        <div 
-          key={exit.direction}
+      {room.exits.map((exit, i) => (
+        <div
+          key={`${exit.direction}-${exit.targetRoom ?? i}`}
           className={clsx(
             'absolute w-2 h-2 bg-carl rounded-sm',
             exit.direction === 'north' && 'top-0 left-1/2 -translate-x-1/2',

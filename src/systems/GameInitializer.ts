@@ -38,6 +38,7 @@ import {
   loadStageDefinition,
   getLayoutArchetype,
 } from '../data';
+import { setCurrentStage } from './PropFactory';
 import {
   LevelDefinition,
   AnchorRoomDef,
@@ -48,6 +49,19 @@ import templatesData from '../data/global/templates/rooms.json';
 // ============================================
 // Types
 // ============================================
+
+/** Atmosphere configuration extracted from stage definition JSON */
+export interface StageAtmosphere {
+  baseHorrorLevel: number;
+  horrorProgression: string;
+  ambientSound?: string;
+  musicTrack?: string;
+  perRoomOverrides?: Record<string, {
+    horrorLevel?: number;
+    ambientSound?: string;
+    musicTrack?: string;
+  }>;
+}
 
 export interface GameInstance {
   /** The stage this game is running */
@@ -74,6 +88,18 @@ export interface GameInstance {
   /** Pre-computed RoomConfigs for all scenes (keyed by scene ID) */
   allRoomConfigs: Map<string, RoomConfig>;
 
+  /** Atmosphere config from stage definition (base horror, per-room overrides, audio) */
+  atmosphere: StageAtmosphere;
+
+  /** Story goals from the stage definition */
+  storyGoals: StageGoal[];
+
+  /** Stage display name */
+  stageName: string;
+
+  /** Stage description text */
+  stageDescription: string;
+
   /** Get the current scene definition */
   getCurrentScene: () => SceneDefinition;
 
@@ -85,6 +111,17 @@ export interface GameInstance {
 
   /** Transition to another scene */
   transitionTo: (sceneId: string) => void;
+}
+
+/** A story goal from the stage definition's story.goals array */
+export interface StageGoal {
+  id: string;
+  description: string;
+  type: string;
+  params: Record<string, unknown>;
+  hiddenUntil?: string;
+  /** If set, this goal only applies to this character's playthrough */
+  character?: 'carl' | 'paul';
 }
 
 // ============================================
@@ -108,6 +145,9 @@ export async function initializeGame(
     throw new Error(`Failed to load stage definition: ${stageId}`);
   }
 
+  // Set stage-aware model lookup for PropFactory BEFORE any props load
+  setCurrentStage(stageId);
+
   const stageDef = rawStageDef as unknown as StageDefinition;
   const templates = templatesData.templates as unknown as SceneTemplate[];
   const palettes = templatesData.palettes as unknown as MaterialPalette[];
@@ -121,6 +161,17 @@ export async function initializeGame(
     modules,
     worldSeed.seedString
   );
+
+  // Resolve NPC characters: the required NPC is always the opponent
+  const opponentChar = playerCharacter === 'carl' ? 'paul' : 'carl';
+  for (const scene of stage.scenes) {
+    for (const npc of scene.npcs) {
+      if (npc.character === 'carl' || npc.character === 'paul') {
+        npc.id = opponentChar;
+        npc.character = opponentChar as 'carl' | 'paul';
+      }
+    }
+  }
 
   // Create scene lookup map
   const sceneMap = new Map<string, SceneDefinition>();
@@ -141,8 +192,74 @@ export async function initializeGame(
     const layoutDef = buildStageLayoutDef(rawStageDef as Record<string, unknown>);
     if (layoutDef) {
       layout = generateLayout(layoutDef, worldSeed.seedString);
+
+      // Add layout rooms to allRoomConfigs so HUD can display room names on transition.
+      // Layout room IDs (e.g. "anchor_0_0") differ from scene IDs ("scene_1_entry"),
+      // so we synthesize RoomConfigs from the GeneratedRoom data.
+      const layoutRooms = layout.rooms;
+      for (const [roomId, room] of layoutRooms) {
+        const roomName = LAYOUT_ROOM_NAMES[room.purpose]
+          || room.purpose.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+        // Derive exit directions from grid positions so the minimap shows exits
+        // on the correct edges and each exit has a unique direction key.
+        const exits = room.connections.map(targetId => {
+          const target = layoutRooms.get(targetId);
+          let direction: 'north' | 'south' | 'east' | 'west' = 'north';
+          if (target) {
+            const dx = target.gridPosition.x - room.gridPosition.x;
+            const dz = target.gridPosition.z - room.gridPosition.z;
+            if (Math.abs(dx) >= Math.abs(dz)) {
+              direction = dx > 0 ? 'east' : 'west';
+            } else {
+              direction = dz < 0 ? 'north' : 'south';
+            }
+          }
+          return {
+            direction,
+            targetRoom: targetId,
+            position: { x: 0, z: 0 },
+          };
+        });
+
+        allRoomConfigs.set(roomId, {
+          id: roomId,
+          name: roomName,
+          width: room.size.width,
+          height: room.size.height,
+          exits,
+          props: [],
+          enemies: [],
+        });
+      }
     }
   }
+
+  // Extract atmosphere config from stage definition
+  const rawAtmo = (rawStageDef as Record<string, unknown>).atmosphere as Record<string, unknown> | undefined;
+  const atmosphere: StageAtmosphere = {
+    baseHorrorLevel: (rawAtmo?.baseHorrorLevel as number) ?? 0,
+    horrorProgression: (rawAtmo?.horrorProgression as string) ?? 'static',
+    ambientSound: rawAtmo?.ambientSound as string | undefined,
+    musicTrack: rawAtmo?.musicTrack as string | undefined,
+    perRoomOverrides: rawAtmo?.perRoomOverrides as StageAtmosphere['perRoomOverrides'],
+  };
+
+  // Extract story goals from stage definition, filtering by player character
+  const rawStory = (rawStageDef as Record<string, unknown>).story as Record<string, unknown> | undefined;
+  const rawGoals = (rawStory?.goals as StageGoal[]) ?? [];
+  const storyGoals: StageGoal[] = rawGoals
+    .filter(g => !g.character || g.character === playerCharacter)
+    .map(g => ({
+      id: g.id,
+      description: g.description,
+      type: g.type,
+      params: g.params ?? {},
+      hiddenUntil: g.hiddenUntil,
+    }));
+
+  const stageName = (rawStageDef as Record<string, unknown>).name as string ?? 'Unknown';
+  const stageDescription = (rawStageDef as Record<string, unknown>).description as string ?? '';
 
   let currentSceneId = stage.entrySceneId;
 
@@ -155,6 +272,10 @@ export async function initializeGame(
     currentSceneId,
     layout,
     allRoomConfigs,
+    atmosphere,
+    storyGoals,
+    stageName,
+    stageDescription,
 
     getCurrentScene() {
       const scene = sceneMap.get(currentSceneId);
@@ -337,7 +458,7 @@ function buildStageLayoutDef(raw: Record<string, unknown>): StageLayoutDefinitio
       id: `vert_${archetypeLevel.level}_${i}`,
       type: (vc.type || 'stairs') as 'stairs' | 'ramp' | 'ladder' | 'elevator',
       fromRoom: '',  // resolved by generateLayout
-      position: { x: vc.gridPosition.x * 12, z: vc.gridPosition.z * 12 },
+      position: { x: vc.gridPosition.x, z: vc.gridPosition.z },
       direction: vc.direction,
       targetLevel: vc.targetLevel,
       targetRoom: '',  // resolved by generateLayout
@@ -436,12 +557,59 @@ interface ArchetypeVerticalConn {
   lockId?: string;
 }
 
+/**
+ * Display names for room purposes — mirrors StageGenerator.ROOM_NAMES.
+ * Duplicated here to avoid circular dependency between generator modules.
+ */
+const LAYOUT_ROOM_NAMES: Record<string, string> = {
+  entry: 'Living Room',
+  kitchen: 'The Kitchen',
+  bedroom: 'Master Bedroom',
+  bathroom: 'Bathroom',
+  hallway: 'Hallway',
+  basement_main: 'Basement',
+  basement_storage: 'Storage Room',
+  exit: 'Basement',
+  filler: 'Side Room',
+  closet: 'Closet',
+  storage: 'Storage',
+  // Stage 1 — House
+  entry_hall: 'Entry Hall',
+  living_room: 'Living Room',
+  dining_room: 'Dining Room',
+  master_bedroom: 'Master Bedroom',
+  upstairs_hall: 'Upstairs Hall',
+  // Stage 2 — Space Station
+  docking_bay: 'Docking Bay',
+  corridor_a: 'Corridor A',
+  mess_hall: 'Mess Hall',
+  crew_quarters: 'Crew Quarters',
+  medical_bay: 'Medical Bay',
+  engine_room: 'Engine Room',
+  airlock: 'Airlock',
+  // Stage 3 — Pirate Island
+  beach: 'The Beach',
+  dock: 'The Dock',
+  jungle_path: 'Jungle Path',
+  cave: 'The Cave',
+  captain_quarters: "Captain's Quarters",
+  crow_nest: "Crow's Nest",
+  lighthouse: 'Lighthouse',
+};
+
 /** Map archetype purpose strings to AnchorRoomDef purpose enum. */
 function mapPurpose(purpose: string): AnchorRoomDef['purpose'] {
   switch (purpose) {
-    case 'entry': return 'entry';
+    case 'entry':
+    case 'entry_hall':
+    case 'docking_bay':
+    case 'beach':
+      return 'entry';
     case 'exit':
-    case 'basement_main': return 'exit';
+    case 'basement_main':
+    case 'airlock':
+    case 'lighthouse':
+      return 'exit';
     default: return 'story_critical';
   }
 }

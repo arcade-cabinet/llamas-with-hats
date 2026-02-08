@@ -107,6 +107,9 @@ export interface CharacterNavigator {
   // Get current mode
   getMode(): NavigatorMode;
   
+  // Adjust max speed at runtime
+  setMaxSpeed(speed: number): void;
+
   // Cleanup
   dispose(): void;
 }
@@ -265,6 +268,10 @@ export function createCharacterNavigator(config: NavigatorConfig): CharacterNavi
     
     updateBounds(bounds: CollisionBounds) {
       currentBounds = { ...bounds };
+    },
+
+    setMaxSpeed(speed: number) {
+      vehicle.maxSpeed = speed;
     },
     
     update(deltaTime: number): NavigatorState {

@@ -63,7 +63,8 @@ import {
 } from '../../systems/AudioManager';
 import {
   getStoryManager,
-  StoryManager
+  StoryManager,
+  NpcDialogueTree
 } from '../../systems/StoryManager';
 import {
   getAtmosphereManager,
@@ -72,6 +73,7 @@ import {
 } from '../../systems/AtmosphereManager';
 import { renderLayout, RenderedLayout } from '../../systems/LayoutRenderer';
 import type { GeneratedLayout } from '../../systems/LayoutGenerator';
+import type { StageAtmosphere } from '../../systems/GameInitializer';
 import { GameBridge } from '../../utils/gameBridge';
 
 interface GameRendererProps {
@@ -86,6 +88,7 @@ interface GameRendererProps {
   isPaused: boolean;
   // Interaction callbacks
   onDialogue?: (lines: string[], speaker: 'carl' | 'paul') => void;
+  onDialogueTree?: (tree: NpcDialogueTree) => void;
   onInteractionStateChange?: (state: InteractionState) => void;
   // Item pickup callback -- adds to inventory and shows notification
   onItemPickup?: (itemId: string) => void;
@@ -110,6 +113,8 @@ interface GameRendererProps {
   allRoomConfigs: Map<string, RoomConfig>;
   seed?: string;
   onRoomChange?: (roomId: string) => void;
+  // Stage atmosphere config for per-room horror, audio, and music
+  stageAtmosphere?: StageAtmosphere;
 }
 
 export const GameRenderer: React.FC<GameRendererProps> = ({
@@ -120,9 +125,10 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
   opponentPosition,
   opponentRotation,
   onPlayerMove,
-  onRoomTransition: _onRoomTransition,
+  onRoomTransition: _unusedRoomTransition,
   isPaused,
   onDialogue,
+  onDialogueTree,
   onInteractionStateChange,
   onItemPickup,
   onLockedDoor,
@@ -136,8 +142,9 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
   devAIEnabled = false,
   layout,
   allRoomConfigs,
-  seed: _seed,
-  onRoomChange
+  seed: _unusedSeed,
+  onRoomChange,
+  stageAtmosphere
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<Engine | null>(null);
@@ -166,17 +173,17 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
   // Keep a ref to latest props so the render loop always reads fresh values
   const propsRef = useRef({
     isPaused, opponentPosition, opponentRotation, playerInventory,
-    playerCharacter, onPlayerMove, onDialogue,
+    playerCharacter, onPlayerMove, onDialogue, onDialogueTree,
     onUnlockExit, onLockedDoor, onItemPickup, onInteractionStateChange,
     currentRoom, onStageComplete, devAIEnabled, playerPosition, playerRotation,
-    onRoomChange,
+    onRoomChange, stageAtmosphere,
   });
   propsRef.current = {
     isPaused, opponentPosition, opponentRotation, playerInventory,
-    playerCharacter, onPlayerMove, onDialogue,
+    playerCharacter, onPlayerMove, onDialogue, onDialogueTree,
     onUnlockExit, onLockedDoor, onItemPickup, onInteractionStateChange,
     currentRoom, onStageComplete, devAIEnabled, playerPosition, playerRotation,
-    onRoomChange,
+    onRoomChange, stageAtmosphere,
   };
 
   // Handle interaction callback
@@ -289,6 +296,12 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
     // ─────────────────────────────────────────────────────────────────────────
     renderLayout(scene, layout, shadowGen, { skipProps: true }).then(renderedLayout => {
       renderedLayoutRef.current = renderedLayout;
+      // Initial room visibility — only show starting room + neighbors
+      renderedLayout.updateRoomVisibility(currentRoom.id);
+      // Give camera the walkability check so it can avoid clipping through walls
+      if (gameCameraRef.current) {
+        gameCameraRef.current.setWalkableCheck(renderedLayout.isWalkable);
+      }
     }).catch(err => {
       console.error('[GameRenderer] Failed to render layout:', err);
     });
@@ -330,6 +343,10 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
             }
             if (prop.itemDrop) {
               propMeshMap.set(prop.itemDrop, mesh);
+            }
+            // Track interactive meshes for glow effect
+            if (prop.interactive && mesh instanceof AbstractMesh) {
+              interactiveMeshes.push(mesh);
             }
           }
         });
@@ -386,6 +403,9 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
       onDialogue: (lines, speaker) => {
         propsRef.current.onDialogue?.(lines, speaker);
       },
+      onDialogueTree: (tree) => {
+        propsRef.current.onDialogueTree?.(tree);
+      },
       onItemPickup: (itemId) => {
         audioManager.playSound(SoundEffects.ITEM_PICKUP);
         propsRef.current.onItemPickup?.(itemId);
@@ -427,7 +447,14 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
     scene.onPointerObservable.add((pointerInfo) => {
       if (pointerInfo.type !== PointerEventTypes.POINTERUP) return;
 
-      const pickResult = scene.pick(scene.pointerX, scene.pointerY);
+      const pickResult = scene.pick(scene.pointerX, scene.pointerY, (mesh) => {
+        // Only pick floor meshes and interactive props — skip walls, ceilings, etc.
+        const name = mesh.name.toLowerCase();
+        if (name.includes('floor') || name.includes('ground') || name.includes('rug')) return true;
+        if (mesh.metadata?.interactive) return true;
+        if (mesh.parent && (mesh.parent as AbstractMesh).metadata?.interactive) return true;
+        return false;
+      });
 
       if (pickResult?.hit && pickResult.pickedMesh) {
         const mesh = pickResult.pickedMesh;
@@ -469,7 +496,7 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
     // ─────────────────────────────────────────────────────────────────────────
     // EFFECTS, AUDIO, ATMOSPHERE, AND STORY MANAGERS
     // ─────────────────────────────────────────────────────────────────────────
-    const effectsManager = createEffectsManager(scene, gameCamera.camera);
+    const effectsManager = createEffectsManager(scene, gameCamera.camera, gameCamera.shakeOffset);
     effectsManagerRef.current = effectsManager;
 
     audioManager.init().catch(() => {});
@@ -598,7 +625,70 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
     });
 
     storyManager.setCharacterPath(playerCharacter === 'carl' ? 'order' : 'chaos');
+
+    // Wire dialogue-level effects (screen shake, horror pulse, music, zoom)
+    storyManager.setEffectsCallbacks({
+      onScreenShake: (intensity, duration) => {
+        effectsManager.shakeCamera(intensity, duration);
+      },
+      onHorrorPulse: (intensity) => {
+        audioManager.playSound(SoundEffects.HORROR_STING, { volume: intensity });
+      },
+      onMusicChange: (trackId) => {
+        audioManager.crossfadeMusic(trackId, { duration: 2000 });
+      },
+      onDramaticZoom: (fov, duration) => {
+        effectsManager.zoomCamera(fov, duration, 1000);
+      },
+    });
+
+    // Set initial horror from atmosphere data for the entry room
+    if (stageAtmosphere) {
+      const entryOverride = stageAtmosphere.perRoomOverrides?.[currentRoom.id];
+      const entryHorror = entryOverride?.horrorLevel ?? stageAtmosphere.baseHorrorLevel;
+      storyManager.setSceneHorrorLevel(entryHorror);
+
+      // Play stage-level music if defined
+      if (stageAtmosphere.musicTrack) {
+        audioManager.crossfadeMusic(stageAtmosphere.musicTrack, { duration: 1000 });
+      }
+    }
+
     storyManager.checkTrigger('scene_enter', { sceneId: currentRoom.id });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // HORROR VISUAL EFFECTS (vignette, tint, FOV)
+    // ─────────────────────────────────────────────────────────────────────────
+    scene.imageProcessingConfiguration.isEnabled = true;
+    scene.imageProcessingConfiguration.toneMappingEnabled = false;
+    scene.imageProcessingConfiguration.vignetteEnabled = false;
+    scene.imageProcessingConfiguration.vignetteWeight = 0;
+    let currentHorrorVisualLevel = 0;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // INTERACTIVE PROP GLOW — tracks meshes near the player
+    // ─────────────────────────────────────────────────────────────────────────
+    const interactiveMeshes: AbstractMesh[] = [];
+    let glowPulse = 0;
+    let lastGlowTarget: AbstractMesh | null = null;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // FOOTSTEP AUDIO — surface-based footstep sounds
+    // ─────────────────────────────────────────────────────────────────────────
+    let footstepTimer = 0;
+    const FOOTSTEP_INTERVAL = 0.35; // seconds between footstep sounds
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // MOVEMENT ACCELERATION — smooth ramp-up
+    // ─────────────────────────────────────────────────────────────────────────
+    let currentSpeed = 0;
+    const BASE_SPEED = 4;
+    const ACCEL_RATE = 14; // units/s^2 — reaches full speed in ~0.3s
+    const DECEL_RATE = 20; // faster deceleration for snappy stops
+
+    // Locked door feedback — cooldown to prevent spam
+    let lastLockBumpTime = 0;
+    const LOCK_BUMP_COOLDOWN = 2; // seconds between lock bump feedback
 
     // ─────────────────────────────────────────────────────────────────────────
     // TAP-TO-MOVE DESTINATION MARKER
@@ -671,7 +761,19 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
           player.setTargetRotation(propsRef.current.playerRotation);
         } else {
           // ── NORMAL MODE: poll input from unified controller ──
-          const manualInput = GameBridge.getInput() ?? { x: 0, z: 0 };
+          const rawInput = GameBridge.getInput() ?? { x: 0, z: 0 };
+          // Camera-relative movement: project raw input onto camera fwd/right vectors.
+          // Player facing direction = (-sin(rot), -cos(rot)).
+          // Camera forward = same direction (camera looks where player faces).
+          // Camera right = forward rotated 90° clockwise = (-cos(rot), sin(rot)).
+          // Raw z=-1 (W) → forward, raw x=+1 (D) → right.
+          const yaw = gameCameraRef.current?.getCameraYaw() ?? 0;
+          const sinYaw = Math.sin(yaw);
+          const cosYaw = Math.cos(yaw);
+          const manualInput = {
+            x: -rawInput.x * cosYaw + rawInput.z * sinYaw,
+            z:  rawInput.x * sinYaw + rawInput.z * cosYaw,
+          };
           const hasManualInput = manualInput.x !== 0 || manualInput.z !== 0;
 
           const navigator = playerNavigatorRef.current;
@@ -713,17 +815,24 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
           }
 
           const input = hasManualInput ? manualInput : navInput;
-          const speed = 4;
+          const hasInput = input.x !== 0 || input.z !== 0;
 
-          if (input.x !== 0 || input.z !== 0) {
+          // Smooth acceleration/deceleration
+          if (hasInput) {
+            currentSpeed = Math.min(BASE_SPEED, currentSpeed + ACCEL_RATE * dt);
+          } else {
+            currentSpeed = Math.max(0, currentSpeed - DECEL_RATE * dt);
+          }
+
+          if (hasInput && currentSpeed > 0) {
             const len = Math.sqrt(input.x * input.x + input.z * input.z);
             const nx = input.x / len;
             const nz = input.z / len;
 
             const fromX = player.root.position.x;
             const fromZ = player.root.position.z;
-            let toX = fromX + nx * speed * dt;
-            let toZ = fromZ + nz * speed * dt;
+            let toX = fromX + nx * currentSpeed * dt;
+            let toZ = fromZ + nz * currentSpeed * dt;
 
             // Check collision with props
             const moveResult = collisionSystemRef.current.checkMovement(
@@ -732,6 +841,19 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
 
             let newX = moveResult.adjustedX;
             let newZ = moveResult.adjustedZ;
+
+            // Locked door feedback — play sound and show hint when bumping into a lock barrier
+            if (moveResult.blocked && moveResult.collidedWith?.type === 'lock') {
+              const gameTime = now / 1000;
+              if (gameTime - lastLockBumpTime > LOCK_BUMP_COOLDOWN) {
+                lastLockBumpTime = gameTime;
+                audioManager.playSound(SoundEffects.DOOR_LOCKED, { volume: 0.6 });
+                propsRef.current.onDialogue?.(
+                  ['This door is locked. I need to find a key.'],
+                  propsRef.current.playerCharacter
+                );
+              }
+            }
 
             // Layout walkability check — prevents walking through walls / into void
             if (rl && !rl.isWalkable(newX, newZ)) {
@@ -745,7 +867,30 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
             player.setPosition(newX, newY, newZ);
             player.setTargetRotation(Math.atan2(-nx, -nz));
 
+            // Feed player rotation to camera so it orbits behind the player
+            if (gameCameraRef.current) {
+              gameCameraRef.current.setPlayerRotation(player.currentRotation);
+            }
+
             propsRef.current.onPlayerMove(newX, newY, newZ, player.currentRotation);
+
+            // Footstep audio — play surface-appropriate sound at regular intervals
+            footstepTimer += dt;
+            if (footstepTimer >= FOOTSTEP_INTERVAL) {
+              footstepTimer = 0;
+              const roomId = currentTrackedRoom.toLowerCase();
+              let sfx: string = SoundEffects.FOOTSTEP_WOOD;
+              if (roomId.includes('kitchen') || roomId.includes('bathroom')) {
+                sfx = SoundEffects.FOOTSTEP_TILE;
+              } else if (roomId.includes('bedroom') || roomId.includes('lounge') || roomId.includes('living')) {
+                sfx = SoundEffects.FOOTSTEP_CARPET;
+              } else if (roomId.includes('basement') || roomId.includes('storage') || roomId.includes('street') || roomId.includes('alley')) {
+                sfx = SoundEffects.FOOTSTEP_STONE;
+              }
+              audioManager.playSound(sfx, { volume: 0.3 });
+            }
+          } else {
+            footstepTimer = FOOTSTEP_INTERVAL; // Reset so next step sounds immediately
           }
         }
 
@@ -755,9 +900,46 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
           const pz = player.root.position.z;
           const renderedRoom = rl.getRoomAt(px, pz);
           if (renderedRoom && renderedRoom.id !== currentTrackedRoom) {
+            const prevRoom = currentTrackedRoom;
             currentTrackedRoom = renderedRoom.id;
-            audioManager.playSound(SoundEffects.DOOR_OPEN);
+            // Update room visibility — only show current + adjacent rooms
+            rl.updateRoomVisibility(renderedRoom.id);
+            audioManager.playSound(SoundEffects.DOOR_OPEN, { volume: 0.5 });
             propsRef.current.onRoomChange?.(renderedRoom.id);
+
+            // Brief visual door transition — flash darken
+            const prevClearColor = scene.clearColor.clone();
+            scene.clearColor = new Color4(0, 0, 0, 1);
+            setTimeout(() => {
+              if (!scene.isDisposed) scene.clearColor = prevClearColor;
+            }, 150);
+
+            // Apply per-room atmosphere from stage definition
+            const atmo = propsRef.current.stageAtmosphere;
+            if (atmo && storyManagerRef.current) {
+              // Set scene horror level from room override or stage base
+              const roomOverride = atmo.perRoomOverrides?.[renderedRoom.id];
+              const roomHorror = roomOverride?.horrorLevel ?? atmo.baseHorrorLevel;
+              storyManagerRef.current.setSceneHorrorLevel(roomHorror);
+
+              // Crossfade music if room has a specific track
+              const roomMusic = roomOverride?.musicTrack ?? atmo.musicTrack;
+              if (roomMusic) {
+                audioManager.crossfadeMusic(roomMusic, { duration: 2000 });
+              }
+
+              // Switch ambient sound if room specifies one
+              const roomAmbient = roomOverride?.ambientSound;
+              if (roomAmbient) {
+                audioManager.playSound(roomAmbient, { volume: 0.3 });
+              }
+            }
+
+            // Fire story triggers for room change
+            if (storyManagerRef.current) {
+              storyManagerRef.current.checkTrigger('scene_exit', { sceneId: prevRoom });
+              storyManagerRef.current.checkTrigger('scene_enter', { sceneId: renderedRoom.id });
+            }
           }
         }
 
@@ -776,6 +958,48 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
             lastInteractionState = interactionState;
             cb(interactionState);
           }
+        }
+
+        // Interactive prop glow — pulse emissive on nearby interactive props
+        glowPulse += dt * 3;
+        const px = player.root.position.x;
+        const pz = player.root.position.z;
+        const GLOW_RANGE = 2.5;
+
+        let closestInteractive: AbstractMesh | null = null;
+        let closestDist = GLOW_RANGE;
+
+        for (const mesh of interactiveMeshes) {
+          if (mesh.isDisposed()) continue;
+          const dx = mesh.position.x - px;
+          const dz = mesh.position.z - pz;
+          const dist = Math.sqrt(dx * dx + dz * dz);
+          if (dist < closestDist) {
+            closestDist = dist;
+            closestInteractive = mesh;
+          }
+          // Reset emissive on meshes that moved out of range
+          if (mesh !== closestInteractive && mesh.material instanceof StandardMaterial) {
+            mesh.material.emissiveColor = Color3.Black();
+          }
+        }
+
+        if (closestInteractive && closestInteractive !== lastGlowTarget) {
+          // Clear old glow
+          if (lastGlowTarget && !lastGlowTarget.isDisposed() && lastGlowTarget.material instanceof StandardMaterial) {
+            lastGlowTarget.material.emissiveColor = Color3.Black();
+          }
+          lastGlowTarget = closestInteractive;
+        } else if (!closestInteractive && lastGlowTarget) {
+          if (!lastGlowTarget.isDisposed() && lastGlowTarget.material instanceof StandardMaterial) {
+            lastGlowTarget.material.emissiveColor = Color3.Black();
+          }
+          lastGlowTarget = null;
+        }
+
+        if (lastGlowTarget && !lastGlowTarget.isDisposed() && lastGlowTarget.material instanceof StandardMaterial) {
+          const pulse = 0.08 + Math.sin(glowPulse) * 0.06;
+          lastGlowTarget.material.emissiveColor = new Color3(pulse * 1.5, pulse * 1.2, pulse * 0.5);
         }
 
         player.update(dt);
@@ -806,6 +1030,45 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
       // Update atmosphere
       if (atmosphereManagerRef.current) {
         atmosphereManagerRef.current.update(dt);
+      }
+
+      // Horror visual effects — progressive screen-space effects
+      if (storyManagerRef.current) {
+        const horrorLevel = storyManagerRef.current.getHorrorLevel();
+        // Smooth transition to target horror level
+        currentHorrorVisualLevel += (horrorLevel - currentHorrorVisualLevel) * dt * 0.5;
+
+        const imgProc = scene.imageProcessingConfiguration;
+        if (currentHorrorVisualLevel >= 3) {
+          // Vignette darkening at horror 3+
+          imgProc.vignetteEnabled = true;
+          const vignetteStrength = Math.min(1, (currentHorrorVisualLevel - 3) / 4);
+          imgProc.vignetteWeight = vignetteStrength * 5;
+          imgProc.vignetteColor = new Color4(
+            0.1 + vignetteStrength * 0.3,
+            0.05,
+            0.05,
+            1
+          );
+        } else {
+          imgProc.vignetteEnabled = false;
+        }
+
+        if (currentHorrorVisualLevel >= 5) {
+          // Red tint on ambient light at horror 5+
+          const tintStrength = Math.min(1, (currentHorrorVisualLevel - 5) / 3);
+          ambient.groundColor = new Color3(
+            0.25 + tintStrength * 0.15,
+            0.2 - tintStrength * 0.08,
+            0.18 - tintStrength * 0.08
+          );
+        }
+
+        if (currentHorrorVisualLevel >= 7 && gameCameraRef.current) {
+          // Subtle FOV narrowing at horror 7+ (creates tunnel vision)
+          const fovFactor = 1 - Math.min(0.08, (currentHorrorVisualLevel - 7) * 0.025);
+          gameCameraRef.current.camera.fov *= fovFactor;
+        }
       }
 
       scene.render();

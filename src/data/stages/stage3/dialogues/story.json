@@ -1,402 +1,231 @@
 {
   "storyDialogues": {
-    "stage3_arrive": {
-      "id": "stage3_arrive",
+    "stage3_wash_ashore": {
+      "id": "stage3_wash_ashore",
       "type": "cutscene",
       "lines": [
-        { "speaker": "narrator", "text": "The car screeches to a halt at the edge of downtown.", "delay": 1000 },
-        { "speaker": "narrator", "text": "Something is very wrong here.", "delay": 1200 },
-        { "speaker": "narrator", "text": "The streets are empty. Windows are shattered. A fire hydrant gushes unattended.", "delay": 2000 },
-        { "speaker": "carl", "text": "What happened to this place?", "delay": 1000 },
-        { "speaker": "paul", "text": "Progress, Carl! Glorious progress!", "delay": 800 },
-        { "speaker": "carl", "text": "This... this isn't just the neighborhood anymore.", "delay": 1200 },
-        { "speaker": "carl", "text": "Paul, what have you DONE?", "delay": 1000 },
-        { "speaker": "paul", "text": "I've been busy! You know me, always thinking big.", "delay": 1000 },
-        { "speaker": "paul", "text": "The neighborhood was just a warm-up.", "delay": 1200 },
-        { "speaker": "narrator", "text": "In the distance, a siren wails. Then cuts off abruptly.", "delay": 1500 }
+        { "speaker": "narrator", "text": "The escape pod bobs in warm, tropical water.", "delay": 1200 },
+        { "speaker": "narrator", "text": "Waves push it toward a sandy beach. Palm trees. Blue sky. Wreckage everywhere.", "delay": 1800 },
+        { "speaker": "carl", "text": "LAND HO! Welcome to Carl's Island Paradise!", "delay": 800 },
+        { "speaker": "narrator", "text": "Carl is already standing on the beach. He's wearing a captain's hat. He has been here for weeks.", "delay": 1200 },
+        { "speaker": "paul", "text": "How are you ALREADY HERE?!", "delay": 800 },
+        { "speaker": "carl", "text": "I took the express route! Built a raft from the escape pod wreckage. Very resourceful.", "delay": 1000 },
+        { "speaker": "carl", "text": "I commandeered that ship over there. The S.S. Carl!", "delay": 1200 },
+        { "speaker": "paul", "text": "That's a GHOST SHIP, Carl. It looks like it's been here for decades.", "delay": 1200 },
+        { "speaker": "carl", "text": "The previous crew had to leave suddenly. Very, very suddenly.", "delay": 1000 },
+        { "speaker": "narrator", "text": "Something that might have been a parrot squawks from the ship's mast. It's definitely not a parrot.", "delay": 1500 }
       ],
       "effects": [
-        { "type": "music_change", "track": "music_tension_high" },
-        { "type": "ambient_change", "track": "ambient_city_chaos" },
-        { "type": "fog_increase", "targetDensity": 0.03, "duration": 3000 },
-        { "type": "horror_pulse", "intensity": 0.6 }
+        { "type": "music_change", "track": "music_dark_theme" },
+        { "type": "horror_pulse", "intensity": 0.3 }
       ],
-      "nextBeat": "explore_downtown"
+      "nextBeat": "investigate_dock"
     },
 
-    "stage3_explore_downtown": {
-      "id": "stage3_explore_downtown",
-      "type": "hint",
-      "lines": [
-        { "speaker": "carl", "text": "I need to find the police station. Or the highway. Or anyone who can help." },
-        { "speaker": "carl", "text": "And I need to get away from Paul." },
-        { "speaker": "narrator", "text": "The city sprawls in every direction. Smoke rises from somewhere to the east." }
-      ]
-    },
-
-    "stage3_city_block_chaos": {
-      "id": "stage3_city_block_chaos",
+    "stage3_investigate_dock": {
+      "id": "stage3_investigate_dock",
       "type": "cutscene",
       "lines": [
-        { "speaker": "narrator", "text": "This block looks like a war zone.", "delay": 1000 },
-        { "speaker": "narrator", "text": "Cars are overturned. Shop windows are blown out. The asphalt is cracked.", "delay": 1500 },
-        { "speaker": "carl", "text": "How did it spread this far? We only left the apartment this morning!", "delay": 1200 },
-        { "speaker": "paul", "text": "Oh, THIS isn't from today.", "delay": 800 },
-        { "speaker": "carl", "text": "What?", "delay": 500 },
-        { "speaker": "paul", "text": "I've been coming downtown for WEEKS, Carl.", "delay": 1000 },
-        { "speaker": "paul", "text": "While you were sleeping. I'm a night owl!", "delay": 1200 },
-        { "speaker": "carl", "text": "You've been sneaking out?!", "delay": 800 },
-        { "speaker": "paul", "text": "Sneaking is such a strong word. I prefer 'nocturnal community engagement.'", "delay": 1200 },
-        { "speaker": "narrator", "text": "Something skitters across the rooftop above. Too fast to see.", "delay": 1500 }
+        { "speaker": "narrator", "text": "The dock creaks underfoot. The ghost ship looms above.", "delay": 1200 },
+        { "speaker": "paul", "text": "The cargo hold is open. Those crates... they're leaking.", "delay": 1000 },
+        { "speaker": "paul", "text": "Carl, what's in the cargo?", "delay": 800 },
+        { "speaker": "carl", "text": "Supplies! For my arts and crafts projects!", "delay": 800 },
+        { "speaker": "carl", "text": "I've been working on a very special collection. Island art, Paul!", "delay": 1000 },
+        { "speaker": "paul", "text": "The crates are labeled 'FRAGILE — HUMAN REMAINS.'", "delay": 1200 },
+        { "speaker": "carl", "text": "Well, they ARE fragile. You should see what happens when you drop them.", "delay": 1000 },
+        { "speaker": "narrator", "text": "A captain's logbook sits on a barrel near the gangplank.", "delay": 1200 }
       ],
-      "effects": [
-        { "type": "horror_pulse", "intensity": 0.6 },
-        { "type": "screen_shake", "intensity": 0.2, "duration": 400 }
-      ]
-    },
-
-    "stage3_plaza_discovery": {
-      "id": "stage3_plaza_discovery",
-      "type": "cutscene",
-      "lines": [
-        { "speaker": "narrator", "text": "The town plaza opens up ahead. The fountain is still running.", "delay": 1000 },
-        { "speaker": "narrator", "text": "The water is red.", "delay": 2000 },
-        { "speaker": "carl", "text": "Oh no. Oh no no no.", "delay": 800 },
-        { "speaker": "carl", "text": "Paul, WHY is the fountain full of BLOOD?!", "delay": 1000 },
-        { "speaker": "paul", "text": "It's a STATEMENT, Carl. About the human condition.", "delay": 1200 },
-        { "speaker": "carl", "text": "WHOSE human condition?! WHOSE BLOOD IS THAT?!", "delay": 1000 },
-        { "speaker": "paul", "text": "It's from multiple donors. Very inclusive.", "delay": 1000 },
-        { "speaker": "carl", "text": "DONORS IMPLIES THEY VOLUNTEERED!", "delay": 800 },
-        { "speaker": "paul", "text": "Well, they didn't UN-volunteer.", "delay": 1000 },
-        { "speaker": "paul", "text": "Eventually they stopped talking altogether! Very cooperative.", "delay": 1200 },
-        { "speaker": "narrator", "text": "The bronze statue in the center of the fountain has been replaced.", "delay": 1500 },
-        { "speaker": "narrator", "text": "With something that is not bronze. And not a statue.", "delay": 2000 }
-      ],
-      "effects": [
-        { "type": "screen_shake", "intensity": 0.4, "duration": 800 },
-        { "type": "horror_pulse", "intensity": 0.8 },
-        { "type": "dramatic_zoom", "targetFov": 0.6, "duration": 1500 }
-      ]
-    },
-
-    "stage3_alley_ambush": {
-      "id": "stage3_alley_ambush",
-      "type": "cutscene",
-      "lines": [
-        { "speaker": "narrator", "text": "The alley narrows. The walls seem to close in.", "delay": 1000 },
-        { "speaker": "narrator", "text": "The graffiti on the walls is new. And it's not paint.", "delay": 1500 },
-        { "speaker": "carl", "text": "Paul, there are MESSAGES written on these walls.", "delay": 1000 },
-        { "speaker": "carl", "text": "'PAUL WAS HERE.' 'THE MEAT KING.' 'ALL HAIL THE CHEF.'", "delay": 1500 },
-        { "speaker": "paul", "text": "Oh, those! My fans leave the sweetest notes.", "delay": 1000 },
-        { "speaker": "carl", "text": "Your FANS?!", "delay": 600 },
-        { "speaker": "paul", "text": "You'd be surprised how many people appreciate a good meal, Carl.", "delay": 1200 },
-        { "speaker": "paul", "text": "Well. Appreciated. Past tense.", "delay": 1000 },
-        { "speaker": "narrator", "text": "At the end of the alley, a shape watches from the shadows.", "delay": 1500 },
-        { "speaker": "narrator", "text": "It sees you. It turns. It runs.", "delay": 1200 },
-        { "speaker": "carl", "text": "Who was that?!", "delay": 600 },
-        { "speaker": "paul", "text": "Probably just one of the survivors.", "delay": 800 },
-        { "speaker": "carl", "text": "SURVIVORS?!", "delay": 500 }
-      ],
-      "effects": [
-        { "type": "fog_increase", "targetDensity": 0.05, "duration": 2000 },
-        { "type": "horror_pulse", "intensity": 0.7 },
-        { "type": "lighting_change", "intensity": 0.3, "duration": 1500 }
-      ]
-    },
-
-    "stage3_building_interior": {
-      "id": "stage3_building_interior",
-      "type": "cutscene",
-      "lines": [
-        { "speaker": "narrator", "text": "An abandoned office building. The lobby is trashed.", "delay": 1000 },
-        { "speaker": "narrator", "text": "Desks are overturned. Papers scattered everywhere. Coffee still steaming in mugs.", "delay": 1500 },
-        { "speaker": "carl", "text": "People left in a hurry. The coffee is still warm.", "delay": 1200 },
-        { "speaker": "paul", "text": "Efficiency! I cleared this building in under ten minutes.", "delay": 1000 },
-        { "speaker": "carl", "text": "Cleared it of WHAT?!", "delay": 800 },
-        { "speaker": "paul", "text": "Clutter, Carl. Unnecessary clutter.", "delay": 1000 },
-        { "speaker": "carl", "text": "You mean PEOPLE?!", "delay": 600 },
-        { "speaker": "paul", "text": "Tomato, tomahto.", "delay": 800 },
-        { "speaker": "narrator", "text": "On the reception desk, someone carved one word: RUN.", "delay": 1500 }
-      ],
-      "effects": [
-        { "type": "horror_pulse", "intensity": 0.6 },
-        { "type": "ambient_change", "track": "ambient_building_empty" }
-      ]
-    },
-
-    "stage3_police_station": {
-      "id": "stage3_police_station",
-      "type": "cutscene",
-      "lines": [
-        { "speaker": "narrator", "text": "The police station is ahead. The doors are wide open.", "delay": 1000 },
-        { "speaker": "carl", "text": "Finally! The police can sort this out!", "delay": 800 },
-        { "speaker": "narrator", "text": "Inside, every desk is empty. Every chair overturned.", "delay": 1500 },
-        { "speaker": "narrator", "text": "The holding cells are open. And spotlessly clean.", "delay": 1200 },
-        { "speaker": "carl", "text": "Where... where are the police?", "delay": 1000 },
-        { "speaker": "paul", "text": "They had a team-building exercise!", "delay": 800 },
-        { "speaker": "carl", "text": "ALL of them?!", "delay": 600 },
-        { "speaker": "paul", "text": "Very thorough department. One hundred percent participation.", "delay": 1000 },
-        { "speaker": "carl", "text": "Paul. Where are the police?", "delay": 1200 },
-        { "speaker": "paul", "text": "Do you remember the fountain in the plaza?", "delay": 1000 },
-        { "speaker": "carl", "text": "...", "delay": 800 },
-        { "speaker": "paul", "text": "Blue really is a lovely color for water features!", "delay": 1000 },
-        { "speaker": "carl", "text": "I'm going to be sick.", "delay": 800 }
-      ],
-      "effects": [
-        { "type": "screen_shake", "intensity": 0.5, "duration": 1000 },
-        { "type": "horror_pulse", "intensity": 0.9 },
-        { "type": "music_change", "track": "music_dread_rising" }
-      ]
-    },
-
-    "stage3_paul_workshop": {
-      "id": "stage3_paul_workshop",
-      "type": "cutscene",
-      "lines": [
-        { "speaker": "narrator", "text": "A loading dock behind a restaurant. Converted into something else entirely.", "delay": 1000 },
-        { "speaker": "narrator", "text": "Tools hang from hooks on the wall. Not kitchen tools.", "delay": 1500 },
-        { "speaker": "narrator", "text": "A workbench sits in the center, stained dark.", "delay": 1200 },
-        { "speaker": "carl", "text": "Paul... is this where you...?", "delay": 1000 },
-        { "speaker": "paul", "text": "My workshop! Do you like it?", "delay": 800 },
-        { "speaker": "paul", "text": "I organized everything by function. Very Marie Kondo.", "delay": 1200 },
-        { "speaker": "carl", "text": "These tools do not spark joy, Paul.", "delay": 1000 },
-        { "speaker": "paul", "text": "They spark something!", "delay": 800 },
-        { "speaker": "narrator", "text": "A freezer hums in the corner. It's padlocked shut.", "delay": 1500 },
-        { "speaker": "narrator", "text": "Something inside knocks. Twice.", "delay": 2000 },
-        { "speaker": "carl", "text": "We need to leave. We need to leave RIGHT NOW.", "delay": 1000 }
-      ],
-      "effects": [
-        { "type": "screen_shake", "intensity": 0.6, "duration": 800 },
-        { "type": "horror_pulse", "intensity": 1.0 },
-        { "type": "dramatic_zoom", "targetFov": 0.5, "duration": 1500 },
-        { "type": "lighting_change", "intensity": 0.15, "duration": 1000 }
-      ]
-    },
-
-    "stage3_confrontation": {
-      "id": "stage3_confrontation",
-      "type": "cutscene",
-      "lines": [
-        { "speaker": "narrator", "text": "Carl stops in the middle of the empty street.", "delay": 1000 },
-        { "speaker": "narrator", "text": "He can't run anymore. Not from this.", "delay": 1500 },
-        { "speaker": "carl", "text": "Paul. Stop.", "delay": 800 },
-        { "speaker": "paul", "text": "Hmm? Something wrong, buddy?", "delay": 800 },
-        { "speaker": "carl", "text": "Everything. Everything is wrong.", "delay": 1000 },
-        { "speaker": "carl", "text": "The apartment. The neighbors. The pets. The POLICE STATION.", "delay": 1200 },
-        { "speaker": "carl", "text": "You destroyed an entire CITY, Paul.", "delay": 1000 },
-        { "speaker": "paul", "text": "Destroyed is a strong word. I prefer 'remodeled.'", "delay": 1200 },
-        { "speaker": "carl", "text": "PEOPLE ARE DEAD!", "delay": 800 },
-        { "speaker": "paul", "text": "...", "delay": 1000 },
-        { "speaker": "paul", "text": "Some of them, yes.", "delay": 1200 },
-        { "speaker": "carl", "text": "SOME?! How many, Paul? How many people?", "delay": 1000 },
-        { "speaker": "paul", "text": "Carl, when you count past a certain number, the specifics stop mattering.", "delay": 1500 },
-        { "speaker": "carl", "text": "THE SPECIFICS ALWAYS MATTER!", "delay": 800 },
-        { "speaker": "paul", "text": "Do they though? Really?", "delay": 1000 },
-        { "speaker": "paul", "text": "I made something BEAUTIFUL, Carl. Can't you see that?", "delay": 1200 }
-      ],
-      "effects": [
-        { "type": "music_change", "track": "music_confrontation" },
-        { "type": "horror_pulse", "intensity": 0.8 },
-        { "type": "dramatic_zoom", "targetFov": 0.4, "duration": 2000 }
-      ]
-    },
-
-    "stage3_paul_truth": {
-      "id": "stage3_paul_truth",
-      "type": "cutscene",
-      "lines": [
-        { "speaker": "paul", "text": "You want to know the truth, Carl?", "delay": 1000 },
-        { "speaker": "paul", "text": "I'll tell you the truth.", "delay": 1200 },
-        { "speaker": "paul", "text": "I started small. The basement. Remember the basement?", "delay": 1200 },
-        { "speaker": "carl", "text": "I remember.", "delay": 600 },
-        { "speaker": "paul", "text": "Then the neighbors. Then the pets. Then the postman.", "delay": 1200 },
-        { "speaker": "paul", "text": "Then I thought... why stop?", "delay": 1500 },
-        { "speaker": "paul", "text": "The whole city was just... THERE. Full of raw materials.", "delay": 1200 },
-        { "speaker": "carl", "text": "Raw materials. You're talking about people, Paul.", "delay": 1000 },
-        { "speaker": "paul", "text": "People. Pets. Postmen. It's all just... stuff, Carl.", "delay": 1200 },
-        { "speaker": "paul", "text": "And I can make it into better stuff.", "delay": 1000 },
-        { "speaker": "narrator", "text": "Paul's expression hasn't changed. It's the same cheerful smile.", "delay": 1500 },
-        { "speaker": "narrator", "text": "The same smile he wore making breakfast. Making 'jam.' Making everything disappear.", "delay": 2000 },
-        { "speaker": "carl", "text": "You're insane.", "delay": 800 },
-        { "speaker": "paul", "text": "I'm an ARTIST, Carl. There's a difference.", "delay": 1000 },
-        { "speaker": "paul", "text": "Well. A small one.", "delay": 1200 }
-      ],
-      "effects": [
-        { "type": "horror_pulse", "intensity": 1.0 },
-        { "type": "screen_shake", "intensity": 0.3, "duration": 600 }
-      ]
-    },
-
-    "stage3_final_choice": {
-      "id": "stage3_final_choice",
-      "type": "cutscene",
-      "lines": [
-        { "speaker": "narrator", "text": "The highway overpass is visible in the distance.", "delay": 1000 },
-        { "speaker": "narrator", "text": "One road out. One chance to leave all of this behind.", "delay": 1500 },
-        { "speaker": "carl", "text": "I see the highway. I can make it.", "delay": 1000 },
-        { "speaker": "paul", "text": "We, Carl. WE can make it.", "delay": 800 },
-        { "speaker": "carl", "text": "There is no 'we' anymore, Paul.", "delay": 1000 },
-        { "speaker": "paul", "text": "Carl... buddy... pal...", "delay": 1200 },
-        { "speaker": "paul", "text": "You can't leave me here. We're a TEAM.", "delay": 1000 },
-        { "speaker": "carl", "text": "A team? You turned the city into a CHARNEL HOUSE!", "delay": 1200 },
-        { "speaker": "paul", "text": "Every team has its quirks!", "delay": 800 },
-        { "speaker": "narrator", "text": "Something changes in Paul's eyes. The cheerfulness flickers.", "delay": 1500 },
-        { "speaker": "paul", "text": "Carl. I'm not asking.", "delay": 1200 },
-        { "speaker": "narrator", "text": "For the first time, Paul isn't smiling.", "delay": 2000 }
-      ],
-      "effects": [
-        { "type": "music_change", "track": "music_final_confrontation" },
-        { "type": "horror_pulse", "intensity": 1.0 },
-        { "type": "screen_shake", "intensity": 0.5, "duration": 1200 },
-        { "type": "lighting_change", "intensity": 0.1, "duration": 2000 },
-        { "type": "dramatic_zoom", "targetFov": 0.3, "duration": 2000 }
-      ]
-    },
-
-    "stage3_escape": {
-      "id": "stage3_escape",
-      "type": "cutscene",
-      "lines": [
-        { "speaker": "narrator", "text": "Carl runs.", "delay": 800 },
-        { "speaker": "narrator", "text": "He doesn't look back.", "delay": 1200 },
-        { "speaker": "narrator", "text": "The highway stretches out ahead, empty and endless.", "delay": 1500 },
-        { "speaker": "narrator", "text": "Behind him, the city burns.", "delay": 2000 },
-        { "speaker": "narrator", "text": "And somewhere in the smoke, a llama waves goodbye.", "delay": 2000 },
-        { "speaker": "paul", "text": "See you at home, Carl!", "delay": 1500 },
-        { "speaker": "paul", "text": "I'll leave the light on!", "delay": 1200 },
-        { "speaker": "narrator", "text": "The road ahead is dark.", "delay": 2000 },
-        { "speaker": "narrator", "text": "But not as dark as what Carl leaves behind.", "delay": 2000 }
-      ],
-      "effects": [
-        { "type": "music_change", "track": "music_ending" },
-        { "type": "fog_increase", "targetDensity": 0.08, "duration": 5000 },
-        { "type": "lighting_change", "intensity": 0.05, "duration": 4000 }
-      ]
-    },
-
-    "stage3_pickup_badge": {
-      "id": "stage3_pickup_badge",
-      "type": "item",
-      "lines": [
-        { "speaker": "narrator", "text": "A police badge, half-crushed. Officer Martinez. Badge number 4471." },
-        { "speaker": "carl", "text": "This was one of the officers from our precinct." },
-        { "speaker": "carl", "text": "Where are you, Martinez? Please be okay." }
-      ],
-      "itemId": "police_badge",
       "effects": [
         { "type": "horror_pulse", "intensity": 0.5 }
       ]
     },
 
-    "stage3_examine_badge": {
-      "id": "stage3_examine_badge",
-      "type": "examine",
+    "stage3_find_captain_log": {
+      "id": "stage3_find_captain_log",
+      "type": "cutscene",
       "lines": [
-        { "speaker": "narrator", "text": "Officer Martinez's badge. Bent and stained." },
-        { "speaker": "narrator", "text": "The clip on the back is broken, as if it was torn from a uniform." },
-        { "speaker": "narrator", "text": "Martinez is not okay." }
+        { "speaker": "narrator", "text": "The logbook is written in Carl's unmistakable hoofwriting.", "delay": 1000 },
+        { "speaker": "narrator", "text": "'Day 1: Found a ship! Very roomy. The crew was welcoming.'", "delay": 1500 },
+        { "speaker": "narrator", "text": "'Day 3: The crew is less welcoming now. But the plank is very efficient.'", "delay": 1800 },
+        { "speaker": "narrator", "text": "'Day 7: Crew complement optimized. I'm the whole crew now! Lean management!'", "delay": 1800 },
+        { "speaker": "narrator", "text": "'Day 14: Found an island! Perfect for my collection. Built a cave.'", "delay": 1500 },
+        { "speaker": "paul", "text": "He didn't FIND a cave. He BUILT one. What's he keeping in there?", "delay": 1200 }
+      ],
+      "effects": [
+        { "type": "horror_pulse", "intensity": 0.6 },
+        { "type": "screen_shake", "intensity": 0.3, "duration": 400 }
       ]
     },
 
-    "stage3_pickup_radio": {
-      "id": "stage3_pickup_radio",
-      "type": "item",
+    "stage3_jungle_bones": {
+      "id": "stage3_jungle_bones",
+      "type": "cutscene",
       "lines": [
-        { "speaker": "narrator", "text": "A police radio, still crackling with static." },
-        { "speaker": "narrator", "text": "A voice breaks through. Panicked. Distorted." },
-        { "speaker": "note", "text": "'...all units... do not... repeat DO NOT approach the llama... he's not... oh god he's HERE--'" },
-        { "speaker": "narrator", "text": "The transmission cuts to static." }
+        { "speaker": "narrator", "text": "The jungle path is marked with... trail markers.", "delay": 1000 },
+        { "speaker": "paul", "text": "Those aren't sticks. Those are BONES.", "delay": 800 },
+        { "speaker": "paul", "text": "Arranged like arrows. Pointing deeper into the jungle.", "delay": 1000 },
+        { "speaker": "paul", "text": "The craftsmanship is... disturbingly familiar.", "delay": 1200 },
+        { "speaker": "carl", "text": "I made a nature trail! Eco-tourism, Paul!", "delay": 800 },
+        { "speaker": "carl", "text": "All organic, locally sourced materials! Very sustainable.", "delay": 1000 },
+        { "speaker": "paul", "text": "Carl, those are HUMAN FEMURS.", "delay": 800 },
+        { "speaker": "carl", "text": "Very durable! Great load-bearing capacity. The structural integrity is superb.", "delay": 1000 },
+        { "speaker": "narrator", "text": "Something crunches underfoot. It's better not to look down.", "delay": 1200 }
       ],
-      "itemId": "police_radio",
       "effects": [
-        { "type": "horror_pulse", "intensity": 0.7 },
+        { "type": "horror_pulse", "intensity": 0.5 },
         { "type": "screen_shake", "intensity": 0.2, "duration": 300 }
       ]
     },
 
-    "stage3_examine_radio": {
-      "id": "stage3_examine_radio",
-      "type": "examine",
+    "stage3_cave_treasure": {
+      "id": "stage3_cave_treasure",
+      "type": "cutscene",
       "lines": [
-        { "speaker": "narrator", "text": "The radio cycles through frequencies. Nothing but static and silence." },
-        { "speaker": "narrator", "text": "Occasionally, a voice whispers something. It sounds like 'jam.'" },
-        { "speaker": "carl", "text": "I hate jam. I will never eat jam again." }
+        { "speaker": "narrator", "text": "The cave is lit by makeshift torches. The walls glitter.", "delay": 1200 },
+        { "speaker": "narrator", "text": "At first glance, it looks like a treasure hoard. Piles reaching the ceiling.", "delay": 1500 },
+        { "speaker": "paul", "text": "This isn't gold. This isn't... this isn't treasure.", "delay": 1000 },
+        { "speaker": "paul", "text": "Oh god. Is that a NECKLACE? What is it made from?!", "delay": 1200 },
+        { "speaker": "carl", "text": "My treasure room! Hand-curated over months!", "delay": 800 },
+        { "speaker": "carl", "text": "That necklace is custom-made. One of a kind! Like its previous owner.", "delay": 1200 },
+        { "speaker": "paul", "text": "I can't even describe what I'm looking at.", "delay": 1000 },
+        { "speaker": "carl", "text": "I call it 'artisanal.' Very exclusive. Limited edition.", "delay": 1000 },
+        { "speaker": "carl", "text": "VERY limited. You could say the edition has been... discontinued.", "delay": 1200 },
+        { "speaker": "narrator", "text": "A compass sits on a stone pedestal. Its needle spins, then locks pointing directly at Carl.", "delay": 1500 }
+      ],
+      "effects": [
+        { "type": "horror_pulse", "intensity": 0.8 },
+        { "type": "screen_shake", "intensity": 0.5, "duration": 800 },
+        { "type": "music_change", "track": "music_gothic" },
+        { "type": "dramatic_zoom", "fov": 0.8, "duration": 2000 }
       ]
     },
 
-    "stage3_pickup_newspaper": {
-      "id": "stage3_pickup_newspaper",
-      "type": "item",
+    "stage3_captain_diary": {
+      "id": "stage3_captain_diary",
+      "type": "cutscene",
       "lines": [
-        { "speaker": "narrator", "text": "Today's newspaper, never delivered." },
-        { "speaker": "narrator", "text": "The headline reads: 'MYSTERIOUS DISAPPEARANCES REACH 200.'" },
-        { "speaker": "carl", "text": "Two hundred people." },
-        { "speaker": "carl", "text": "Two. Hundred." },
-        { "speaker": "narrator", "text": "A sticky note is attached in Paul's handwriting: 'Undercounted! :)'" }
+        { "speaker": "narrator", "text": "The captain's quarters are lavishly decorated. In Carl's unique style.", "delay": 1200 },
+        { "speaker": "paul", "text": "Carl's diary. Hundreds of pages.", "delay": 800 },
+        { "speaker": "paul", "text": "'Day 47: The crew appreciated today's team-building exercise.'", "delay": 1200 },
+        { "speaker": "paul", "text": "'Day 48: Crew size reduced for efficiency. Lean management!'", "delay": 1200 },
+        { "speaker": "paul", "text": "'Day 67: Island fully landscaped. Used all available resources.'", "delay": 1200 },
+        { "speaker": "paul", "text": "There's a map. X marks... there are so many Xs, Carl.", "delay": 1000 },
+        { "speaker": "carl", "text": "Each X is a buried treasure! Well, buried SOMETHING.", "delay": 1000 },
+        { "speaker": "carl", "text": "The island's soil is very fertile now. Very... enriched.", "delay": 1200 },
+        { "speaker": "paul", "text": "I need to get off this island. The lighthouse. I can signal for help.", "delay": 1000 }
       ],
-      "itemId": "newspaper",
       "effects": [
+        { "type": "horror_pulse", "intensity": 0.7 },
+        { "type": "screen_shake", "intensity": 0.4, "duration": 600 }
+      ]
+    },
+
+    "stage3_crow_nest_view": {
+      "id": "stage3_crow_nest_view",
+      "type": "cutscene",
+      "lines": [
+        { "speaker": "narrator", "text": "From the crow's nest, the entire island stretches below.", "delay": 1200 },
+        { "speaker": "narrator", "text": "And now the full scope of Carl's work is visible.", "delay": 1500 },
+        { "speaker": "paul", "text": "The... the entire island. Every path, every clearing.", "delay": 1000 },
+        { "speaker": "paul", "text": "He's decorated EVERYTHING. With PARTS.", "delay": 1200 },
+        { "speaker": "paul", "text": "The lighthouse. I can see it from here. That's my way out.", "delay": 1000 },
+        { "speaker": "carl", "text": "Beautiful view, isn't it? I call it 'Island of a Thousand Pieces.'", "delay": 1200 },
+        { "speaker": "carl", "text": "Each piece tells a story! A very short story, admittedly.", "delay": 1000 },
+        { "speaker": "paul", "text": "I'm going to the lighthouse. Don't follow me.", "delay": 800 },
+        { "speaker": "carl", "text": "The path to the lighthouse is open! I cleared it myself! Very hospitable.", "delay": 1000 }
+      ],
+      "effects": [
+        { "type": "dramatic_zoom", "fov": 1.2, "duration": 3000 },
         { "type": "horror_pulse", "intensity": 0.6 }
       ]
     },
 
-    "stage3_examine_newspaper": {
-      "id": "stage3_examine_newspaper",
-      "type": "examine",
+    "stage3_lighthouse_escape": {
+      "id": "stage3_lighthouse_escape",
+      "type": "cutscene",
       "lines": [
-        { "speaker": "narrator", "text": "The newspaper is dated today. The story goes on for six pages." },
-        { "speaker": "narrator", "text": "The police had no leads. No suspects. No witnesses." },
-        { "speaker": "narrator", "text": "The article quotes a detective: 'It's like they just... ceased to exist.'" }
-      ]
-    },
-
-    "stage3_pickup_keys": {
-      "id": "stage3_pickup_keys",
-      "type": "item",
-      "lines": [
-        { "speaker": "narrator", "text": "A ring of keys dropped on the pavement. Car key, house key, office key." },
-        { "speaker": "carl", "text": "Someone dropped these running. The key ring is still swinging." },
-        { "speaker": "carl", "text": "They were JUST here." }
+        { "speaker": "narrator", "text": "The lighthouse tower rises above the island. The beacon still works.", "delay": 1200 },
+        { "speaker": "paul", "text": "If I can get this light working, someone will see it. Someone will come.", "delay": 1200 },
+        { "speaker": "carl", "text": "Paul! You found my lighthouse! I've been meaning to redecorate it.", "delay": 1000 },
+        { "speaker": "paul", "text": "Stay BACK, Carl. I'm turning on the signal.", "delay": 800 },
+        { "speaker": "carl", "text": "Ooh, a light show! Everyone loves a light show! Can I help?", "delay": 800 },
+        { "speaker": "narrator", "text": "The switch is thrown. The beacon blazes to life.", "delay": 1200 },
+        { "speaker": "narrator", "text": "The beam cuts through the darkness. And something on the horizon moves.", "delay": 1500 },
+        { "speaker": "carl", "text": "Look, Paul! Visitors! I should prepare a welcome feast!", "delay": 1000 },
+        { "speaker": "narrator", "text": "Rescue? Or something Carl invited? Either way... this chapter is over.", "delay": 1500 }
       ],
-      "itemId": "dropped_keys",
       "effects": [
-        { "type": "horror_pulse", "intensity": 0.3 }
+        { "type": "screen_shake", "intensity": 0.6, "duration": 1200 },
+        { "type": "music_change", "track": "music_dark_theme" },
+        { "type": "dramatic_zoom", "fov": 0.7, "duration": 2500 }
       ]
     },
 
-    "stage3_examine_keys": {
-      "id": "stage3_examine_keys",
+    "stage3_pickup_captain_log": {
+      "id": "stage3_pickup_captain_log",
+      "type": "pickup",
+      "lines": [
+        { "speaker": "paul", "text": "A captain's logbook. In Carl's hoofwriting. This should be... illuminating." }
+      ]
+    },
+
+    "stage3_examine_captain_log": {
+      "id": "stage3_examine_captain_log",
       "type": "examine",
       "lines": [
-        { "speaker": "narrator", "text": "A set of everyday keys. The keychain has a family photo in a little plastic sleeve." },
-        { "speaker": "narrator", "text": "A mother, a father, two kids. All smiling." },
-        { "speaker": "carl", "text": "I hope they made it out." }
+        { "speaker": "paul", "text": "The entries start cheerful and get progressively darker. Classic Carl." },
+        { "speaker": "paul", "text": "By Day 30, he's stopped counting crew members and started counting 'materials.'" }
       ]
     },
 
-    "stage3_find_map": {
-      "id": "stage3_find_map",
-      "type": "item",
+    "stage3_pickup_bone_necklace": {
+      "id": "stage3_pickup_bone_necklace",
+      "type": "pickup",
       "lines": [
-        { "speaker": "narrator", "text": "A city map, pinned to a bulletin board. Red Xs mark dozens of locations." },
-        { "speaker": "carl", "text": "Someone was tracking the disappearances." },
-        { "speaker": "carl", "text": "The Xs form a circle around... our apartment." },
-        { "speaker": "carl", "text": "And they're spreading outward. Like ripples." }
-      ],
-      "itemId": "marked_map",
-      "effects": [
-        { "type": "horror_pulse", "intensity": 0.6 },
-        { "type": "screen_shake", "intensity": 0.15, "duration": 300 }
+        { "speaker": "paul", "text": "A necklace made from... I don't want to identify these materials." }
       ]
     },
 
-    "stage3_examine_map": {
-      "id": "stage3_examine_map",
+    "stage3_examine_bone_necklace": {
+      "id": "stage3_examine_bone_necklace",
       "type": "examine",
       "lines": [
-        { "speaker": "narrator", "text": "A detailed city map covered in red Xs, dates, and frantic annotations." },
-        { "speaker": "narrator", "text": "'The pattern is expanding.' 'Always at night.' 'Connected to 42B Elm Street???'" },
-        { "speaker": "narrator", "text": "At the bottom, in a shaking hand: 'God help us all.'" }
+        { "speaker": "paul", "text": "Each bead is carved from... bone. Human bone. With tiny faces etched into them." },
+        { "speaker": "paul", "text": "Carl put FACES on them. He's getting more artistic and it's getting WORSE." }
+      ]
+    },
+
+    "stage3_pickup_cursed_compass": {
+      "id": "stage3_pickup_cursed_compass",
+      "type": "pickup",
+      "lines": [
+        { "speaker": "paul", "text": "This compass... the needle keeps pointing at Carl. No matter which way I turn." }
+      ]
+    },
+
+    "stage3_examine_cursed_compass": {
+      "id": "stage3_examine_cursed_compass",
+      "type": "examine",
+      "lines": [
+        { "speaker": "paul", "text": "North, south, east, west — it doesn't matter. The needle always points to Carl." },
+        { "speaker": "paul", "text": "On the back is engraved: 'So you can always find me! — C.' Terrifying." }
+      ]
+    },
+
+    "stage3_pickup_carl_flag": {
+      "id": "stage3_pickup_carl_flag",
+      "type": "pickup",
+      "lines": [
+        { "speaker": "paul", "text": "Carl's personal Jolly Roger. His face where the skull should be. Somehow that's worse." }
+      ]
+    },
+
+    "stage3_examine_carl_flag": {
+      "id": "stage3_examine_carl_flag",
+      "type": "examine",
+      "lines": [
+        { "speaker": "paul", "text": "A pirate flag with Carl's smiling face. The crossbones underneath are disturbingly realistic." },
+        { "speaker": "paul", "text": "At the bottom in tiny letters: 'Handmade with love and genuine materials.'" }
       ]
     }
   },
@@ -406,216 +235,121 @@
       "id": "stage3_paul_dialogue",
       "character": "paul",
       "tree": {
-        "initial": {
+        "start": {
           "lines": [
-            { "speaker": "paul", "text": "Isn't this EXCITING, Carl? A whole city, just for us!" },
-            { "speaker": "carl", "text": "Paul, people LIVED here." },
-            { "speaker": "paul", "text": "Emphasis on the past tense! Very observant." }
+            { "speaker": "paul", "text": "Carl... this island. What have you done to this place?" },
+            { "speaker": "paul", "text": "There are bones everywhere. Arranged like decorations." }
           ],
           "options": [
-            { "text": "How many people have you killed?", "next": "body_count" },
-            { "text": "Why are you doing this?", "next": "motivation" },
-            { "text": "Is there anyone left?", "next": "survivors" },
-            { "text": "I need to find the highway.", "next": "highway" }
+            { "text": "The trail markers?", "next": "trail_question" },
+            { "text": "The cave collection?", "next": "cave_question" },
+            { "text": "I need to leave.", "next": "leaving" }
           ]
         },
-        "body_count": {
+        "trail_question": {
           "lines": [
-            { "speaker": "paul", "text": "Killed? Such a harsh word." },
-            { "speaker": "paul", "text": "I prefer 'transitioned.' Or 'repurposed.'" },
-            { "speaker": "carl", "text": "How. Many." },
-            { "speaker": "paul", "text": "Honestly? I stopped counting after the postal workers." },
-            { "speaker": "paul", "text": "There were a LOT of postal workers in this city." },
-            { "speaker": "carl", "text": "You killed the ENTIRE postal service?!" },
-            { "speaker": "paul", "text": "Rain, sleet, snow... nothing stops the mail." },
-            { "speaker": "paul", "text": "Except me, apparently!" }
+            { "speaker": "paul", "text": "Human femurs. Used as TRAIL MARKERS. That is not appropriate signage, Carl." },
+            { "speaker": "paul", "text": "There are regulations. Standards. You can't just use people as infrastructure." },
+            { "speaker": "carl", "text": "But they're so durable! And they glow in the dark!" },
+            { "speaker": "paul", "text": "That... that is not a selling point. I need to find the lighthouse." }
           ],
           "options": [
-            { "text": "Why?", "next": "motivation" },
-            { "text": "I can't do this anymore.", "next": "highway" }
+            { "text": "The cave is worse.", "next": "cave_question" },
+            { "text": "I can't listen to this.", "next": "end" }
           ]
         },
-        "motivation": {
+        "cave_question": {
           "lines": [
-            { "speaker": "paul", "text": "Why? WHY?" },
-            { "speaker": "paul", "text": "Carl, have you ever made something with your hooves?" },
-            { "speaker": "paul", "text": "Like REALLY made something? From scratch?" },
-            { "speaker": "carl", "text": "You're talking about arts and crafts. With PEOPLE." },
-            { "speaker": "paul", "text": "Everyone's a critic." },
-            { "speaker": "paul", "text": "I'm creating, Carl. That's what I do." },
-            { "speaker": "paul", "text": "The fountain? The workshop? The beautiful arrangement in the plaza?" },
-            { "speaker": "paul", "text": "That's ART." },
-            { "speaker": "carl", "text": "That's a CRIME SCENE." },
-            { "speaker": "paul", "text": "All great art is controversial!" }
+            { "speaker": "paul", "text": "The cave, Carl. Your 'treasure room.' That is not treasure." },
+            { "speaker": "paul", "text": "Those necklaces. Those carvings. Each one was a person." },
+            { "speaker": "paul", "text": "You catalogued them. With LABELS." },
+            { "speaker": "carl", "text": "Museum-quality curation, Paul! You should appreciate the organizational effort." },
+            { "speaker": "paul", "text": "I appreciate NOTHING about this. I need to signal for rescue." }
           ],
           "options": [
-            { "text": "Is anyone still alive downtown?", "next": "survivors" },
-            { "text": "I'm leaving.", "next": "highway" }
+            { "text": "The lighthouse?", "next": "leaving" }
           ]
         },
-        "survivors": {
+        "leaving": {
           "lines": [
-            { "speaker": "paul", "text": "Survivors? Oh, a few!" },
-            { "speaker": "paul", "text": "I like to leave some. Keeps things interesting." },
-            { "speaker": "carl", "text": "You 'leave some' like leftovers?!" },
-            { "speaker": "paul", "text": "Exactly like leftovers! See, you DO understand me." },
-            { "speaker": "carl", "text": "I don't understand ANYTHING about you!" },
-            { "speaker": "paul", "text": "They're mostly hiding in the buildings." },
-            { "speaker": "paul", "text": "I give them a head start. It's more sporting that way." },
-            { "speaker": "carl", "text": "Sporting. SPORTING." }
-          ],
-          "options": [
-            { "text": "I need to find the highway.", "next": "highway" }
-          ]
-        },
-        "highway": {
-          "lines": [
-            { "speaker": "paul", "text": "The highway? But we just GOT here!" },
-            { "speaker": "carl", "text": "I'm leaving, Paul. With or without you." },
-            { "speaker": "paul", "text": "Without me? Carl, that hurts." },
-            { "speaker": "paul", "text": "After everything I've done for us?" },
-            { "speaker": "carl", "text": "EVERYTHING YOU'VE DONE IS THE PROBLEM!" },
-            { "speaker": "paul", "text": "..." },
-            { "speaker": "paul", "text": "Fine. The highway is to the east." },
-            { "speaker": "paul", "text": "But Carl? I wouldn't take too long." },
-            { "speaker": "paul", "text": "The 'survivors' are getting hungry. And creative." }
-          ],
-          "options": []
-        }
-      }
-    },
-
-    "stage3_citizen_panicked_dialogue": {
-      "id": "stage3_citizen_panicked_dialogue",
-      "character": "citizen_panicked",
-      "tree": {
-        "initial": {
-          "lines": [
-            { "speaker": "citizen_panicked", "text": "OH GOD! LLAMAS!" },
-            { "speaker": "citizen_panicked", "text": "STAY AWAY FROM ME!" },
-            { "speaker": "carl", "text": "Wait! I'm not going to hurt you!" },
-            { "speaker": "citizen_panicked", "text": "That's what the OTHER one said! Right before he--" },
-            { "speaker": "citizen_panicked", "text": "I can't. I CAN'T talk about it." }
-          ],
-          "options": [
-            { "text": "What happened here?", "next": "what_happened" },
-            { "text": "Is there a way out of the city?", "next": "escape_route" },
-            { "text": "I'm sorry. I'll go.", "next": "end" }
-          ]
-        },
-        "what_happened": {
-          "lines": [
-            { "speaker": "citizen_panicked", "text": "It started three weeks ago. People going missing." },
-            { "speaker": "citizen_panicked", "text": "First one or two. Then whole families." },
-            { "speaker": "citizen_panicked", "text": "The police investigated. Then the POLICE went missing." },
-            { "speaker": "citizen_panicked", "text": "And then yesterday... yesterday the WHOLE downtown just..." },
-            { "speaker": "citizen_panicked", "text": "He was everywhere. Your friend. Singing." },
-            { "speaker": "carl", "text": "Singing?" },
-            { "speaker": "citizen_panicked", "text": "Cooking songs. He was singing COOKING SONGS." },
-            { "speaker": "citizen_panicked", "text": "While he... while people..." },
-            { "speaker": "citizen_panicked", "text": "I can't. I CAN'T." }
-          ],
-          "options": [
-            { "text": "How do I get out of the city?", "next": "escape_route" },
-            { "text": "I'm so sorry.", "next": "end" }
-          ]
-        },
-        "escape_route": {
-          "lines": [
-            { "speaker": "citizen_panicked", "text": "Out? The highway east. It's the only road he hasn't..." },
-            { "speaker": "citizen_panicked", "text": "He blocked the other exits. With... things." },
-            { "speaker": "citizen_panicked", "text": "Things that used to be cars. And barricades." },
-            { "speaker": "citizen_panicked", "text": "And other things I won't describe." },
-            { "speaker": "carl", "text": "East highway. Got it." },
-            { "speaker": "citizen_panicked", "text": "Be careful. He WANTS people to go that way." },
-            { "speaker": "citizen_panicked", "text": "I think it's part of his... game." }
-          ],
-          "options": [
-            { "text": "Come with me. We can escape together.", "next": "come_along" },
-            { "text": "Thank you. Stay hidden.", "next": "end" }
-          ]
-        },
-        "come_along": {
-          "lines": [
-            { "speaker": "citizen_panicked", "text": "With YOU? One of the LLAMAS?" },
-            { "speaker": "citizen_panicked", "text": "No. No no no." },
-            { "speaker": "citizen_panicked", "text": "I'll take my chances in the building." },
-            { "speaker": "citizen_panicked", "text": "At least I can lock the doors." },
-            { "speaker": "carl", "text": "Locks didn't stop him before." },
-            { "speaker": "citizen_panicked", "text": "..." },
-            { "speaker": "citizen_panicked", "text": "Just go. Please. Before he finds us talking." }
+            { "speaker": "paul", "text": "The lighthouse. If I can reach it, I can signal for help." },
+            { "speaker": "paul", "text": "Someone sane. Someone who doesn't make jewelry from people." },
+            { "speaker": "carl", "text": "But Paul! We're having such a nice vacation!" },
+            { "speaker": "paul", "text": "This is not a vacation. This is a crime scene the size of an island." }
           ],
           "options": []
         },
         "end": {
           "lines": [
-            { "speaker": "citizen_panicked", "text": "Go. Get out while you can." },
-            { "speaker": "citizen_panicked", "text": "And if you see that other llama..." },
-            { "speaker": "citizen_panicked", "text": "Run." }
+            { "speaker": "paul", "text": "I can't be near you right now, Carl." },
+            { "speaker": "paul", "text": "I'm going to find the lighthouse. And then I'm going to leave. Forever." }
           ],
           "options": []
         }
       }
     },
 
-    "stage3_authority_figure_dialogue": {
-      "id": "stage3_authority_figure_dialogue",
-      "character": "authority_figure",
+    "stage3_carl_dialogue": {
+      "id": "stage3_carl_dialogue",
+      "character": "carl",
       "tree": {
-        "initial": {
+        "start": {
           "lines": [
-            { "speaker": "authority_figure", "text": "Halt! Are you one of the... the llamas?" },
-            { "speaker": "authority_figure", "text": "I'm what's left of the emergency response team." },
-            { "speaker": "authority_figure", "text": "There were twelve of us this morning. Now it's just me." },
-            { "speaker": "carl", "text": "I'm Carl. The other llama... he's the one responsible." }
+            { "speaker": "carl", "text": "Ahoy, Paul! Welcome to Carl's Island Paradise!" },
+            { "speaker": "carl", "text": "I'm Captain Carl now. The hat makes it official." }
           ],
           "options": [
-            { "text": "What's the situation?", "next": "situation" },
-            { "text": "Is there help coming?", "next": "help" },
-            { "text": "How do I get to the highway?", "next": "directions" }
+            { "text": "What happened to the ship's crew?", "next": "crew_question" },
+            { "text": "What's in the cave?", "next": "cave_question" },
+            { "text": "I'm leaving this island.", "next": "leaving" }
           ]
         },
-        "situation": {
+        "crew_question": {
           "lines": [
-            { "speaker": "authority_figure", "text": "Situation? It's a catastrophe." },
-            { "speaker": "authority_figure", "text": "Downtown is completely compromised." },
-            { "speaker": "authority_figure", "text": "Communications are down. He took out the cell towers." },
-            { "speaker": "authority_figure", "text": "Somehow. With a spatula, from what I can tell." },
-            { "speaker": "carl", "text": "A spatula." },
-            { "speaker": "authority_figure", "text": "A very large spatula." },
-            { "speaker": "authority_figure", "text": "The National Guard was called. Two hours ago." },
-            { "speaker": "authority_figure", "text": "The convoy... didn't arrive." }
+            { "speaker": "carl", "text": "They walked the plank! It's a pirate tradition!" },
+            { "speaker": "carl", "text": "Some of them walked voluntarily. Others needed... encouragement." },
+            { "speaker": "paul", "text": "You made people walk the plank. Into the OCEAN." },
+            { "speaker": "carl", "text": "Well, not ALL of them made it to the ocean. Some of them are the trail markers now." }
           ],
           "options": [
-            { "text": "Is help coming?", "next": "help" },
-            { "text": "I need to reach the east highway.", "next": "directions" }
+            { "text": "You used them as TRAIL MARKERS?!", "next": "trail_markers" },
+            { "text": "I don't want to hear any more.", "next": "end" }
           ]
         },
-        "help": {
+        "trail_markers": {
           "lines": [
-            { "speaker": "authority_figure", "text": "Help? I sent three runners to the next city." },
-            { "speaker": "authority_figure", "text": "Two came back." },
-            { "speaker": "authority_figure", "text": "In pieces." },
-            { "speaker": "authority_figure", "text": "The third... I think the third made it." },
-            { "speaker": "authority_figure", "text": "But even if help comes, I don't know how to stop him." },
-            { "speaker": "authority_figure", "text": "He's just a llama. How does a LLAMA do all this?" },
-            { "speaker": "carl", "text": "I've been asking myself that for years." }
+            { "speaker": "carl", "text": "Eco-friendly navigation! Zero carbon footprint!" },
+            { "speaker": "carl", "text": "Well, SOME footprints. But they're not going anywhere." },
+            { "speaker": "paul", "text": "I have never been more horrified. And that's saying something at this point." }
+          ],
+          "options": []
+        },
+        "cave_question": {
+          "lines": [
+            { "speaker": "carl", "text": "My collection! I've been curating it for months!" },
+            { "speaker": "carl", "text": "Each piece is unique. Handcrafted. From locally-sourced materials." },
+            { "speaker": "paul", "text": "Stop saying 'locally-sourced.' I know what you mean by that." },
+            { "speaker": "carl", "text": "You should visit! It's like a museum. A very exclusive, private museum." },
+            { "speaker": "carl", "text": "The necklaces are my best work. Very delicate craftsmanship." }
           ],
           "options": [
-            { "text": "How do I reach the highway?", "next": "directions" }
+            { "text": "I'll investigate. Alone.", "next": "end" }
           ]
         },
-        "directions": {
+        "leaving": {
           "lines": [
-            { "speaker": "authority_figure", "text": "The east highway is past the plaza and through the commercial district." },
-            { "speaker": "authority_figure", "text": "But be warned: he's set up... installations along the way." },
-            { "speaker": "carl", "text": "Installations?" },
-            { "speaker": "authority_figure", "text": "Art. He calls it art." },
-            { "speaker": "authority_figure", "text": "Don't look too closely. Trust me." },
-            { "speaker": "authority_figure", "text": "The on-ramp should be clear. He seems to WANT people to leave that way." },
-            { "speaker": "carl", "text": "That's what the other survivor said too." },
-            { "speaker": "authority_figure", "text": "Maybe it's a trap. Maybe he's just bored." },
-            { "speaker": "authority_figure", "text": "Either way, it's the only option." }
+            { "speaker": "carl", "text": "But you just got here! I have so much to show you!" },
+            { "speaker": "carl", "text": "The lighthouse might work, if you're really set on leaving." },
+            { "speaker": "carl", "text": "But you should see the crow's nest first! The view is to DIE for!" },
+            { "speaker": "paul", "text": "Please stop saying things are 'to die for.'" },
+            { "speaker": "carl", "text": "It's just an expression, Paul! A very accurate expression!" }
+          ],
+          "options": []
+        },
+        "end": {
+          "lines": [
+            { "speaker": "carl", "text": "Okay! I'll be on the ship if you need me!" },
+            { "speaker": "carl", "text": "I'm working on a new recipe. Island fusion cuisine!" }
           ],
           "options": []
         }
@@ -624,238 +358,43 @@
   },
 
   "propOverrides": {
-    "overturned_car": {
-      "carl": [
-        "A car flipped on its roof. The airbags deployed.",
-        "The driver's seat is empty. The seatbelt was cut."
-      ],
-      "paul": [
-        "Oops! Parallel parking is tricky.",
-        "The important thing is no one was... wait, never mind."
-      ],
-      "horror": [
-        "The car radio is still playing. A cheerful pop song.",
-        "Blood drips steadily from the crumpled roof, pooling beneath."
-      ],
-      "prompt": "Examine car"
+    "barrel": {
+      "examine": [
+        { "speaker": "paul", "text": "A barrel from the ship. The lid is nailed shut. Something inside is sloshing. I'm not opening it." }
+      ]
     },
-    "fire_hydrant": {
-      "carl": [
-        "A sheared-off fire hydrant, spraying water into the air.",
-        "The water mixing with something dark in the gutter."
-      ],
-      "paul": [
-        "Free water park! Very refreshing.",
-        "I may have bumped it. With a truck. Accidentally."
-      ],
-      "prompt": "Look at hydrant"
+    "crate": {
+      "examine": [
+        { "speaker": "paul", "text": "Shipping crate from the S.S. Carl. Labeled 'FRAGILE — SUPPLIES.' The label is handwritten." }
+      ]
     },
-    "shop_window": {
-      "carl": [
-        "The shop window is shattered. Glass everywhere.",
-        "Inside, the shelves are ransacked. Someone was looking for something."
-      ],
-      "paul": [
-        "Window shopping! I love window shopping.",
-        "Especially when the windows are already open for you."
-      ],
-      "horror": [
-        "Handprints smear the remaining glass. Dozens of them.",
-        "All pressing outward. All at the same height."
-      ],
-      "prompt": "Look through window"
+    "rock": {
+      "examine": [
+        { "speaker": "paul", "text": "A large rock. Something is carved into it. It looks like a tally mark system. There are a LOT of marks." }
+      ]
     },
-    "dumpster": {
-      "carl": [
-        "A restaurant dumpster. It's sealed shut. Welded.",
-        "Something inside is making noise."
-      ],
-      "paul": [
-        "Waste not, want not!",
-        "I'm very environmentally conscious about my leftovers."
-      ],
-      "horror": [
-        "The dumpster shakes rhythmically. Like breathing.",
-        "A muffled sound comes from inside. Not words. Not anymore."
-      ],
-      "prompt": "Check dumpster"
+    "campfire": {
+      "examine": [
+        { "speaker": "paul", "text": "A campfire pit. The ashes are still warm. The smell is... not wood smoke." }
+      ]
     },
-    "traffic_light": {
-      "carl": [
-        "The traffic light cycles through colors, directing no one.",
-        "There hasn't been a car on this street in days."
-      ],
-      "paul": [
-        "I love that the infrastructure still works!",
-        "Very organized apocalypse. I'm quite proud."
-      ],
-      "prompt": "Look at traffic light"
-    },
-    "newspaper_box": {
-      "carl": [
-        "A newspaper vending machine. Today's edition.",
-        "The headline is about the disappearances. Page after page."
-      ],
-      "paul": [
-        "Local celebrity! That's basically what I am now.",
-        "They didn't get my good side though."
-      ],
-      "horror": [
-        "Tomorrow's edition is already loaded. The headline: 'NO ONE LEFT TO READ THIS.'",
-        "The byline is Paul's name."
-      ],
-      "prompt": "Check newspaper box"
-    },
-    "bench": {
-      "carl": [
-        "A park bench. A purse and a coffee cup sit abandoned.",
-        "The coffee is still warm. Someone was here minutes ago."
-      ],
-      "paul": [
-        "Great spot for people-watching!",
-        "Well, it WAS."
-      ],
-      "prompt": "Examine bench"
-    },
-    "fountain": {
-      "carl": [
-        "The plaza fountain. The water is dark red.",
-        "I'm not going any closer."
-      ],
-      "paul": [
-        "My masterpiece! I reworked the whole plumbing system.",
-        "Very avant-garde. Very... liquid."
-      ],
-      "horror": [
-        "The fountain pumps in a steady rhythm. Like a heartbeat.",
-        "The 'statue' in the center shifts slightly when you look away."
-      ],
-      "prompt": "Look at fountain"
-    },
-    "street_sign": {
-      "carl": [
-        "A street sign. 'Elm Street' is crossed out.",
-        "Someone wrote 'PAUL'S BOULEVARD' over it in red."
-      ],
-      "paul": [
-        "Rebranding! Very important for community identity.",
-        "I renamed all the streets. This is Paul's Boulevard."
-      ],
-      "prompt": "Read sign"
-    },
-    "phone_booth": {
-      "carl": [
-        "An old phone booth. The phone is off the hook.",
-        "I can hear a faint voice repeating '911, what is your emergency' over and over."
-      ],
-      "paul": [
-        "Retro! I love retro things.",
-        "Did you know the 911 system has a hold function? I didn't!"
-      ],
-      "horror": [
-        "The operator's voice has been repeating for hours.",
-        "No one is coming."
-      ],
-      "prompt": "Check phone booth"
-    },
-    "debris_pile": {
-      "carl": [
-        "A pile of rubble. Part of a building collapsed.",
-        "It looks like it was knocked down from the inside."
-      ],
-      "paul": [
-        "Open concept! Very modern design philosophy.",
-        "Walls are just suggestions, really."
-      ],
-      "horror": [
-        "Something moves beneath the debris. Slowly.",
-        "A hand reaches out. Then goes still."
-      ],
-      "prompt": "Search debris"
-    },
-    "freezer": {
-      "carl": [
-        "An industrial freezer. Padlocked and humming.",
-        "I do NOT want to know what's inside."
-      ],
-      "paul": [
-        "Storage! I'm very organized.",
-        "Everything labeled, everything sorted. Very professional."
-      ],
-      "horror": [
-        "The freezer knocks from the inside. Once. Twice.",
-        "Then a voice, muffled and faint: 'Please.'"
-      ],
-      "prompt": "Examine freezer"
-    },
-    "workbench": {
-      "carl": [
-        "A workbench covered in stains. Tools hanging from hooks above.",
-        "These are not workshop tools. These are surgical instruments."
-      ],
-      "paul": [
-        "My creative space! Every artist needs a good workspace.",
-        "The tools are for precision work. Very delicate stuff."
-      ],
-      "horror": [
-        "The instruments are clean. Meticulously clean.",
-        "That's somehow worse than if they were dirty."
-      ],
-      "prompt": "Examine workbench"
+    "sign": {
+      "examine": [
+        { "speaker": "paul", "text": "'Welcome to Carl's Island Paradise! Population: Varies.' That's ominous." }
+      ]
     }
   },
 
   "genericLines": {
-    "lost_downtown": {
-      "carl": [
-        "These streets all look the same. Especially when they're all destroyed.",
-        "I need to head east. The highway should be that direction."
-      ]
-    },
-    "paul_wanders": {
-      "carl": [
-        "Where did Paul go? He keeps wandering off.",
-        "That's... probably bad for everyone."
-      ],
-      "paul": [
-        "Just checking on a few things! Back in a jiffy!",
-        "Don't worry, Carl. The hard part is already done."
-      ]
-    },
-    "horror_ambient_downtown": {
-      "carl": [
-        "The silence is the worst part. A city shouldn't be this quiet.",
-        "Every building I pass is empty. Every car is abandoned."
-      ],
-      "paul": [
-        "Listen to that! Peace and quiet. My gift to the city.",
-        "You're welcome, everyone! Well. Everyone who's left."
-      ]
-    },
-    "approaching_exit": {
-      "carl": [
-        "The highway on-ramp. I can see it.",
-        "I just need to keep going. Don't stop. Don't look back."
-      ]
-    },
-    "building_locked": {
-      "carl": [
-        "This door is barricaded from the inside. Someone is hiding.",
-        "I hope they stay hidden."
-      ]
-    },
-    "dead_end": {
-      "carl": [
-        "Dead end. The road is blocked by... I don't want to describe it.",
-        "I need to find another way around."
-      ],
-      "paul": ["Oh, you found one of my roadblocks! Detour, Carl!"]
-    },
-    "near_final_confrontation": {
-      "carl": [
-        "Paul is acting different. The smile is gone.",
-        "I've never seen him like this. I'm scared."
-      ]
-    }
+    "hints": [
+      { "speaker": "paul", "text": "The lighthouse. If I can get the beacon working, someone might see it." },
+      { "speaker": "paul", "text": "I should check the cave. Carl's 'collection' might explain how long he's been at this." },
+      { "speaker": "paul", "text": "The ghost ship has to have clues. Carl keeps a captain's log — he's thorough about documentation." }
+    ],
+    "ambient": [
+      { "speaker": "narrator", "text": "Waves crash against the shore. The sound almost masks the other noises." },
+      { "speaker": "narrator", "text": "Something moves in the jungle undergrowth. Too large to be a jungle animal." },
+      { "speaker": "narrator", "text": "The ghost ship creaks in the harbor. A lantern swings on the mast." }
+    ]
   }
 }

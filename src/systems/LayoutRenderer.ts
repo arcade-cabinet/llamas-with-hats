@@ -19,17 +19,22 @@ import {
   AbstractMesh,
   Vector3,
   HemisphericLight,
-  DirectionalLight
+  DirectionalLight,
+  PointLight
 } from '@babylonjs/core';
 
 import {
   GeneratedLayout,
   GeneratedRoom,
   RoomConnection,
-  GRID_CELL_SIZE
 } from './LayoutGenerator';
 import { createVerticalTransition } from './StageRenderer';
 import { createPropMeshAsync } from './PropFactory';
+import {
+  getTexturesForRoom,
+  createFloorMaterial,
+  createWallMaterial,
+} from './TextureLoader';
 
 // ============================================
 // Types
@@ -40,11 +45,13 @@ export interface RenderedLayout {
   rooms: Map<string, RenderedRoom>;
   connections: RenderedConnection[];
   verticalTransitions: RenderedVerticalTransition[];
-  
+
   getGroundY: (x: number, z: number) => number;
   isWalkable: (x: number, z: number) => boolean;
   getRoomAt: (x: number, z: number) => RenderedRoom | null;
-  
+  /** Enable only current room + adjacent rooms, disable all others */
+  updateRoomVisibility: (currentRoomId: string) => void;
+
   dispose: () => void;
 }
 
@@ -65,8 +72,13 @@ export interface RenderedRoom {
 
 export interface RenderedConnection {
   id: string;
-  mesh: AbstractMesh | null;
+  mesh: AbstractMesh | TransformNode | null;
   type: string;
+  /** Walkable corridor bounds between rooms (world coords) */
+  corridorBounds?: { minX: number; maxX: number; minZ: number; maxZ: number };
+  /** Room IDs this corridor connects — used by getRoomAt to resolve which room the player is entering */
+  connectedRooms?: { from: string; to: string };
+  groundY?: number;
 }
 
 export interface RenderedVerticalTransition {
@@ -189,7 +201,7 @@ export async function renderLayout(
   
   // Render horizontal connections (doors, archways)
   for (const conn of layout.connections) {
-    const rendered = renderConnection(scene, conn, layout, normalMats.door, shadowGenerator);
+    const rendered = renderConnection(scene, conn, layout, normalMats.floor, normalMats.wall, normalMats.ceiling, shadowGenerator);
     if (rendered.mesh) {
       rendered.mesh.parent = root;
     }
@@ -209,8 +221,8 @@ export async function renderLayout(
       width: 3,
       direction: 'north',
       position: {
-        x: vc.position.x * GRID_CELL_SIZE,
-        z: vc.position.z * GRID_CELL_SIZE
+        x: vc.position.x,
+        z: vc.position.z
       },
       style: {
         handrails: true,
@@ -230,57 +242,105 @@ export async function renderLayout(
     });
   }
   
-  // Build navigation helpers
+  // Build navigation helpers — check rooms, corridors, and vertical transitions
+
+  const pointInBounds = (x: number, z: number, b: { minX: number; maxX: number; minZ: number; maxZ: number }) =>
+    x >= b.minX && x <= b.maxX && z >= b.minZ && z <= b.maxZ;
+
   const getGroundY = (x: number, z: number): number => {
     // Check vertical transitions first
     for (const vt of verticalTransitions) {
-      if (x >= vt.bounds.minX && x <= vt.bounds.maxX &&
-          z >= vt.bounds.minZ && z <= vt.bounds.maxZ) {
-        return vt.getGroundY(x, z);
-      }
+      if (pointInBounds(x, z, vt.bounds)) return vt.getGroundY(x, z);
     }
-    
     // Check rooms
     for (const room of renderedRooms.values()) {
-      if (x >= room.bounds.minX && x <= room.bounds.maxX &&
-          z >= room.bounds.minZ && z <= room.bounds.maxZ) {
-        return room.groundY;
+      if (pointInBounds(x, z, room.bounds)) return room.groundY;
+    }
+    // Check corridors
+    for (const conn of renderedConnections) {
+      if (conn.corridorBounds && pointInBounds(x, z, conn.corridorBounds)) {
+        return conn.groundY ?? 0;
       }
     }
-    
     return 0;
   };
-  
+
   const isWalkable = (x: number, z: number): boolean => {
     // Check rooms
     for (const room of renderedRooms.values()) {
-      if (x >= room.bounds.minX && x <= room.bounds.maxX &&
-          z >= room.bounds.minZ && z <= room.bounds.maxZ) {
-        return true;
-      }
+      if (pointInBounds(x, z, room.bounds)) return true;
     }
-    
+    // Check corridors between rooms
+    for (const conn of renderedConnections) {
+      if (conn.corridorBounds && pointInBounds(x, z, conn.corridorBounds)) return true;
+    }
     // Check vertical transitions
     for (const vt of verticalTransitions) {
-      if (x >= vt.bounds.minX && x <= vt.bounds.maxX &&
-          z >= vt.bounds.minZ && z <= vt.bounds.maxZ) {
-        return true;
-      }
+      if (pointInBounds(x, z, vt.bounds)) return true;
     }
-    
     return false;
   };
-  
+
   const getRoomAt = (x: number, z: number): RenderedRoom | null => {
+    // Check rooms first (exact match)
     for (const room of renderedRooms.values()) {
-      if (x >= room.bounds.minX && x <= room.bounds.maxX &&
-          z >= room.bounds.minZ && z <= room.bounds.maxZ) {
-        return room;
+      if (pointInBounds(x, z, room.bounds)) return room;
+    }
+    // Check corridors — return the room the player is closer to
+    for (const conn of renderedConnections) {
+      if (conn.corridorBounds && conn.connectedRooms && pointInBounds(x, z, conn.corridorBounds)) {
+        const fromRoom = renderedRooms.get(conn.connectedRooms.from);
+        const toRoom = renderedRooms.get(conn.connectedRooms.to);
+        if (!fromRoom && !toRoom) return null;
+        if (!fromRoom) return toRoom!;
+        if (!toRoom) return fromRoom;
+        // Return whichever room center is closer
+        const distFrom = Math.abs(x - (fromRoom.bounds.minX + fromRoom.bounds.maxX) / 2) +
+                          Math.abs(z - (fromRoom.bounds.minZ + fromRoom.bounds.maxZ) / 2);
+        const distTo = Math.abs(x - (toRoom.bounds.minX + toRoom.bounds.maxX) / 2) +
+                        Math.abs(z - (toRoom.bounds.minZ + toRoom.bounds.maxZ) / 2);
+        return distTo < distFrom ? toRoom : fromRoom;
       }
     }
     return null;
   };
   
+  // Build adjacency map from connections for room visibility culling
+  const adjacencyMap = new Map<string, Set<string>>();
+  for (const conn of renderedConnections) {
+    if (!conn.connectedRooms) continue;
+    const { from, to } = conn.connectedRooms;
+    if (!adjacencyMap.has(from)) adjacencyMap.set(from, new Set());
+    if (!adjacencyMap.has(to)) adjacencyMap.set(to, new Set());
+    adjacencyMap.get(from)!.add(to);
+    adjacencyMap.get(to)!.add(from);
+  }
+
+  // Track which connections link which rooms (for corridor visibility)
+  const connectionRoomPairs = renderedConnections
+    .filter(c => c.connectedRooms)
+    .map(c => ({ conn: c, from: c.connectedRooms!.from, to: c.connectedRooms!.to }));
+
+  const updateRoomVisibility = (currentRoomId: string): void => {
+    // Determine visible room IDs: current + adjacent
+    const visibleRooms = new Set<string>([currentRoomId]);
+    const adjacent = adjacencyMap.get(currentRoomId);
+    if (adjacent) {
+      for (const id of adjacent) visibleRooms.add(id);
+    }
+
+    // Enable/disable room roots
+    for (const [roomId, room] of renderedRooms) {
+      room.root.setEnabled(visibleRooms.has(roomId));
+    }
+
+    // Enable corridors between visible rooms, disable others
+    for (const { conn, from, to } of connectionRoomPairs) {
+      const visible = visibleRooms.has(from) && visibleRooms.has(to);
+      if (conn.mesh) conn.mesh.setEnabled(visible);
+    }
+  };
+
   return {
     root,
     rooms: renderedRooms,
@@ -289,6 +349,7 @@ export async function renderLayout(
     getGroundY,
     isWalkable,
     getRoomAt,
+    updateRoomVisibility,
     dispose() {
       root.dispose();
     }
@@ -343,35 +404,67 @@ async function renderRoom(
     room.worldPosition.y,
     room.worldPosition.z
   );
-  
+
   const { width, height, ceilingHeight } = room.size;
   const wallThickness = 0.2;
-  
+  const DOOR_HEIGHT = 2.2;
+  const FRAME_TRIM = 0.08;
+
+  // Resolve PBR textures for this room type (falls back to flat material if unavailable)
+  const texMapping = getTexturesForRoom(room.id, room.templateId);
+  const pbrFloor = createFloorMaterial(scene, texMapping.floor, width, height);
+  const pbrWall = createWallMaterial(scene, texMapping.wall, width, ceilingHeight);
+  const floorMat = pbrFloor ?? mats.floor;
+  const wallMat = pbrWall ?? mats.wall;
+
   // Floor
   const floor = MeshBuilder.CreateGround(`${room.id}_floor`, {
     width,
     height
   }, scene);
-  floor.material = mats.floor;
+  floor.material = floorMat;
   floor.receiveShadows = true;
   floor.parent = roomRoot;
-  
+
+  // Ceiling
+  const ceiling = MeshBuilder.CreateGround(`${room.id}_ceiling`, {
+    width,
+    height
+  }, scene);
+  ceiling.position.y = ceilingHeight;
+  ceiling.rotation.x = Math.PI; // flip normals downward so ceiling is visible from below
+  ceiling.material = mats.ceiling;
+  ceiling.parent = roomRoot;
+
   // Walls
   const wallsRoot = new TransformNode(`${room.id}_walls`, scene);
   wallsRoot.parent = roomRoot;
-  
+
+  // Per-room point light for spatial differentiation
+  const roomLight = createRoomPointLight(scene, room, ceilingHeight);
+  if (roomLight) {
+    roomLight.parent = roomRoot;
+  }
+
   const wallDirs: Array<'north' | 'south' | 'east' | 'west'> = ['north', 'south', 'east', 'west'];
-  
+
   for (const dir of wallDirs) {
     const hasOpening = connectionDirections.has(dir);
     const isHoriz = dir === 'north' || dir === 'south';
     const length = isHoriz ? width : height;
-    
+
     if (hasOpening) {
-      // Create wall with opening
-      const openingWidth = 2;
+      // Create wall with door-height opening: two side segments + lintel above + door frame trim
+      const openingWidth = 3;
       const segmentLength = (length - openingWidth) / 2;
-      
+
+      // Wall position along the wall's normal axis
+      const wallPos = dir === 'north' ? -height / 2
+        : dir === 'south' ? height / 2
+        : dir === 'east' ? width / 2
+        : -width / 2;
+
+      // 1. Two side segments (full ceiling height, flanking the opening)
       if (segmentLength > 0) {
         [-1, 1].forEach(side => {
           const seg = MeshBuilder.CreateBox(`${room.id}_wall_${dir}_${side}`, {
@@ -379,29 +472,75 @@ async function renderRoom(
             height: ceilingHeight,
             depth: isHoriz ? wallThickness : segmentLength
           }, scene);
-          seg.material = mats.wall;
-          
+          seg.material = wallMat;
+
           const offset = side * (segmentLength / 2 + openingWidth / 2);
-          
-          switch (dir) {
-            case 'north':
-              seg.position.set(offset, ceilingHeight / 2, -height / 2);
-              break;
-            case 'south':
-              seg.position.set(offset, ceilingHeight / 2, height / 2);
-              break;
-            case 'east':
-              seg.position.set(width / 2, ceilingHeight / 2, offset);
-              break;
-            case 'west':
-              seg.position.set(-width / 2, ceilingHeight / 2, offset);
-              break;
+
+          if (isHoriz) {
+            seg.position.set(offset, ceilingHeight / 2, wallPos);
+          } else {
+            seg.position.set(wallPos, ceilingHeight / 2, offset);
           }
-          
+
           seg.parent = wallsRoot;
           if (shadowGenerator) shadowGenerator.addShadowCaster(seg);
         });
       }
+
+      // 2. Lintel above the opening (spans openingWidth, from DOOR_HEIGHT to ceilingHeight)
+      const lintelHeight = ceilingHeight - DOOR_HEIGHT;
+      if (lintelHeight > 0.01) {
+        const lintel = MeshBuilder.CreateBox(`${room.id}_lintel_${dir}`, {
+          width: isHoriz ? openingWidth : wallThickness,
+          height: lintelHeight,
+          depth: isHoriz ? wallThickness : openingWidth
+        }, scene);
+        lintel.material = wallMat;
+
+        const lintelY = DOOR_HEIGHT + lintelHeight / 2;
+        if (isHoriz) {
+          lintel.position.set(0, lintelY, wallPos);
+        } else {
+          lintel.position.set(wallPos, lintelY, 0);
+        }
+
+        lintel.parent = wallsRoot;
+        if (shadowGenerator) shadowGenerator.addShadowCaster(lintel);
+      }
+
+      // 3. Door frame trim (decorative posts and header at the opening)
+      const frameDepth = wallThickness + 0.02;
+      // Two vertical posts
+      [-1, 1].forEach(side => {
+        const post = MeshBuilder.CreateBox(`${room.id}_frame_${dir}_${side}`, {
+          width: isHoriz ? FRAME_TRIM : frameDepth,
+          height: DOOR_HEIGHT,
+          depth: isHoriz ? frameDepth : FRAME_TRIM
+        }, scene);
+        post.material = mats.door;
+
+        const postOffset = side * openingWidth / 2;
+        if (isHoriz) {
+          post.position.set(postOffset, DOOR_HEIGHT / 2, wallPos);
+        } else {
+          post.position.set(wallPos, DOOR_HEIGHT / 2, postOffset);
+        }
+
+        post.parent = wallsRoot;
+      });
+      // Horizontal header
+      const header = MeshBuilder.CreateBox(`${room.id}_header_${dir}`, {
+        width: isHoriz ? openingWidth : frameDepth,
+        height: FRAME_TRIM,
+        depth: isHoriz ? frameDepth : openingWidth
+      }, scene);
+      header.material = mats.door;
+      if (isHoriz) {
+        header.position.set(0, DOOR_HEIGHT, wallPos);
+      } else {
+        header.position.set(wallPos, DOOR_HEIGHT, 0);
+      }
+      header.parent = wallsRoot;
     } else {
       // Full wall
       const wall = MeshBuilder.CreateBox(`${room.id}_wall_${dir}`, {
@@ -409,8 +548,8 @@ async function renderRoom(
         height: ceilingHeight,
         depth: isHoriz ? wallThickness : length
       }, scene);
-      wall.material = mats.wall;
-      
+      wall.material = wallMat;
+
       switch (dir) {
         case 'north':
           wall.position.set(0, ceilingHeight / 2, -height / 2);
@@ -425,7 +564,7 @@ async function renderRoom(
           wall.position.set(-width / 2, ceilingHeight / 2, 0);
           break;
       }
-      
+
       wall.parent = wallsRoot;
       if (shadowGenerator) shadowGenerator.addShadowCaster(wall);
     }
@@ -480,11 +619,67 @@ async function renderRoom(
     id: room.id,
     root: roomRoot,
     floor,
+    ceiling,
     walls: wallsRoot,
     props,
     bounds,
     groundY: room.worldPosition.y
   };
+}
+
+// ============================================
+// Room Lighting
+// ============================================
+
+/**
+ * Create a point light for a room based on its type and atmosphere.
+ * Gives each room a distinct lighting feel:
+ * - Bedrooms/living rooms: warm yellow-orange
+ * - Kitchens/bathrooms: cool white
+ * - Basements/storage: dim blue-gray
+ * - Horror rooms: flickering red accent
+ * - Outdoor rooms: no point light (rely on sun)
+ */
+function createRoomPointLight(
+  scene: Scene,
+  room: GeneratedRoom,
+  ceilingHeight: number
+): PointLight | null {
+  const id = room.id.toLowerCase();
+  const template = room.templateId.toLowerCase();
+  const isHorror = room.atmosphere?.preset === 'horror' || room.atmosphere?.bloodSplatter;
+
+  // Outdoor rooms use ambient/directional only
+  if (template.includes('street') || template.includes('yard') ||
+      template.includes('alley') || template.includes('parking') ||
+      template.includes('plaza') || template.includes('city')) {
+    return null;
+  }
+
+  const light = new PointLight(`light_${room.id}`, new Vector3(0, ceilingHeight - 0.3, 0), scene);
+  light.range = Math.max(room.size.width, room.size.height) * 1.2;
+
+  if (isHorror) {
+    light.diffuse = new Color3(0.8, 0.25, 0.15);
+    light.intensity = 0.6;
+  } else if (room.level < 0 || id.includes('basement') || id.includes('storage') || template.includes('basement')) {
+    light.diffuse = new Color3(0.5, 0.55, 0.65);
+    light.intensity = 0.35;
+  } else if (id.includes('kitchen') || id.includes('bathroom') || template.includes('kitchen') || template.includes('bathroom')) {
+    light.diffuse = new Color3(0.95, 0.95, 1.0);
+    light.intensity = 0.5;
+  } else if (id.includes('bedroom') || id.includes('living') || id.includes('lounge') || template.includes('bedroom')) {
+    light.diffuse = new Color3(1.0, 0.88, 0.7);
+    light.intensity = 0.45;
+  } else if (id.includes('hallway') || id.includes('corridor') || template.includes('hallway')) {
+    light.diffuse = new Color3(0.9, 0.85, 0.75);
+    light.intensity = 0.3;
+  } else {
+    light.diffuse = new Color3(0.95, 0.9, 0.8);
+    light.intensity = 0.4;
+  }
+
+  return light;
 }
 
 // ============================================
@@ -495,43 +690,153 @@ function renderConnection(
   scene: Scene,
   conn: RoomConnection,
   layout: GeneratedLayout,
-  doorMat: StandardMaterial,
+  floorMat: StandardMaterial,
+  wallMat: StandardMaterial,
+  ceilingMat: StandardMaterial,
   shadowGenerator?: ShadowGenerator
 ): RenderedConnection {
   const fromRoom = layout.rooms.get(conn.fromRoom);
   const toRoom = layout.rooms.get(conn.toRoom);
-  
+
   if (!fromRoom || !toRoom) {
     return { id: conn.id, mesh: null, type: conn.type };
   }
-  
+
   // Calculate midpoint between rooms
   const midX = (fromRoom.worldPosition.x + toRoom.worldPosition.x) / 2;
   const midZ = (fromRoom.worldPosition.z + toRoom.worldPosition.z) / 2;
   const y = fromRoom.worldPosition.y;
-  
-  if (conn.type === 'wall_door') {
-    // Create door frame
-    const doorFrame = MeshBuilder.CreateBox(`${conn.id}_frame`, {
-      width: 2.2,
-      height: 2.2,
-      depth: 0.3
-    }, scene);
-    doorFrame.material = doorMat;
-    doorFrame.position.set(midX, y + 1.1, midZ);
-    
-    // Rotate based on direction
-    if (conn.direction === 'east' || conn.direction === 'west') {
-      doorFrame.rotation.y = Math.PI / 2;
-    }
-    
-    if (shadowGenerator) shadowGenerator.addShadowCaster(doorFrame);
-    
-    return { id: conn.id, mesh: doorFrame, type: 'wall_door' };
+
+  // ── Compute corridor bounds (the gap between the two rooms' edges) ──
+  const OPENING_WIDTH = 3; // must match wall opening width in renderRoom
+  const isEastWest = conn.direction === 'east' || conn.direction === 'west';
+
+  let corridorBounds: { minX: number; maxX: number; minZ: number; maxZ: number };
+
+  if (isEastWest) {
+    // Corridor runs along X between the east edge of one room and west edge of the other
+    const leftRoom = fromRoom.worldPosition.x < toRoom.worldPosition.x ? fromRoom : toRoom;
+    const rightRoom = leftRoom === fromRoom ? toRoom : fromRoom;
+    const leftEdge = leftRoom.worldPosition.x + leftRoom.size.width / 2;
+    const rightEdge = rightRoom.worldPosition.x - rightRoom.size.width / 2;
+    corridorBounds = {
+      minX: leftEdge,
+      maxX: rightEdge,
+      minZ: midZ - OPENING_WIDTH / 2,
+      maxZ: midZ + OPENING_WIDTH / 2,
+    };
+  } else {
+    // Corridor runs along Z between north edge of one room and south edge of the other
+    const topRoom = fromRoom.worldPosition.z < toRoom.worldPosition.z ? fromRoom : toRoom;
+    const bottomRoom = topRoom === fromRoom ? toRoom : fromRoom;
+    const topEdge = topRoom.worldPosition.z + topRoom.size.height / 2;
+    const bottomEdge = bottomRoom.worldPosition.z - bottomRoom.size.height / 2;
+    corridorBounds = {
+      minX: midX - OPENING_WIDTH / 2,
+      maxX: midX + OPENING_WIDTH / 2,
+      minZ: topEdge,
+      maxZ: bottomEdge,
+    };
   }
-  
-  // Archway and open connections don't need mesh
-  return { id: conn.id, mesh: null, type: conn.type };
+
+  // Normalize (ensure min < max)
+  if (corridorBounds.minX > corridorBounds.maxX) {
+    [corridorBounds.minX, corridorBounds.maxX] = [corridorBounds.maxX, corridorBounds.minX];
+  }
+  if (corridorBounds.minZ > corridorBounds.maxZ) {
+    [corridorBounds.minZ, corridorBounds.maxZ] = [corridorBounds.maxZ, corridorBounds.minZ];
+  }
+
+  // ── Gap-aware corridor rendering ──
+  // With tight positioning, the gap is typically ~WALL_GAP (0.2).
+  // Door frames are now rendered as room wall trim (Part 4), so we only
+  // need to bridge the floor gap and optionally enclose wider corridors.
+  const cw = corridorBounds.maxX - corridorBounds.minX;
+  const ch = corridorBounds.maxZ - corridorBounds.minZ;
+  const gapLength = isEastWest ? cw : ch;
+  const corridorCenterX = (corridorBounds.minX + corridorBounds.maxX) / 2;
+  const corridorCenterZ = (corridorBounds.minZ + corridorBounds.maxZ) / 2;
+
+  let corridorRoot: TransformNode | null = null;
+
+  if (gapLength > 0.05) {
+    corridorRoot = new TransformNode(`${conn.id}_corridor`, scene);
+
+    if (gapLength > 0.5) {
+      // Wide gap: full corridor with floor, side walls, and ceiling
+      const corridorFloor = MeshBuilder.CreateGround(`${conn.id}_corridor_floor`, {
+        width: cw,
+        height: ch,
+      }, scene);
+      corridorFloor.material = floorMat;
+      corridorFloor.receiveShadows = true;
+      corridorFloor.position.set(corridorCenterX, y, corridorCenterZ);
+      corridorFloor.parent = corridorRoot;
+
+      // Corridor ceiling height from adjacent rooms
+      const ceilingH = Math.max(fromRoom.size.ceilingHeight, toRoom.size.ceilingHeight);
+
+      // Ceiling
+      const corridorCeiling = MeshBuilder.CreateGround(`${conn.id}_corridor_ceiling`, {
+        width: cw,
+        height: ch,
+      }, scene);
+      corridorCeiling.position.set(corridorCenterX, y + ceilingH, corridorCenterZ);
+      corridorCeiling.rotation.x = Math.PI;
+      corridorCeiling.material = ceilingMat;
+      corridorCeiling.parent = corridorRoot;
+
+      // Side walls along the corridor
+      const wallThick = 0.2;
+      if (isEastWest) {
+        // Corridor runs along X — side walls on north and south edges
+        [-1, 1].forEach(side => {
+          const sideWall = MeshBuilder.CreateBox(`${conn.id}_side_${side}`, {
+            width: cw,
+            height: ceilingH,
+            depth: wallThick,
+          }, scene);
+          sideWall.material = wallMat;
+          sideWall.position.set(corridorCenterX, y + ceilingH / 2, corridorCenterZ + side * OPENING_WIDTH / 2);
+          sideWall.parent = corridorRoot;
+          if (shadowGenerator) shadowGenerator.addShadowCaster(sideWall);
+        });
+      } else {
+        // Corridor runs along Z — side walls on east and west edges
+        [-1, 1].forEach(side => {
+          const sideWall = MeshBuilder.CreateBox(`${conn.id}_side_${side}`, {
+            width: wallThick,
+            height: ceilingH,
+            depth: ch,
+          }, scene);
+          sideWall.material = wallMat;
+          sideWall.position.set(corridorCenterX + side * OPENING_WIDTH / 2, y + ceilingH / 2, corridorCenterZ);
+          sideWall.parent = corridorRoot;
+          if (shadowGenerator) shadowGenerator.addShadowCaster(sideWall);
+        });
+      }
+    } else {
+      // Narrow gap (0.05-0.5): small floor patch to prevent visual seams
+      const patch = MeshBuilder.CreateGround(`${conn.id}_floor_patch`, {
+        width: cw,
+        height: ch,
+      }, scene);
+      patch.material = floorMat;
+      patch.receiveShadows = true;
+      patch.position.set(corridorCenterX, y, corridorCenterZ);
+      patch.parent = corridorRoot;
+    }
+  }
+  // If gap < 0.05: rooms practically overlap at the wall, no mesh needed
+
+  return {
+    id: conn.id,
+    mesh: corridorRoot as AbstractMesh | null,
+    type: conn.type,
+    corridorBounds,
+    connectedRooms: { from: conn.fromRoom, to: conn.toRoom },
+    groundY: y,
+  };
 }
 
 // ============================================

@@ -357,7 +357,7 @@ describe('callback firing', () => {
     sm.setCallbacks(callbacks);
   });
 
-  it('should fire onDialogue with beat description and speaker carl for order path', () => {
+  it('should fire onDialogue with speaker paul for order path', () => {
     sm.setCharacterPath('order');
     sm.loadBeats([makeSceneEnterBeat('b1', 'room')]);
     sm.checkTrigger('scene_enter', { sceneId: 'room' });
@@ -365,18 +365,18 @@ describe('callback firing', () => {
     expect(callbacks.onDialogue).toHaveBeenCalledTimes(1);
     expect(callbacks.onDialogue).toHaveBeenCalledWith(
       expect.arrayContaining([expect.any(String)]),
-      'carl'
+      'paul'
     );
   });
 
-  it('should fire onDialogue with speaker paul for chaos path', () => {
+  it('should fire onDialogue with speaker carl for chaos path', () => {
     sm.setCharacterPath('chaos');
     sm.loadBeats([makeSceneEnterBeat('b1', 'room')]);
     sm.checkTrigger('scene_enter', { sceneId: 'room' });
 
     expect(callbacks.onDialogue).toHaveBeenCalledWith(
       expect.arrayContaining([expect.any(String)]),
-      'paul'
+      'carl'
     );
   });
 
@@ -557,6 +557,74 @@ describe('duplicate beat activation prevention', () => {
     sm.activateBeat('nonexistent');
 
     expect(onBeatComplete).not.toHaveBeenCalled();
+  });
+});
+
+describe('setSceneHorrorLevel — scene-based horror model', () => {
+  let sm: StoryManager;
+
+  beforeEach(() => {
+    sm = createStoryManager();
+  });
+
+  it('should set base horror level for the scene', () => {
+    sm.setSceneHorrorLevel(7);
+    expect(sm.getHorrorLevel()).toBe(7);
+  });
+
+  it('should reset story modifier when setting scene horror', () => {
+    // First set a scene base, then add a story modifier via a beat
+    sm.loadBeats([
+      makeSceneEnterBeat('scare', 'room', { horrorLevelChange: 2 }),
+    ]);
+    sm.setSceneHorrorLevel(5);
+    sm.checkTrigger('scene_enter', { sceneId: 'room' });
+
+    // effective = 5 (base) + 2 (modifier) = 7
+    expect(sm.getHorrorLevel()).toBe(7);
+
+    // Set new scene horror — modifier resets to 0
+    sm.setSceneHorrorLevel(1);
+    expect(sm.getHorrorLevel()).toBe(1);
+  });
+
+  it('should clamp scene horror between 0 and 10', () => {
+    sm.setSceneHorrorLevel(15);
+    expect(sm.getHorrorLevel()).toBe(10);
+
+    sm.setSceneHorrorLevel(-3);
+    expect(sm.getHorrorLevel()).toBe(0);
+  });
+
+  it('should fire onHorrorChange callback when scene horror changes', () => {
+    const onHorrorChange = vi.fn();
+    sm.setCallbacks({ onHorrorChange });
+
+    sm.setSceneHorrorLevel(6);
+    expect(onHorrorChange).toHaveBeenCalledWith(6, 6); // from 0 to 6, delta = 6
+  });
+
+  it('should allow story beats to spike above scene base', () => {
+    sm.loadBeats([
+      makeSceneEnterBeat('spike', 'room', { horrorLevelChange: 3 }),
+    ]);
+
+    sm.setSceneHorrorLevel(7); // base = 7
+    sm.checkTrigger('scene_enter', { sceneId: 'room' }); // modifier = 3
+
+    expect(sm.getHorrorLevel()).toBe(10); // 7 + 3, clamped at 10
+  });
+
+  it('should not let story modifier push effective horror below 0', () => {
+    sm.loadBeats([
+      makeSceneEnterBeat('calm', 'room', { horrorLevelChange: -10 }),
+    ]);
+
+    sm.setSceneHorrorLevel(3);
+    sm.checkTrigger('scene_enter', { sceneId: 'room' });
+
+    // modifier clamped to -sceneBase = -3, so effective = 3 + (-3) = 0
+    expect(sm.getHorrorLevel()).toBe(0);
   });
 });
 

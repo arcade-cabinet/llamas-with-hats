@@ -15,7 +15,7 @@ import { getStartingStage, getNextStage } from '../data';
 import { getStoryManager, resetStoryManager, StoryState } from '../systems/StoryManager';
 import { resetAtmosphereManager } from '../systems/AtmosphereManager';
 import { resetAudioManager } from '../systems/AudioManager';
-import { initializeGame, getSpawnPosition, GameInstance } from '../systems/GameInitializer';
+import { initializeGame, getSpawnPosition, GameInstance, StageAtmosphere, StageGoal } from '../systems/GameInitializer';
 
 const STORAGE_KEY = 'llamas-rpg-saves';
 const SETTINGS_KEY = 'llamas-rpg-settings';
@@ -35,6 +35,11 @@ export interface RPGGameState {
   currentRoom: RoomConfig | null;
   layout: GeneratedLayout | null;
   allRoomConfigs: Map<string, RoomConfig> | null;
+  stageAtmosphere: StageAtmosphere | null;
+  stageGoals: StageGoal[];
+  stageName: string;
+  stageDescription: string;
+  showStageTransition: boolean;
   player: PlayerState;
   opponentPosition: { x: number; y: number; z: number };
   opponentRotation: number;
@@ -77,6 +82,11 @@ export function useRPGGameState() {
     currentRoom: null,
     layout: null,
     allRoomConfigs: null,
+    stageAtmosphere: null,
+    stageGoals: [],
+    stageName: '',
+    stageDescription: '',
+    showStageTransition: false,
     player: DEFAULT_PLAYER,
     opponentPosition: { x: 0, y: 0, z: -2 },
     opponentRotation: Math.PI,
@@ -155,8 +165,13 @@ export function useRPGGameState() {
     // Initialize story manager for new game
     const storyManager = getStoryManager();
     storyManager.reset();
-    storyManager.setCharacterPath(selectedCharacter === 'carl' ? 'order' : 'chaos');
+    storyManager.setCharacterPath(selectedCharacter === 'carl' ? 'chaos' : 'order');
     await storyManager.loadStage(stageId);
+
+    // Set initial horror from stage atmosphere + entry room override
+    const entryHorror = game.atmosphere.perRoomOverrides?.[startRoom.id]?.horrorLevel
+      ?? game.atmosphere.baseHorrorLevel;
+    storyManager.setSceneHorrorLevel(entryHorror);
 
     setState(prev => ({
       ...prev,
@@ -168,6 +183,11 @@ export function useRPGGameState() {
       currentRoom: startRoom,
       layout: game.layout,
       allRoomConfigs: game.allRoomConfigs,
+      stageAtmosphere: game.atmosphere,
+      stageGoals: game.storyGoals,
+      stageName: game.stageName,
+      stageDescription: game.stageDescription,
+      showStageTransition: false,
       player: {
         ...DEFAULT_PLAYER,
         position: { x: 0, y: 0, z: 2 },
@@ -240,7 +260,7 @@ export function useRPGGameState() {
     // Restore story manager state
     const storyManager = getStoryManager();
     storyManager.reset();
-    storyManager.setCharacterPath(save.playerCharacter === 'carl' ? 'order' : 'chaos');
+    storyManager.setCharacterPath(save.playerCharacter === 'carl' ? 'chaos' : 'order');
     await storyManager.loadStage(stageId);
 
     // Rebuild story state from saved data
@@ -248,7 +268,7 @@ export function useRPGGameState() {
       completedBeats: save.completedBeats,
       currentBeat: null,
       horrorLevel: save.horrorLevel,
-      characterPath: save.playerCharacter === 'carl' ? 'order' : 'chaos',
+      characterPath: save.playerCharacter === 'carl' ? 'chaos' : 'order',
     };
     storyManager.loadState(savedStoryState);
 
@@ -264,6 +284,11 @@ export function useRPGGameState() {
       currentRoom: room,
       layout: game.layout,
       allRoomConfigs: game.allRoomConfigs,
+      stageAtmosphere: game.atmosphere,
+      stageGoals: game.storyGoals,
+      stageName: game.stageName,
+      stageDescription: game.stageDescription,
+      showStageTransition: false,
       player: {
         ...DEFAULT_PLAYER,
         position: save.playerPosition,
@@ -347,9 +372,19 @@ export function useRPGGameState() {
       currentStageDefinition: null,
       layout: null,
       allRoomConfigs: null,
+      stageAtmosphere: null,
+      stageGoals: [],
+      stageName: '',
+      stageDescription: '',
+      showStageTransition: false,
       selectedCharacter: null,
       worldSeed: null
     }));
+  }, []);
+
+  // Dismiss stage transition screen
+  const dismissStageTransition = useCallback(() => {
+    setState(prev => ({ ...prev, showStageTransition: false }));
   }, []);
 
   // Advance to next stage, or trigger victory if no next stage
@@ -381,8 +416,13 @@ export function useRPGGameState() {
     // Reload story for the new stage
     const storyManager = getStoryManager();
     storyManager.reset();
-    storyManager.setCharacterPath(selectedCharacter === 'carl' ? 'order' : 'chaos');
+    storyManager.setCharacterPath(selectedCharacter === 'carl' ? 'chaos' : 'order');
     await storyManager.loadStage(nextStageId);
+
+    // Set initial horror from new stage atmosphere
+    const entryHorror = game.atmosphere.perRoomOverrides?.[startRoom.id]?.horrorLevel
+      ?? game.atmosphere.baseHorrorLevel;
+    storyManager.setSceneHorrorLevel(entryHorror);
 
     setState(prev => ({
       ...prev,
@@ -392,6 +432,11 @@ export function useRPGGameState() {
       currentRoom: startRoom,
       layout: game.layout,
       allRoomConfigs: game.allRoomConfigs,
+      stageAtmosphere: game.atmosphere,
+      stageGoals: game.storyGoals,
+      stageName: game.stageName,
+      stageDescription: game.stageDescription,
+      showStageTransition: true,
       player: {
         ...prev.player,
         position: { x: 0, y: 0, z: 2 },
@@ -533,6 +578,7 @@ export function useRPGGameState() {
     removeFromInventory,
     hasItem,
     unlockExit,
-    advanceStage
+    advanceStage,
+    dismissStageTransition
   };
 }

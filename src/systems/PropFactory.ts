@@ -23,80 +23,148 @@ import { getPropDefinition } from '../data';
 // ============================================
 
 /**
- * Every prop type used in room configs MUST have an entry here.
- * If a prop type is missing, createPropMeshAsync will throw.
+ * Stage-aware model mapping. Each stage can override prop models.
+ * Lookup: try STAGE_MODELS[currentStage][propType], then fall back to
+ * STAGE_MODELS.default[propType].
  */
-const MODEL_MAP: Record<string, string> = {
-  // ── Indoor furniture (CC0 from Kenney/Kay Lousberg) ──
-  table:           'assets/models/furniture/tables/dining_table.glb',
-  chair:           'assets/models/furniture/seating/chair.glb',
-  bookshelf:       'assets/models/furniture/storage/bookcase.glb',
-  cabinet:         'assets/models/furniture/storage/bookcase_doors.glb',
-  dresser:         'assets/models/furniture/storage/dresser.glb',
-  couch:           'assets/models/furniture/seating/sofa.glb',
-  bed:             'assets/models/furniture/beds/bed_double.glb',
-  desk:            'assets/models/furniture/tables/desk.glb',
-  lamp:            'assets/models/furniture/lighting/lamp_table.glb',
-  tv:              'assets/models/furniture/storage/tv_cabinet.glb',
-  stool:           'assets/models/furniture/seating/stool_bar.glb',
+const STAGE_MODELS: Record<string, Record<string, string>> = {
+  // ── Default models (shared across stages) ──
+  default: {
+    // Indoor furniture (CC0 from Kenney/Kay Lousberg)
+    table:           'assets/models/furniture/tables/dining_table.glb',
+    chair:           'assets/models/furniture/seating/chair.glb',
+    bookshelf:       'assets/models/furniture/storage/bookcase.glb',
+    cabinet:         'assets/models/furniture/storage/bookcase_doors.glb',
+    dresser:         'assets/models/furniture/storage/dresser.glb',
+    couch:           'assets/models/furniture/seating/sofa.glb',
+    bed:             'assets/models/furniture/beds/bed_double.glb',
+    desk:            'assets/models/furniture/tables/desk.glb',
+    lamp:            'assets/models/furniture/lighting/lamp_table.glb',
+    tv:              'assets/models/furniture/storage/tv_cabinet.glb',
+    stool:           'assets/models/furniture/seating/stool_bar.glb',
 
-  // ── Kitchen (CC0) ──
-  fridge:          'assets/models/kitchen/appliances/refrigerator.glb',
-  stove:           'assets/models/kitchen/appliances/stove.glb',
-  counter:         'assets/models/kitchen/fixtures/counter.glb',
+    // Kitchen (CC0)
+    fridge:          'assets/models/kitchen/appliances/refrigerator.glb',
+    stove:           'assets/models/kitchen/appliances/stove.glb',
+    counter:         'assets/models/kitchen/fixtures/counter.glb',
 
-  // ── Bathroom (CC0) ──
-  toilet:          'assets/models/bathroom/fixtures/toilet.glb',
-  sink:            'assets/models/bathroom/fixtures/sink.glb',
-  bathtub:         'assets/models/bathroom/fixtures/bathtub.glb',
-  tub:             'assets/models/bathroom/fixtures/bathtub.glb',
-  broken_mirror:   'assets/models/bathroom/fixtures/mirror.glb',
+    // Bathroom (CC0)
+    toilet:          'assets/models/bathroom/fixtures/toilet.glb',
+    sink:            'assets/models/bathroom/fixtures/sink.glb',
+    bathtub:         'assets/models/bathroom/fixtures/bathtub.glb',
+    tub:             'assets/models/bathroom/fixtures/bathtub.glb',
+    broken_mirror:   'assets/models/bathroom/fixtures/mirror.glb',
 
-  // ── Indoor clutter / storage ──
-  crate:           'assets/models/dungeon/props/crate_large.glb',
-  barrel:          'assets/models/dungeon/props/barrel.glb',
-  chest:           'assets/models/dungeon/props/chest_mini.glb',
-  rug:             'assets/models/furniture/tables/coffee_table.glb',
-  plant:           'assets/models/nature/plant_bush.glb',
-  dead_plant:      'assets/models/nature/stump_old.glb',
-  pillar:          'assets/models/props/pillarStone.glb',
+    // Indoor clutter / storage
+    crate:           'assets/models/dungeon/props/crate_large.glb',
+    barrel:          'assets/models/dungeon/props/barrel.glb',
+    chest:           'assets/models/dungeon/props/chest_mini.glb',
+    rug:             'assets/models/furniture/tables/coffee_table.glb',
+    plant:           'assets/models/nature/plant_bush.glb',
+    dead_plant:      'assets/models/nature/stump_old.glb',
+    pillar:          'assets/models/props/pillarStone.glb',
 
-  // ── Horror props ──
-  bloodstain:      'assets/models/dungeon/props/trap.glb',
-  torn_curtain:    'assets/models/dungeon/props/sword_shield_broken.glb',
+    // Horror props
+    bloodstain:      'assets/models/dungeon/props/trap.glb',
+    torn_curtain:    'assets/models/horror/misc/debris_wood.glb',
 
-  // ── Outdoor / graveyard props (CC0 from Kenney) ──
-  bench:           'assets/models/graveyard/bench.glb',
-  tree:            'assets/models/nature/tree_default_dark.glb',
-  fence:           'assets/models/graveyard/fence.glb',
-  statue:          'assets/models/nature/statue_column.glb',
-  gravestone:      'assets/models/graveyard/gravestone-cross.glb',
-  lantern:         'assets/models/graveyard/lantern-glass.glb',
-  lightpost:       'assets/models/graveyard/lightpost-single.glb',
-  fountain:        'assets/models/props/fountainRound.glb',
-  rock:            'assets/models/nature/rock_largeA.glb',
-  campfire:        'assets/models/nature/campfire_stones.glb',
-  cross:           'assets/models/graveyard/cross.glb',
-  pumpkin:         'assets/models/graveyard/pumpkin-carved.glb',
-  sign:            'assets/models/nature/sign.glb',
-  hedge:           'assets/models/props/hedge.glb',
-  log:             'assets/models/nature/log.glb',
-  cart:            'assets/models/props/cart.glb',
-  iron_fence:      'assets/models/graveyard/iron-fence.glb',
-  coffin:          'assets/models/graveyard/coffin.glb',
-  crypt:           'assets/models/graveyard/crypt.glb',
-  pine:            'assets/models/graveyard/pine.glb',
+    // Outdoor / graveyard props (CC0 from Kenney)
+    bench:           'assets/models/graveyard/bench.glb',
+    tree:            'assets/models/nature/tree_default_dark.glb',
+    fence:           'assets/models/graveyard/fence.glb',
+    statue:          'assets/models/nature/statue_column.glb',
+    gravestone:      'assets/models/graveyard/gravestone-cross.glb',
+    lantern:         'assets/models/graveyard/lantern-glass.glb',
+    lightpost:       'assets/models/graveyard/lightpost-single.glb',
+    fountain:        'assets/models/props/fountainRound.glb',
+    rock:            'assets/models/nature/rock_largeA.glb',
+    campfire:        'assets/models/nature/campfire_stones.glb',
+    cross:           'assets/models/graveyard/cross.glb',
+    pumpkin:         'assets/models/graveyard/pumpkin-carved.glb',
+    sign:            'assets/models/nature/sign.glb',
+    hedge:           'assets/models/props/hedge.glb',
+    log:             'assets/models/nature/log.glb',
+    cart:            'assets/models/props/cart.glb',
+    iron_fence:      'assets/models/graveyard/iron-fence.glb',
+    coffin:          'assets/models/graveyard/coffin.glb',
+    crypt:           'assets/models/graveyard/crypt.glb',
+    pine:            'assets/models/graveyard/pine.glb',
 
-  // ── Urban / suburban outdoor props ──
-  suburban_fence:  'assets/models/outdoor/suburban-fence.glb',
-  suburban_tree:   'assets/models/outdoor/suburban-tree-large.glb',
-  planter:         'assets/models/outdoor/planter.glb',
-  billboard:       'assets/models/outdoor/sign_billboard.glb',
-  building_facade: 'assets/models/outdoor/low_buildingA.glb',
-  wall_solid:      'assets/models/outdoor/wall_solid.glb',
-  debris:          'assets/models/graveyard/debris.glb',
-  trash:           'assets/models/graveyard/debris-wood.glb',
+    // Urban / suburban outdoor props
+    suburban_fence:  'assets/models/outdoor/suburban-fence.glb',
+    suburban_tree:   'assets/models/outdoor/suburban-tree-large.glb',
+    planter:         'assets/models/outdoor/planter.glb',
+    billboard:       'assets/models/outdoor/sign_billboard.glb',
+    building_facade: 'assets/models/outdoor/low_buildingA.glb',
+    wall_solid:      'assets/models/outdoor/wall_solid.glb',
+    debris:          'assets/models/graveyard/debris.glb',
+    trash:           'assets/models/graveyard/debris-wood.glb',
+  },
+
+  // ── Space Station stage (Kenney Space Kit + Space Station Kit) ──
+  stage2_space: {
+    // Environment (stage-specific models replace fallbacks)
+    barrel:          'assets/models/space/containers/barrel.glb',
+    crate:           'assets/models/space/containers/container.glb',
+    chest:           'assets/models/dungeon/props/chest_mini.glb',
+    table:           'assets/models/space/furniture/table.glb',
+    chair:           'assets/models/space/furniture/chair_arms.glb',
+    lamp:            'assets/models/space/equipment/display_wall.glb',
+    console:         'assets/models/space/equipment/computer.glb',
+    bed:             'assets/models/space/furniture/bed_single.glb',
+    pillar:          'assets/models/props/pillarStone.glb',
+    // Quest items (unique models!)
+    crew_log:        'assets/models/space/equipment/computer_screen.glb',
+    medical_report:  'assets/models/space/equipment/display_medical.glb',
+    override_key:    'assets/models/space/equipment/wireless_device.glb',
+    carl_mixtape:    'assets/models/space/equipment/bones.glb',
+    // Atmosphere
+    generator:       'assets/models/space/equipment/generator.glb',
+    pipe:            'assets/models/space/equipment/pipe.glb',
+  },
+
+  // ── Pirate Island stage (Kenney Pirate Kit) ──
+  stage3_pirate: {
+    // Environment
+    barrel:          'assets/models/pirate/props/barrel.glb',
+    crate:           'assets/models/pirate/props/crate.glb',
+    chest:           'assets/models/pirate/props/chest.glb',
+    rock:            'assets/models/pirate/terrain/rocks_a.glb',
+    tree:            'assets/models/pirate/vegetation/palm_bend.glb',
+    campfire:        'assets/models/nature/campfire_stones.glb',
+    sign:            'assets/models/pirate/props/flag.glb',
+    cannon:          'assets/models/pirate/props/cannon.glb',
+    // Quest items (unique models!)
+    captain_log:     'assets/models/pirate/props/bottle_large.glb',
+    bone_necklace:   'assets/models/pirate/props/shovel.glb',
+    cursed_compass:  'assets/models/pirate/props/cannon_ball.glb',
+    carl_flag:       'assets/models/pirate/props/flag_pirate.glb',
+    // Atmosphere
+    ghost_ship:      'assets/models/pirate/ships/ghost_ship.glb',
+    lighthouse:      'assets/models/pirate/structures/lighthouse.glb',
+    dock_platform:   'assets/models/pirate/structures/dock_platform.glb',
+    grass_patch:     'assets/models/pirate/vegetation/grass_patch.glb',
+    rowboat:         'assets/models/pirate/ships/rowboat.glb',
+  },
 };
+
+// Active stage for model lookup (set by GameInitializer on stage load)
+let currentStageId = 'default';
+
+/**
+ * Set the current stage for stage-aware model lookup.
+ * Call this when transitioning between stages.
+ */
+export function setCurrentStage(stageId: string): void {
+  currentStageId = stageId;
+}
+
+/**
+ * Resolve a model path for a prop type, checking stage-specific models first.
+ */
+function resolveModelPath(propType: string): string | undefined {
+  return STAGE_MODELS[currentStageId]?.[propType] ?? STAGE_MODELS.default[propType];
+}
 
 /**
  * Compute the axis-aligned bounding box extents of a loaded model.
@@ -142,9 +210,9 @@ function measureModelBounds(meshes: AbstractMesh[]): {
 /**
  * Load a GLB model for a prop type. Throws on failure — no silent fallbacks.
  *
- * Every prop type MUST have an entry in MODEL_MAP. If a model file is
- * missing or fails to load, this function throws so the error is visible
- * during development and testing.
+ * Every prop type MUST have an entry in STAGE_MODELS (either stage-specific
+ * or the default fallback). If a model file is missing or fails to load,
+ * this function throws so the error is visible during development and testing.
  */
 export async function createPropMeshAsync(
   scene: Scene,
@@ -152,12 +220,12 @@ export async function createPropMeshAsync(
   interactive: boolean = false,
   itemDrop?: string
 ): Promise<AbstractMesh> {
-  const modelPath = MODEL_MAP[propType];
+  const modelPath = resolveModelPath(propType);
 
   if (!modelPath) {
     throw new Error(
-      `PropFactory: No GLB model mapped for prop type "${propType}". ` +
-      `Add an entry to MODEL_MAP in PropFactory.ts.`
+      `PropFactory: No GLB model mapped for prop type "${propType}" ` +
+      `(stage="${currentStageId}"). Add an entry to STAGE_MODELS in PropFactory.ts.`
     );
   }
 

@@ -1,0 +1,47 @@
+[
+  {
+    "beatId": "bloody_note_examine",
+    "prop": "bloody_note",
+    "carl": [
+      "My breakfast invitation!",
+      "'Dear Paul, I made you breakfast. Love, Carl.'",
+      "I worked really hard on the smiley face. Very cheerful!"
+    ],
+    "paul": [
+      "A note... covered in something red.",
+      "'Dear Paul, I made you breakfast. Love, Carl.'",
+      "Why is there a smiley face drawn in... no. No no no."
+    ],
+    "effects": [{ "type": "horror_increase", "params": { "amount": 1 } }]
+  },
+  {
+    "beatId": "basement_key_examine",
+    "prop": "basement_key",
+    "carl": [
+      "Oh! My art supply room key!",
+      "I've been working on a very special project down there.",
+      "You should come see! It's my best work yet."
+    ],
+    "paul": [
+      "A key... tagged 'BASEMENT'.",
+      "Do I even want to know what's down there?",
+      "...Yes. Unfortunately, I need to know."
+    ]
+  },
+  {
+    "beatId": "kitchen_blood",
+    "room": "kitchen",
+    "carl": [
+      "Oh, the kitchen! I was doing some... redecorating.",
+      "Do you like the new color scheme? Very avant-garde!"
+    ],
+    "paul": [
+      "CARL! Why is there blood on the ceiling?!",
+      "And the walls. And the... is that a handprint?"
+    ],
+    "effects": [
+      { "type": "horror_increase", "params": { "amount": 2 } },
+      { "type": "unlock", "params": { "lockId": "basement_door" } }
+    ]
+  }
+]

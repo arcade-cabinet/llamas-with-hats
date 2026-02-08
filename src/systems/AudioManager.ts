@@ -255,11 +255,15 @@ export function createAudioManager(): AudioManager {
    */
   function playSoundEffect(id: string, options: SoundOptions = {}): void {
     if (!initialized || muted) return;
-    
+    // Guard against suspended AudioContext — Tone.now() returns 0 or stale
+    // times when the context hasn't been resumed by a user gesture, which
+    // causes "time must be greater than or equal to" errors in Tone.js.
+    if (Tone.getContext().state !== 'running') return;
+
     const { volume = 1, pitch = 1 } = options;
-    
+
     const now = Tone.now();
-    
+
     switch (id) {
       // ─────────────────────────────────────────────────────────────────────
       // FOOTSTEPS - Slightly cartoonish, varied
@@ -1159,6 +1163,7 @@ export function createAudioManager(): AudioManager {
   ): void {
     if (!initialized) return;
     if (trackId === currentMusicTrack) return;
+    if (Tone.getContext().state !== 'running') return;
 
     const duration = options.duration ?? 2000;
     const vol = options.volume ?? 1;
