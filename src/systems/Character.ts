@@ -107,7 +107,7 @@ export async function createCharacter(config: CharacterConfig): Promise<Characte
   // Load the GLB model
   const result = await SceneLoader.ImportMeshAsync(
     '',
-    `/assets/models/characters/${type}.glb`,
+    `${import.meta.env.BASE_URL}assets/models/characters/${type}.glb`,
     '',
     scene
   );

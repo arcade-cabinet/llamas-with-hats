@@ -230,7 +230,7 @@ export async function createPropMeshAsync(
   }
 
   const lastSlash = modelPath.lastIndexOf('/');
-  const rootUrl = '/' + modelPath.substring(0, lastSlash + 1);
+  const rootUrl = import.meta.env.BASE_URL + modelPath.substring(0, lastSlash + 1);
   const fileName = modelPath.substring(lastSlash + 1);
 
   const result = await SceneLoader.ImportMeshAsync('', rootUrl, fileName, scene);
