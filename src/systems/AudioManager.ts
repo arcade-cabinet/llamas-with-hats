@@ -139,15 +139,16 @@ export const MusicTracks = {
  * When a track has an OGG file, the file-based player is used instead of
  * (or layered with) the procedural synth fallback.
  */
+const BASE = import.meta.env.BASE_URL;
 const TRACK_FILES: Partial<Record<string, string>> = {
-  [MusicTracks.HORROR_AMBIENT]: '/assets/sounds/horror_ambience.ogg',
-  [MusicTracks.APARTMENT_TENSE]: '/assets/sounds/tense_horror.ogg',
-  [MusicTracks.DREAD_AMBIENT]: '/assets/sounds/dark_theme.ogg',
-  [MusicTracks.TENSE_AMBIENT]: '/assets/sounds/tense_horror.ogg',
-  [MusicTracks.UNEASY_AMBIENT]: '/assets/sounds/spooky_dungeon.ogg',
-  [MusicTracks.PANIC_AMBIENT]: '/assets/sounds/revenge_theme.ogg',
-  [MusicTracks.CHASE]: '/assets/sounds/violence_theme.ogg',
-  [MusicTracks.MENU]: '/assets/sounds/dark_theme.ogg',
+  [MusicTracks.HORROR_AMBIENT]: `${BASE}assets/sounds/horror_ambience.ogg`,
+  [MusicTracks.APARTMENT_TENSE]: `${BASE}assets/sounds/tense_horror.ogg`,
+  [MusicTracks.DREAD_AMBIENT]: `${BASE}assets/sounds/dark_theme.ogg`,
+  [MusicTracks.TENSE_AMBIENT]: `${BASE}assets/sounds/tense_horror.ogg`,
+  [MusicTracks.UNEASY_AMBIENT]: `${BASE}assets/sounds/spooky_dungeon.ogg`,
+  [MusicTracks.PANIC_AMBIENT]: `${BASE}assets/sounds/revenge_theme.ogg`,
+  [MusicTracks.CHASE]: `${BASE}assets/sounds/violence_theme.ogg`,
+  [MusicTracks.MENU]: `${BASE}assets/sounds/dark_theme.ogg`,
 };
 
 /**

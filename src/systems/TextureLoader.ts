@@ -18,7 +18,7 @@ import {
 // Texture path prefix (relative to public root)
 // ============================================
 
-const TEXTURE_BASE = '/assets/textures/';
+const TEXTURE_BASE = `${import.meta.env.BASE_URL}assets/textures/`;
 
 // ============================================
 // Room-type-to-texture mapping
