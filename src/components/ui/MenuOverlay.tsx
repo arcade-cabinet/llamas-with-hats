@@ -239,14 +239,14 @@ const NewGamePanel: React.FC<{
       <div className="flex justify-center gap-4">
         <CharacterButton
           name="Carl"
-          description="Order path"
+          description="Chaos path"
           selected={selectedCharacter === 'carl'}
           onClick={() => onSelectCharacter('carl')}
           color="carl"
         />
         <CharacterButton
           name="Paul"
-          description="Chaos path"
+          description="Order path"
           selected={selectedCharacter === 'paul'}
           onClick={() => onSelectCharacter('paul')}
           color="paul"
