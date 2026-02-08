@@ -52,7 +52,8 @@
 
 import { CollisionSystem, PropCollider } from './CollisionSystem';
 import { getPropDialogue, getInteractPrompt } from '../data';
-import { getStoryManager } from './StoryManager';
+import { getStoryManager, NpcDialogueTree } from './StoryManager';
+import storyDialoguesData from '../data/dialogues/story-dialogues.json';
 
 // Note: Prop dialogues are now loaded from src/data/dialogues/prop-dialogues.json
 // Use getPropDialogue(propType) to get dialogue for a prop
@@ -67,55 +68,12 @@ export interface StoryDialogue {
   effects?: { type: string; params?: Record<string, unknown> }[];
 }
 
-export const STORY_DIALOGUES: StoryDialogue[] = [
-  // Stage 1: Apartment - Discovery
-  {
-    beatId: 'bloody_note_examine',
-    prop: 'bloody_note',
-    carl: [
-      "A note... covered in something red.",
-      "'Dear Carl, I made you breakfast. Love, Paul.'",
-      "Why is there a smiley face drawn in... no. No no no."
-    ],
-    paul: [
-      "My breakfast invitation!",
-      "I worked really hard on the presentation."
-    ],
-    effects: [{ type: 'horror_increase', params: { amount: 1 } }]
-  },
-  {
-    beatId: 'basement_key_examine',
-    prop: 'basement_key',
-    carl: [
-      "A key... tagged 'BASEMENT'.",
-      "Do I even want to know what's down there?",
-      "...Yes. Unfortunately, I need to know."
-    ],
-    paul: [
-      "Oh! My art supply room key!",
-      "I've been working on a very special project."
-    ]
-  },
-  {
-    beatId: 'kitchen_blood',
-    room: 'kitchen',
-    carl: [
-      "PAUL! Why is there blood on the ceiling?!",
-      "And the walls. And the... is that a handprint?"
-    ],
-    paul: [
-      "Oh, the kitchen! I was doing some... redecorating.",
-      "Do you like the new color scheme?"
-    ],
-    effects: [
-      { type: 'horror_increase', params: { amount: 2 } },
-      { type: 'unlock', params: { lockId: 'basement_door' } }
-    ]
-  }
-];
+// Story dialogues loaded from src/data/dialogues/story-dialogues.json
+export const STORY_DIALOGUES: StoryDialogue[] = storyDialoguesData;
 
 export interface InteractionCallbacks {
   onDialogue: (lines: string[], speaker: 'carl' | 'paul') => void;
+  onDialogueTree?: (tree: NpcDialogueTree) => void;
   onItemPickup?: (itemId: string) => void;
   onHorrorIncrease?: (amount: number) => void;
   onUnlock?: (lockId: string) => void;
@@ -225,6 +183,18 @@ export function createInteractionSystem(): InteractionSystem {
         return false;
       }
 
+      // Check for NPC dialogue tree — if this prop is an NPC with a tree, use it
+      if (propType === 'carl' || propType === 'paul') {
+        const tree = getStoryManager().getNpcDialogueTree(propType);
+        if (tree && callbacks.onDialogueTree) {
+          callbacks.onDialogueTree(tree);
+          // Still fire triggers below
+          getStoryManager().checkTrigger('interact', { targetId: propType });
+          getStoryManager().checkTrigger('npc_interact', { npcId: propType });
+          return true;
+        }
+      }
+
       // Get dialogue from data module (handles fallback to default)
       const dialogue = getPropDialogue(propType);
       const lines = character === 'carl' ? dialogue.carl : dialogue.paul;
@@ -238,6 +208,10 @@ export function createInteractionSystem(): InteractionSystem {
         callbacks.onItemPickup?.(itemDrop);
         getStoryManager().checkTrigger('item_pickup', { itemId: itemDrop });
       }
+
+      // Fire generic interact trigger for all props — matches story beats
+      // with trigger type "interact" and params.targetId
+      getStoryManager().checkTrigger('interact', { targetId: propType });
 
       // Also fire npc_interact if this prop type matches an NPC id
       // (NPCs are interactable props with their characterId as propType)

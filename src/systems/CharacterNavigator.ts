@@ -4,7 +4,7 @@
  * 
  * A single navigation system used by both:
  * - AI characters (Paul wandering, following, fleeing)
- * - Player tap-to-move (temporary pathfinding to destination)
+ * - Player tap-to-move (one-shot pathfinding to a destination, navigates then stops)
  * 
  * ## Why Unified?
  * 
@@ -107,6 +107,9 @@ export interface CharacterNavigator {
   // Get current mode
   getMode(): NavigatorMode;
   
+  // Adjust max speed at runtime
+  setMaxSpeed(speed: number): void;
+
   // Cleanup
   dispose(): void;
 }
@@ -265,6 +268,10 @@ export function createCharacterNavigator(config: NavigatorConfig): CharacterNavi
     
     updateBounds(bounds: CollisionBounds) {
       currentBounds = { ...bounds };
+    },
+
+    setMaxSpeed(speed: number) {
+      vehicle.maxSpeed = speed;
     },
     
     update(deltaTime: number): NavigatorState {

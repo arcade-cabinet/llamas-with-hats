@@ -26,16 +26,42 @@ import {
 import { generateStage, GeneratedStage } from './StageGenerator';
 import { SceneDefinition } from './SceneDefinition';
 import { CharacterType, WorldSeed, RoomConfig, RoomExit, PropConfig } from '../types/game';
+import {
+  generateLayout,
+  GeneratedLayout,
+  StageLayoutDefinition,
+  LayoutPattern,
+  ConnectionType,
+} from './LayoutGenerator';
 
 import {
   loadStageDefinition,
-  getStartingStage
+  getLayoutArchetype,
 } from '../data';
+import { setCurrentStage } from './PropFactory';
+import {
+  LevelDefinition,
+  AnchorRoomDef,
+  LevelVerticalConnection
+} from './LayoutGenerator';
 import templatesData from '../data/global/templates/rooms.json';
 
 // ============================================
 // Types
 // ============================================
+
+/** Atmosphere configuration extracted from stage definition JSON */
+export interface StageAtmosphere {
+  baseHorrorLevel: number;
+  horrorProgression: string;
+  ambientSound?: string;
+  musicTrack?: string;
+  perRoomOverrides?: Record<string, {
+    horrorLevel?: number;
+    ambientSound?: string;
+    musicTrack?: string;
+  }>;
+}
 
 export interface GameInstance {
   /** The stage this game is running */
@@ -56,6 +82,24 @@ export interface GameInstance {
   /** Current scene the player is in */
   currentSceneId: string;
 
+  /** Generated multi-room layout for seamless rendering */
+  layout: GeneratedLayout | null;
+
+  /** Pre-computed RoomConfigs for all scenes (keyed by scene ID) */
+  allRoomConfigs: Map<string, RoomConfig>;
+
+  /** Atmosphere config from stage definition (base horror, per-room overrides, audio) */
+  atmosphere: StageAtmosphere;
+
+  /** Story goals from the stage definition */
+  storyGoals: StageGoal[];
+
+  /** Stage display name */
+  stageName: string;
+
+  /** Stage description text */
+  stageDescription: string;
+
   /** Get the current scene definition */
   getCurrentScene: () => SceneDefinition;
 
@@ -67,6 +111,17 @@ export interface GameInstance {
 
   /** Transition to another scene */
   transitionTo: (sceneId: string) => void;
+}
+
+/** A story goal from the stage definition's story.goals array */
+export interface StageGoal {
+  id: string;
+  description: string;
+  type: string;
+  params: Record<string, unknown>;
+  hiddenUntil?: string;
+  /** If set, this goal only applies to this character's playthrough */
+  character?: 'carl' | 'paul';
 }
 
 // ============================================
@@ -90,6 +145,9 @@ export async function initializeGame(
     throw new Error(`Failed to load stage definition: ${stageId}`);
   }
 
+  // Set stage-aware model lookup for PropFactory BEFORE any props load
+  setCurrentStage(stageId);
+
   const stageDef = rawStageDef as unknown as StageDefinition;
   const templates = templatesData.templates as unknown as SceneTemplate[];
   const palettes = templatesData.palettes as unknown as MaterialPalette[];
@@ -104,12 +162,104 @@ export async function initializeGame(
     worldSeed.seedString
   );
 
+  // Resolve NPC characters: the required NPC is always the opponent
+  const opponentChar = playerCharacter === 'carl' ? 'paul' : 'carl';
+  for (const scene of stage.scenes) {
+    for (const npc of scene.npcs) {
+      if (npc.character === 'carl' || npc.character === 'paul') {
+        npc.id = opponentChar;
+        npc.character = opponentChar as 'carl' | 'paul';
+      }
+    }
+  }
 
   // Create scene lookup map
   const sceneMap = new Map<string, SceneDefinition>();
   for (const scene of stage.scenes) {
     sceneMap.set(scene.id, scene);
   }
+
+  // Pre-compute all RoomConfigs
+  const allRoomConfigs = new Map<string, RoomConfig>();
+  for (const scene of stage.scenes) {
+    allRoomConfigs.set(scene.id, sceneToRoomConfig(scene));
+  }
+
+  // Generate multi-room layout from stage definition's layout block
+  let layout: GeneratedLayout | null = null;
+  const rawLayout = (rawStageDef as Record<string, unknown>).layout as Record<string, unknown> | undefined;
+  if (rawLayout) {
+    const layoutDef = buildStageLayoutDef(rawStageDef as Record<string, unknown>);
+    if (layoutDef) {
+      layout = generateLayout(layoutDef, worldSeed.seedString);
+
+      // Add layout rooms to allRoomConfigs so HUD can display room names on transition.
+      // Layout room IDs (e.g. "anchor_0_0") differ from scene IDs ("scene_1_entry"),
+      // so we synthesize RoomConfigs from the GeneratedRoom data.
+      const layoutRooms = layout.rooms;
+      for (const [roomId, room] of layoutRooms) {
+        const roomName = LAYOUT_ROOM_NAMES[room.purpose]
+          || room.purpose.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+        // Derive exit directions from grid positions so the minimap shows exits
+        // on the correct edges and each exit has a unique direction key.
+        const exits = room.connections.map(targetId => {
+          const target = layoutRooms.get(targetId);
+          let direction: 'north' | 'south' | 'east' | 'west' = 'north';
+          if (target) {
+            const dx = target.gridPosition.x - room.gridPosition.x;
+            const dz = target.gridPosition.z - room.gridPosition.z;
+            if (Math.abs(dx) >= Math.abs(dz)) {
+              direction = dx > 0 ? 'east' : 'west';
+            } else {
+              direction = dz < 0 ? 'north' : 'south';
+            }
+          }
+          return {
+            direction,
+            targetRoom: targetId,
+            position: { x: 0, z: 0 },
+          };
+        });
+
+        allRoomConfigs.set(roomId, {
+          id: roomId,
+          name: roomName,
+          width: room.size.width,
+          height: room.size.height,
+          exits,
+          props: [],
+          enemies: [],
+        });
+      }
+    }
+  }
+
+  // Extract atmosphere config from stage definition
+  const rawAtmo = (rawStageDef as Record<string, unknown>).atmosphere as Record<string, unknown> | undefined;
+  const atmosphere: StageAtmosphere = {
+    baseHorrorLevel: (rawAtmo?.baseHorrorLevel as number) ?? 0,
+    horrorProgression: (rawAtmo?.horrorProgression as string) ?? 'static',
+    ambientSound: rawAtmo?.ambientSound as string | undefined,
+    musicTrack: rawAtmo?.musicTrack as string | undefined,
+    perRoomOverrides: rawAtmo?.perRoomOverrides as StageAtmosphere['perRoomOverrides'],
+  };
+
+  // Extract story goals from stage definition, filtering by player character
+  const rawStory = (rawStageDef as Record<string, unknown>).story as Record<string, unknown> | undefined;
+  const rawGoals = (rawStory?.goals as StageGoal[]) ?? [];
+  const storyGoals: StageGoal[] = rawGoals
+    .filter(g => !g.character || g.character === playerCharacter)
+    .map(g => ({
+      id: g.id,
+      description: g.description,
+      type: g.type,
+      params: g.params ?? {},
+      hiddenUntil: g.hiddenUntil,
+    }));
+
+  const stageName = (rawStageDef as Record<string, unknown>).name as string ?? 'Unknown';
+  const stageDescription = (rawStageDef as Record<string, unknown>).description as string ?? '';
 
   let currentSceneId = stage.entrySceneId;
 
@@ -120,9 +270,19 @@ export async function initializeGame(
     worldSeed,
     stage,
     currentSceneId,
+    layout,
+    allRoomConfigs,
+    atmosphere,
+    storyGoals,
+    stageName,
+    stageDescription,
 
     getCurrentScene() {
-      return sceneMap.get(currentSceneId)!;
+      const scene = sceneMap.get(currentSceneId);
+      if (!scene) {
+        throw new Error(`Scene not found: "${currentSceneId}". Available scenes: ${Array.from(sceneMap.keys()).join(', ')}`);
+      }
+      return scene;
     },
 
     getCurrentRoom() {
@@ -144,51 +304,6 @@ export async function initializeGame(
   return instance;
 }
 
-/**
- * Create a default room for the menu background.
- * Loads the starting stage from game.json's progression and generates
- * a preview scene from it.
- */
-export async function createMenuRoom(): Promise<RoomConfig> {
-  const startingStageId = getStartingStage();
-
-  try {
-    const rawStageDef = await loadStageDefinition(startingStageId);
-    if (!rawStageDef) throw new Error('No stage def');
-
-    const stageDef = rawStageDef as unknown as StageDefinition;
-    const templates = templatesData.templates as unknown as SceneTemplate[];
-    const palettes = templatesData.palettes as unknown as MaterialPalette[];
-
-    // Generate a preview stage with a fixed seed
-    const stage = generateStage(stageDef, templates, palettes, [], 'menu-preview');
-
-    const entryScene = stage.scenes.find(s => s.id === stage.entrySceneId);
-    if (entryScene) {
-      return sceneToRoomConfig(entryScene);
-    }
-  } catch (e) {
-    console.warn('Failed to generate menu room from stage definition:', e);
-  }
-
-  // Fallback if generation fails
-  return {
-    id: 'menu_room',
-    name: 'The Apartment',
-    width: 10,
-    height: 10,
-    exits: [],
-    props: [
-      { type: 'table', position: { x: 0, z: -1 }, rotation: 0, scale: 1, interactive: false },
-      { type: 'chair', position: { x: -1.5, z: -1 }, rotation: Math.PI / 4, scale: 1, interactive: false },
-      { type: 'chair', position: { x: 1.5, z: -1 }, rotation: -Math.PI / 4, scale: 1, interactive: false },
-      { type: 'bookshelf', position: { x: -4, z: 0 }, rotation: Math.PI / 2, scale: 1, interactive: false },
-      { type: 'lamp', position: { x: 3, z: 2 }, rotation: 0, scale: 1, interactive: false },
-    ],
-    enemies: []
-  };
-}
-
 // ============================================
 // Conversion Helpers
 // ============================================
@@ -199,7 +314,7 @@ export async function createMenuRoom(): Promise<RoomConfig> {
  * The renderer expects RoomConfig, but our generation produces SceneDefinition.
  * This bridges the gap.
  */
-function sceneToRoomConfig(scene: SceneDefinition): RoomConfig {
+export function sceneToRoomConfig(scene: SceneDefinition): RoomConfig {
   // Convert exits (filter out vertical exits which RoomConfig doesn't support)
   const exits: RoomExit[] = scene.exits
     .filter(exit => ['north', 'south', 'east', 'west'].includes(exit.direction))
@@ -275,6 +390,251 @@ function sceneToRoomConfig(scene: SceneDefinition): RoomConfig {
     props,
     enemies
   };
+}
+
+/**
+ * Build a StageLayoutDefinition from a raw stage definition JSON.
+ *
+ * The stage JSON has two relevant blocks:
+ * - `layout`: { archetypeId, levelOverrides } — declares which archetype to use
+ *   and per-level customizations (extra anchors, quest items, story beats)
+ * - `generation`: { entryScene, exitScene, connectionRules, ... } — scene generation
+ *   params used by StageGenerator (not LayoutGenerator)
+ *
+ * This function loads the archetype by ID, merges levelOverrides onto it,
+ * and converts the result into the StageLayoutDefinition format that
+ * generateLayout() expects.
+ */
+function buildStageLayoutDef(raw: Record<string, unknown>): StageLayoutDefinition | null {
+  const layoutBlock = raw.layout as { archetypeId?: string; levelOverrides?: Record<string, unknown> } | undefined;
+  if (!layoutBlock?.archetypeId) return null;
+
+  const archetype = getLayoutArchetype(layoutBlock.archetypeId);
+  if (!archetype) {
+    console.error(`Layout archetype not found: "${layoutBlock.archetypeId}"`);
+    return null;
+  }
+
+  const overrides = layoutBlock.levelOverrides || {};
+  const genBlock = raw.generation as Record<string, unknown> | undefined;
+
+  // Convert archetype levels → LevelDefinition[], merging overrides
+  const FLOOR_HEIGHT = 4;
+  const levels: LevelDefinition[] = (archetype.levels as ArchetypeLevelConfig[]).map(archetypeLevel => {
+    const levelOverride = overrides[String(archetypeLevel.level)] as Record<string, unknown> | undefined;
+
+    // Merge anchor rooms: archetype provides defaults, overrides can replace/extend
+    const baseAnchors = archetypeLevel.anchorRooms || [];
+    const overrideAnchors = (levelOverride?.anchorRooms as ArchetypeAnchorRoom[] | undefined) || [];
+
+    // Build a map of anchors by purpose, override wins
+    const anchorMap = new Map<string, ArchetypeAnchorRoom>();
+    for (const a of baseAnchors) anchorMap.set(a.purpose, a);
+    for (const a of overrideAnchors) anchorMap.set(a.purpose, a);
+
+    // Convert to AnchorRoomDef format
+    const anchorRooms: AnchorRoomDef[] = Array.from(anchorMap.values()).map((a, i) => ({
+      id: `anchor_${archetypeLevel.level}_${i}`,
+      purpose: mapPurpose(a.purpose),
+      templateId: a.templateId || findTemplateByTags(a.templateTags || []),
+      gridPosition: a.gridPosition,
+      storyBeats: a.storyBeats,
+      required: true,
+      connections: [],
+      questItems: a.questItems,
+    }));
+
+    // Filler rooms from archetype fillerRules
+    const fillerRules = archetypeLevel.fillerRules as { allowedTemplates?: string[] } | undefined;
+    const totalRoomsSpec = (levelOverride?.totalRooms || archetypeLevel.totalRooms) as { min: number; max: number } | number | undefined;
+    const totalRoomsNum = typeof totalRoomsSpec === 'number'
+      ? totalRoomsSpec
+      : (totalRoomsSpec ? totalRoomsSpec.max : anchorRooms.length + 2);
+    const fillerCount = Math.max(0, totalRoomsNum - anchorRooms.length);
+
+    // Vertical connections
+    const vertConns = (archetypeLevel.verticalConnections || []) as ArchetypeVerticalConn[];
+    const verticalConnections: LevelVerticalConnection[] = vertConns.map((vc, i) => ({
+      id: `vert_${archetypeLevel.level}_${i}`,
+      type: (vc.type || 'stairs') as 'stairs' | 'ramp' | 'ladder' | 'elevator',
+      fromRoom: '',  // resolved by generateLayout
+      position: { x: vc.gridPosition.x, z: vc.gridPosition.z },
+      direction: vc.direction,
+      targetLevel: vc.targetLevel,
+      targetRoom: '',  // resolved by generateLayout
+      locked: vc.locked,
+      lockId: vc.lockId,
+    }));
+
+    return {
+      level: archetypeLevel.level,
+      name: archetypeLevel.name,
+      yOffset: archetypeLevel.level * FLOOR_HEIGHT,
+      pattern: (archetypeLevel.pattern || 'branching') as LevelDefinition['pattern'],
+      totalRooms: totalRoomsNum,
+      alignment: 'center',
+      palette: archetypeLevel.palette as string | undefined,
+      anchorRooms,
+      fillerRooms: {
+        count: { min: Math.max(0, fillerCount - 1), max: fillerCount },
+        templates: fillerRules?.allowedTemplates || ['room_small', 'hallway_short', 'closet'],
+        spawnZone: { minX: -3, maxX: 3, minZ: -3, maxZ: 3 },
+        mustConnectToAnchor: true,
+      },
+      verticalConnections,
+    };
+  });
+
+  // Determine entry and exit rooms from anchor rooms
+  let entryRoomId = 'living_room';
+  let exitRoomId = 'exit';
+  for (const level of levels) {
+    for (const anchor of level.anchorRooms) {
+      // Check the original archetype data for isEntry/isExit flags
+      const archetypeLevel = (archetype.levels as ArchetypeLevelConfig[]).find(l => l.level === level.level);
+      const archetypeAnchor = archetypeLevel?.anchorRooms.find(a => a.purpose === reverseMapPurpose(anchor.purpose));
+      if (archetypeAnchor?.isEntry) entryRoomId = anchor.id;
+      if (archetypeAnchor?.isExit) exitRoomId = anchor.id;
+    }
+  }
+
+  // Connection rules from generation block or archetype
+  const genConnectionRules = genBlock?.connectionRules as Record<string, unknown> | undefined;
+  const archetypeConnRules = archetype.connectionRules as { defaultType?: string; maxDoorsPerRoom?: number } | undefined;
+
+  return {
+    id: (raw.id as string) || 'unknown',
+    name: (raw.name as string) || 'Unknown Stage',
+    layoutArchetype: layoutBlock.archetypeId,
+    levels,
+    connectionRules: {
+      type: ((genConnectionRules?.type as string) || 'branching') as LayoutPattern,
+      defaultConnectionType: (archetypeConnRules?.defaultType || (genConnectionRules?.separation as string) || 'wall_door') as ConnectionType,
+      maxDeadEnds: (genConnectionRules?.maxDeadEnds as number) || 2,
+      loopsAllowed: (genConnectionRules?.loopsAllowed as boolean) || false,
+      maxDistanceFromEntry: (genConnectionRules?.maxDistanceFromEntry as number) || 5,
+    },
+    entryScene: {
+      roomId: entryRoomId,
+      spawnPoint: { x: 0, z: 2 },
+    },
+    exitScene: {
+      roomId: exitRoomId,
+    },
+  };
+}
+
+// ── Archetype JSON shape helpers ──
+
+interface ArchetypeAnchorRoom {
+  purpose: string;
+  gridPosition: { x: number; z: number };
+  templateId?: string;
+  templateTags?: string[];
+  isEntry?: boolean;
+  isExit?: boolean;
+  storyBeats?: string[];
+  questItems?: string[];
+}
+
+interface ArchetypeLevelConfig {
+  level: number;
+  name: string;
+  pattern?: string;
+  totalRooms?: { min: number; max: number } | number;
+  anchorRooms: ArchetypeAnchorRoom[];
+  fillerRules?: { allowedTemplates?: string[]; growthStrategy?: string; palette?: string };
+  verticalConnections?: ArchetypeVerticalConn[];
+  palette?: string;
+}
+
+interface ArchetypeVerticalConn {
+  gridPosition: { x: number; z: number };
+  direction: 'up' | 'down';
+  targetLevel: number;
+  type?: string;
+  locked?: boolean;
+  lockId?: string;
+}
+
+/**
+ * Display names for room purposes — mirrors StageGenerator.ROOM_NAMES.
+ * Duplicated here to avoid circular dependency between generator modules.
+ */
+const LAYOUT_ROOM_NAMES: Record<string, string> = {
+  entry: 'Living Room',
+  kitchen: 'The Kitchen',
+  bedroom: 'Master Bedroom',
+  bathroom: 'Bathroom',
+  hallway: 'Hallway',
+  basement_main: 'Basement',
+  basement_storage: 'Storage Room',
+  exit: 'Basement',
+  filler: 'Side Room',
+  closet: 'Closet',
+  storage: 'Storage',
+  // Stage 1 — House
+  entry_hall: 'Entry Hall',
+  living_room: 'Living Room',
+  dining_room: 'Dining Room',
+  master_bedroom: 'Master Bedroom',
+  upstairs_hall: 'Upstairs Hall',
+  // Stage 2 — Space Station
+  docking_bay: 'Docking Bay',
+  corridor_a: 'Corridor A',
+  mess_hall: 'Mess Hall',
+  crew_quarters: 'Crew Quarters',
+  medical_bay: 'Medical Bay',
+  engine_room: 'Engine Room',
+  airlock: 'Airlock',
+  // Stage 3 — Pirate Island
+  beach: 'The Beach',
+  dock: 'The Dock',
+  jungle_path: 'Jungle Path',
+  cave: 'The Cave',
+  captain_quarters: "Captain's Quarters",
+  crow_nest: "Crow's Nest",
+  lighthouse: 'Lighthouse',
+};
+
+/** Map archetype purpose strings to AnchorRoomDef purpose enum. */
+function mapPurpose(purpose: string): AnchorRoomDef['purpose'] {
+  switch (purpose) {
+    case 'entry':
+    case 'entry_hall':
+    case 'docking_bay':
+    case 'beach':
+      return 'entry';
+    case 'exit':
+    case 'basement_main':
+    case 'airlock':
+    case 'lighthouse':
+      return 'exit';
+    default: return 'story_critical';
+  }
+}
+
+function reverseMapPurpose(purpose: AnchorRoomDef['purpose']): string {
+  return purpose;
+}
+
+/** Find a template ID from template tags (best effort). */
+function findTemplateByTags(tags: string[]): string {
+  // Map common tags to known template IDs
+  const tagToTemplate: Record<string, string> = {
+    living_room: 'room_medium',
+    kitchen: 'room_kitchen',
+    bedroom: 'room_bedroom',
+    bathroom: 'room_bathroom',
+    basement: 'room_basement',
+    hallway: 'hallway_short',
+    storage: 'room_small',
+    closet: 'closet',
+  };
+  for (const tag of tags) {
+    if (tagToTemplate[tag]) return tagToTemplate[tag];
+  }
+  return 'room_medium';
 }
 
 /**

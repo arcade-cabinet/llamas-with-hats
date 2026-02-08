@@ -255,6 +255,59 @@ interface GeneratorContext {
  * await loadScene(babylonScene, stage.scenes[0]);
  * ```
  */
+/**
+ * Validate that all IDs referenced by a stage definition actually exist
+ * in the provided template and palette maps.
+ *
+ * Throws an Error listing every missing ID so authoring mistakes surface
+ * immediately rather than silently falling back to random assets.
+ *
+ * @internal
+ */
+function validateStageDefinition(
+  stageDef: StageDefinition,
+  templateMap: Map<string, SceneTemplate>,
+  paletteMap: Map<string, MaterialPalette>
+): void {
+  const missing: string[] = [];
+
+  // Check entry / exit / required scene template IDs
+  const scenesToCheck: { templateId?: string; label: string }[] = [
+    { templateId: stageDef.generation.entryScene.templateId, label: 'entryScene' },
+    { templateId: stageDef.generation.exitScene.templateId, label: 'exitScene' },
+    ...stageDef.generation.requiredScenes.map((r, i) => ({
+      templateId: r.templateId,
+      label: `requiredScenes[${i}] (${r.purpose})`,
+    })),
+  ];
+
+  for (const { templateId, label } of scenesToCheck) {
+    if (templateId && !templateMap.has(templateId)) {
+      missing.push(`Template "${templateId}" (referenced by ${label})`);
+    }
+  }
+
+  // Check allowedTemplates
+  for (const id of stageDef.generation.allowedTemplates) {
+    if (!templateMap.has(id)) {
+      missing.push(`Template "${id}" (in allowedTemplates)`);
+    }
+  }
+
+  // Check palette IDs
+  for (const id of stageDef.generation.palettes) {
+    if (!paletteMap.has(id)) {
+      missing.push(`Palette "${id}" (in palettes)`);
+    }
+  }
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Stage "${stageDef.id}" references missing assets:\n  - ${missing.join('\n  - ')}`
+    );
+  }
+}
+
 export function generateStage(
   stageDef: StageDefinition,
   templates: SceneTemplate[],
@@ -277,7 +330,10 @@ export function generateStage(
     sceneCounter: 0,
     propCounter: 0,
   };
-  
+
+  // Validate all referenced IDs exist before generation
+  validateStageDefinition(stageDef, ctx.templates, ctx.palettes);
+
   // ─────────────────────────────────────────
   // Phase 1: Generate required scenes
   // ─────────────────────────────────────────
@@ -374,19 +430,38 @@ function generateRequiredScene(
   
   if (req.templateId) {
     // Specific template requested
-    template = ctx.templates.get(req.templateId)!;
+    const found = ctx.templates.get(req.templateId);
+    if (!found) {
+      console.error(`Template not found: "${req.templateId}" for purpose "${purpose}". Falling back to random template.`);
+      const fallback = Array.from(ctx.templates.values());
+      template = ctx.rng.pick(fallback);
+    } else {
+      template = found;
+    }
   } else if (req.templateTags) {
     // Find templates matching any tag
     const matching = Array.from(ctx.templates.values()).filter(t =>
       req.templateTags!.some(tag => t.tags.includes(tag))
     );
-    template = ctx.rng.pick(matching);
+    if (matching.length === 0) {
+      console.error(`No templates match tags [${req.templateTags.join(', ')}] for purpose "${purpose}". Falling back to random template.`);
+      const fallback = Array.from(ctx.templates.values());
+      template = ctx.rng.pick(fallback);
+    } else {
+      template = ctx.rng.pick(matching);
+    }
   } else {
     // Pick from allowed templates
     const allowed = ctx.stageDef.generation.allowedTemplates
-      .map(id => ctx.templates.get(id)!)
-      .filter(Boolean);
-    template = ctx.rng.pick(allowed);
+      .map(id => ctx.templates.get(id))
+      .filter((t): t is SceneTemplate => t != null);
+    if (allowed.length === 0) {
+      console.error(`No allowed templates resolved for purpose "${purpose}". Falling back to random template.`);
+      const fallback = Array.from(ctx.templates.values());
+      template = ctx.rng.pick(fallback);
+    } else {
+      template = ctx.rng.pick(allowed);
+    }
   }
   
   return generateSceneFromTemplate(ctx, template, purpose);
@@ -400,10 +475,18 @@ function generateRequiredScene(
  */
 function generateFillerScene(ctx: GeneratorContext): SceneDefinition {
   const allowed = ctx.stageDef.generation.allowedTemplates
-    .map(id => ctx.templates.get(id)!)
-    .filter(Boolean);
-  const template = ctx.rng.pick(allowed);
-  
+    .map(id => ctx.templates.get(id))
+    .filter((t): t is SceneTemplate => t != null);
+
+  let template: SceneTemplate;
+  if (allowed.length === 0) {
+    console.error('No allowed templates resolved for filler scene. Falling back to random template.');
+    const fallback = Array.from(ctx.templates.values());
+    template = ctx.rng.pick(fallback);
+  } else {
+    template = ctx.rng.pick(allowed);
+  }
+
   return generateSceneFromTemplate(ctx, template, 'filler');
 }
 
@@ -467,7 +550,10 @@ function generateSceneFromTemplate(
 
   // Pick a random palette from stage's allowed palettes
   const paletteId = ctx.rng.pick(ctx.stageDef.generation.palettes);
-  const palette = ctx.palettes.get(paletteId)!;
+  const palette = ctx.palettes.get(paletteId) ?? Array.from(ctx.palettes.values())[0];
+  if (!ctx.palettes.has(paletteId)) {
+    console.error(`Palette not found: "${paletteId}". Using fallback palette.`);
+  }
 
   // Generate props using template rules
   const props = generateProps(ctx, template, width, height, palette);
@@ -721,7 +807,14 @@ function connectScenes(
     case 'hub':
       connectHub(ctx, scenes, entryId, exitId);
       break;
+    case 'maze':
+      connectMaze(ctx, scenes, entryId, exitId);
+      break;
+    case 'open':
+      connectOpen(ctx, scenes, entryId, exitId);
+      break;
     default:
+      console.warn(`Unknown connection type "${rules.type}". Falling back to linear layout.`);
       connectLinear(ctx, scenes, entryId, exitId);
   }
 }
@@ -886,9 +979,212 @@ function connectHub(
 }
 
 /**
+ * Maze connection: DFS recursive-backtracker maze.
+ *
+ * Creates a spanning tree over all scenes using randomized DFS.
+ * Every room is reachable but most paths are winding dead ends.
+ * If `loopsAllowed`, extra connections are added between adjacent
+ * but unconnected rooms to create shortcuts.
+ *
+ * @internal
+ */
+function connectMaze(
+  ctx: GeneratorContext,
+  scenes: SceneDefinition[],
+  entryId: string,
+  exitId: string
+): void {
+  const entry = scenes.find(s => s.id === entryId)!;
+  const exit = scenes.find(s => s.id === exitId)!;
+  const middle = scenes.filter(s => s.id !== entryId && s.id !== exitId);
+  const shuffled = ctx.rng.shuffle(middle);
+
+  // Ordered list: entry first, shuffled middle, exit last
+  const ordered = [entry, ...shuffled, exit];
+
+  const directions: ('north' | 'south' | 'east' | 'west')[] = ['north', 'south', 'east', 'west'];
+  const opposites = { north: 'south', south: 'north', east: 'west', west: 'east' } as const;
+  const offsets = {
+    north: { x: 0, z: -15 },
+    south: { x: 0, z: 15 },
+    east:  { x: 15, z: 0 },
+    west:  { x: -15, z: 0 },
+  };
+
+  // Track grid positions: sceneId → {x, z}
+  const gridPos = new Map<string, { x: number; z: number }>();
+  // Track which directions are used from each scene
+  const usedDirs = new Map<string, Set<string>>();
+
+  placeSceneInGraph(ctx, entry.id, { x: 0, z: 0 });
+  gridPos.set(entry.id, { x: 0, z: 0 });
+  usedDirs.set(entry.id, new Set());
+
+  // DFS stack-based maze carving
+  const visited = new Set<string>([entry.id]);
+  const stack: SceneDefinition[] = [entry];
+  let pool = ordered.filter(s => s.id !== entryId);
+
+  while (stack.length > 0 && pool.length > 0) {
+    const current = stack[stack.length - 1];
+    const currentPos = gridPos.get(current.id)!;
+    const currentUsed = usedDirs.get(current.id)!;
+
+    // Find available directions not already used by current scene
+    const availableDirs = directions.filter(d => !currentUsed.has(d));
+
+    if (availableDirs.length === 0 || pool.length === 0) {
+      stack.pop();
+      continue;
+    }
+
+    // Pick a random available direction
+    const dir = ctx.rng.pick(availableDirs);
+    const opposite = opposites[dir];
+    const offset = offsets[dir];
+    const newPos = { x: currentPos.x + offset.x, z: currentPos.z + offset.z };
+
+    // Check if grid position is already occupied
+    const posKey = `${newPos.x},${newPos.z}`;
+    if (ctx.usedPositions.has(posKey)) {
+      currentUsed.add(dir);
+      continue;
+    }
+
+    // Take the next scene from the pool
+    const next = pool.shift()!;
+    visited.add(next.id);
+
+    createConnection(ctx, current, next, dir, opposite);
+    placeSceneInGraph(ctx, next.id, newPos);
+    gridPos.set(next.id, newPos);
+
+    currentUsed.add(dir);
+    const nextUsed = new Set<string>();
+    nextUsed.add(opposite); // The direction back is used
+    usedDirs.set(next.id, nextUsed);
+
+    stack.push(next);
+  }
+
+  // Any remaining scenes that couldn't be placed via DFS: attach to random visited scenes
+  for (const scene of pool) {
+    if (visited.has(scene.id)) continue;
+    const visitedArr = Array.from(visited);
+    const parent = scenes.find(s => s.id === ctx.rng.pick(visitedArr))!;
+    const parentPos = gridPos.get(parent.id)!;
+    const parentUsed = usedDirs.get(parent.id) ?? new Set();
+    const availDirs = directions.filter(d => !parentUsed.has(d));
+
+    if (availDirs.length > 0) {
+      const dir = ctx.rng.pick(availDirs);
+      const offset = offsets[dir];
+      createConnection(ctx, parent, scene, dir, opposites[dir]);
+      const newPos = { x: parentPos.x + offset.x, z: parentPos.z + offset.z };
+      placeSceneInGraph(ctx, scene.id, newPos);
+      gridPos.set(scene.id, newPos);
+      parentUsed.add(dir);
+      usedDirs.set(parent.id, parentUsed);
+      usedDirs.set(scene.id, new Set([opposites[dir]]));
+      visited.add(scene.id);
+    }
+  }
+
+  // Optional loop pass: add connections between adjacent but unconnected rooms
+  const rules = ctx.stageDef.generation.connectionRules;
+  if (rules.loopsAllowed) {
+    const sceneIds = Array.from(gridPos.keys());
+    for (const idA of sceneIds) {
+      const posA = gridPos.get(idA)!;
+      const usedA = usedDirs.get(idA) ?? new Set();
+      for (const dir of directions) {
+        if (usedA.has(dir)) continue;
+        const offset = offsets[dir];
+        const neighborPos = { x: posA.x + offset.x, z: posA.z + offset.z };
+        const neighborId = sceneIds.find(id => {
+          const p = gridPos.get(id)!;
+          return p.x === neighborPos.x && p.z === neighborPos.z;
+        });
+        if (neighborId && ctx.rng.next() < 0.3) {
+          const sceneA = scenes.find(s => s.id === idA)!;
+          const sceneB = scenes.find(s => s.id === neighborId)!;
+          createConnection(ctx, sceneA, sceneB, dir, opposites[dir]);
+          usedA.add(dir);
+          const usedB = usedDirs.get(neighborId) ?? new Set();
+          usedB.add(opposites[dir]);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Open connection: Grid-based layout with high adjacency.
+ *
+ * Places scenes on a grid and connects ALL orthogonal neighbors.
+ * Every interior room has up to 4 connections, creating an open,
+ * highly-connected layout suitable for outdoor or arena stages.
+ *
+ * @internal
+ */
+function connectOpen(
+  ctx: GeneratorContext,
+  scenes: SceneDefinition[],
+  entryId: string,
+  exitId: string
+): void {
+  const entry = scenes.find(s => s.id === entryId)!;
+  const exit = scenes.find(s => s.id === exitId)!;
+  const middle = scenes.filter(s => s.id !== entryId && s.id !== exitId);
+
+  // Calculate grid dimensions
+  const n = scenes.length;
+  const cols = Math.ceil(Math.sqrt(n));
+  const rows = Math.ceil(n / cols);
+
+  // Shuffle middle scenes, then place entry at [0,0] and exit at last position
+  const shuffled = ctx.rng.shuffle(middle);
+  const ordered: SceneDefinition[] = [entry, ...shuffled, exit];
+  // Pad if grid has more cells than scenes
+  while (ordered.length < cols * rows) {
+    ordered.push(undefined as unknown as SceneDefinition);
+  }
+
+  // Build grid: [row][col] → scene or null
+  const grid: (SceneDefinition | null)[][] = [];
+  let idx = 0;
+  for (let r = 0; r < rows; r++) {
+    grid[r] = [];
+    for (let c = 0; c < cols; c++) {
+      grid[r][c] = idx < scenes.length ? ordered[idx] : null;
+      idx++;
+    }
+  }
+
+  // Place each scene in the graph and connect to neighbors
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const scene = grid[r][c];
+      if (!scene) continue;
+
+      placeSceneInGraph(ctx, scene.id, { x: c * 15, z: r * 15 });
+
+      // Connect east neighbor
+      if (c + 1 < cols && grid[r][c + 1]) {
+        createConnection(ctx, scene, grid[r][c + 1]!, 'east', 'west');
+      }
+      // Connect south neighbor
+      if (r + 1 < rows && grid[r + 1][c]) {
+        createConnection(ctx, scene, grid[r + 1][c]!, 'south', 'north');
+      }
+    }
+  }
+}
+
+/**
  * Create a bidirectional connection between two scenes.
  * Adds exits to both scenes pointing to each other.
- * 
+ *
  * @internal
  */
 function createConnection(

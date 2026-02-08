@@ -9,10 +9,13 @@ import {
   PlayerState,
   RoomConfig
 } from '../types/game';
+import type { GeneratedLayout } from '../systems/LayoutGenerator';
 import { generateWorldSeed } from '../utils/worldGenerator';
-import { getStartingStage } from '../data';
-import { getStoryManager, StoryState } from '../systems/StoryManager';
-import { initializeGame, getSpawnPosition, GameInstance } from '../systems/GameInitializer';
+import { getStartingStage, getNextStage } from '../data';
+import { getStoryManager, resetStoryManager, StoryState } from '../systems/StoryManager';
+import { resetAtmosphereManager } from '../systems/AtmosphereManager';
+import { resetAudioManager } from '../systems/AudioManager';
+import { initializeGame, getSpawnPosition, GameInstance, StageAtmosphere, StageGoal } from '../systems/GameInitializer';
 
 const STORAGE_KEY = 'llamas-rpg-saves';
 const SETTINGS_KEY = 'llamas-rpg-settings';
@@ -30,6 +33,13 @@ export interface RPGGameState {
   currentStageId: string | null;
   currentStageDefinition: Record<string, unknown> | null;
   currentRoom: RoomConfig | null;
+  layout: GeneratedLayout | null;
+  allRoomConfigs: Map<string, RoomConfig> | null;
+  stageAtmosphere: StageAtmosphere | null;
+  stageGoals: StageGoal[];
+  stageName: string;
+  stageDescription: string;
+  showStageTransition: boolean;
   player: PlayerState;
   opponentPosition: { x: number; y: number; z: number };
   opponentRotation: number;
@@ -38,6 +48,7 @@ export interface RPGGameState {
   isPaused: boolean;
   showInventory: boolean;
   isLoadingStage: boolean;
+  showVictory: boolean;
 }
 
 const DEFAULT_SETTINGS: GameSettings = {
@@ -69,12 +80,20 @@ export function useRPGGameState() {
     currentStageId: null,
     currentStageDefinition: null,
     currentRoom: null,
+    layout: null,
+    allRoomConfigs: null,
+    stageAtmosphere: null,
+    stageGoals: [],
+    stageName: '',
+    stageDescription: '',
+    showStageTransition: false,
     player: DEFAULT_PLAYER,
     opponentPosition: { x: 0, y: 0, z: -2 },
     opponentRotation: Math.PI,
     isPaused: false,
     showInventory: false,
-    isLoadingStage: false
+    isLoadingStage: false,
+    showVictory: false
   });
 
   const gameInstanceRef = useRef<GameInstance | null>(null);
@@ -85,9 +104,21 @@ export function useRPGGameState() {
       const savedGamesJson = localStorage.getItem(STORAGE_KEY);
       const settingsJson = localStorage.getItem(SETTINGS_KEY);
 
+      // Validate saved games have required fields before using them
+      let savedGames: SavedGame[] = [];
+      if (savedGamesJson) {
+        const parsed = JSON.parse(savedGamesJson);
+        if (Array.isArray(parsed)) {
+          savedGames = parsed.filter((s: unknown): s is SavedGame =>
+            s != null && typeof s === 'object' &&
+            'id' in s && 'worldSeed' in s && 'playerCharacter' in s && 'timestamp' in s
+          );
+        }
+      }
+
       setState(prev => ({
         ...prev,
-        savedGames: savedGamesJson ? JSON.parse(savedGamesJson) : [],
+        savedGames,
         settings: settingsJson ? { ...DEFAULT_SETTINGS, ...JSON.parse(settingsJson) } : DEFAULT_SETTINGS
       }));
     } catch {
@@ -134,8 +165,13 @@ export function useRPGGameState() {
     // Initialize story manager for new game
     const storyManager = getStoryManager();
     storyManager.reset();
-    storyManager.setCharacterPath(selectedCharacter === 'carl' ? 'order' : 'chaos');
+    storyManager.setCharacterPath(selectedCharacter === 'carl' ? 'chaos' : 'order');
     await storyManager.loadStage(stageId);
+
+    // Set initial horror from stage atmosphere + entry room override
+    const entryHorror = game.atmosphere.perRoomOverrides?.[startRoom.id]?.horrorLevel
+      ?? game.atmosphere.baseHorrorLevel;
+    storyManager.setSceneHorrorLevel(entryHorror);
 
     setState(prev => ({
       ...prev,
@@ -145,6 +181,13 @@ export function useRPGGameState() {
       currentStageId: stageId,
       currentStageDefinition: null,
       currentRoom: startRoom,
+      layout: game.layout,
+      allRoomConfigs: game.allRoomConfigs,
+      stageAtmosphere: game.atmosphere,
+      stageGoals: game.storyGoals,
+      stageName: game.stageName,
+      stageDescription: game.stageDescription,
+      showStageTransition: false,
       player: {
         ...DEFAULT_PLAYER,
         position: { x: 0, y: 0, z: 2 },
@@ -217,7 +260,7 @@ export function useRPGGameState() {
     // Restore story manager state
     const storyManager = getStoryManager();
     storyManager.reset();
-    storyManager.setCharacterPath(save.playerCharacter === 'carl' ? 'order' : 'chaos');
+    storyManager.setCharacterPath(save.playerCharacter === 'carl' ? 'chaos' : 'order');
     await storyManager.loadStage(stageId);
 
     // Rebuild story state from saved data
@@ -225,7 +268,7 @@ export function useRPGGameState() {
       completedBeats: save.completedBeats,
       currentBeat: null,
       horrorLevel: save.horrorLevel,
-      characterPath: save.playerCharacter === 'carl' ? 'order' : 'chaos',
+      characterPath: save.playerCharacter === 'carl' ? 'chaos' : 'order',
     };
     storyManager.loadState(savedStoryState);
 
@@ -239,6 +282,13 @@ export function useRPGGameState() {
       currentStageId: stageId,
       currentStageDefinition: null,
       currentRoom: room,
+      layout: game.layout,
+      allRoomConfigs: game.allRoomConfigs,
+      stageAtmosphere: game.atmosphere,
+      stageGoals: game.storyGoals,
+      stageName: game.stageName,
+      stageDescription: game.stageDescription,
+      showStageTransition: false,
       player: {
         ...DEFAULT_PLAYER,
         position: save.playerPosition,
@@ -307,19 +357,97 @@ export function useRPGGameState() {
 
   // Return to main menu
   const returnToMainMenu = useCallback(() => {
-    // Reset singleton managers to avoid stale state on next game start
-    getStoryManager().reset();
+    // Reset all singleton managers to avoid stale state on next game start
+    resetStoryManager();
+    resetAtmosphereManager();
+    resetAudioManager();
     gameInstanceRef.current = null;
     setState(prev => ({
       ...prev,
       isPlaying: false,
+      showVictory: false,
       menuScreen: 'main',
       currentRoom: null,
       currentStageId: null,
       currentStageDefinition: null,
+      layout: null,
+      allRoomConfigs: null,
+      stageAtmosphere: null,
+      stageGoals: [],
+      stageName: '',
+      stageDescription: '',
+      showStageTransition: false,
       selectedCharacter: null,
       worldSeed: null
     }));
+  }, []);
+
+  // Dismiss stage transition screen
+  const dismissStageTransition = useCallback(() => {
+    setState(prev => ({ ...prev, showStageTransition: false }));
+  }, []);
+
+  // Advance to next stage, or trigger victory if no next stage
+  const advanceStage = useCallback(async () => {
+    const { currentStageId, selectedCharacter, worldSeed } = stateRef.current;
+    if (!currentStageId || !selectedCharacter || !worldSeed) return;
+
+    const nextStageId = getNextStage(currentStageId);
+
+    // No next stage — the game is complete!
+    if (!nextStageId) {
+      setState(prev => ({
+        ...prev,
+        showVictory: true,
+        isPaused: true,
+        menuScreen: 'victory',
+      }));
+      return;
+    }
+
+    setState(prev => ({ ...prev, isLoadingStage: true }));
+
+    // Initialize the next stage
+    const game = await initializeGame(nextStageId, selectedCharacter, worldSeed);
+    gameInstanceRef.current = game;
+
+    const startRoom = game.getCurrentRoom();
+
+    // Reload story for the new stage
+    const storyManager = getStoryManager();
+    storyManager.reset();
+    storyManager.setCharacterPath(selectedCharacter === 'carl' ? 'chaos' : 'order');
+    await storyManager.loadStage(nextStageId);
+
+    // Set initial horror from new stage atmosphere
+    const entryHorror = game.atmosphere.perRoomOverrides?.[startRoom.id]?.horrorLevel
+      ?? game.atmosphere.baseHorrorLevel;
+    storyManager.setSceneHorrorLevel(entryHorror);
+
+    setState(prev => ({
+      ...prev,
+      isLoadingStage: false,
+      currentStageId: nextStageId,
+      currentStageDefinition: null,
+      currentRoom: startRoom,
+      layout: game.layout,
+      allRoomConfigs: game.allRoomConfigs,
+      stageAtmosphere: game.atmosphere,
+      stageGoals: game.storyGoals,
+      stageName: game.stageName,
+      stageDescription: game.stageDescription,
+      showStageTransition: true,
+      player: {
+        ...prev.player,
+        position: { x: 0, y: 0, z: 2 },
+        currentRoom: startRoom.id
+      },
+      opponentPosition: { x: 2, y: 0, z: 0 },
+      opponentRotation: Math.PI
+    }));
+
+    // Fire scene_enter trigger for the new room
+    storyManager.checkTrigger('scene_enter', { sceneId: startRoom.id });
   }, []);
 
   // Inventory management
@@ -367,10 +495,44 @@ export function useRPGGameState() {
     });
   }, []);
 
-  // Room transitions — uses GameInstance to move between stage scenes
+  // Layout-based room change — fired when player walks into a new room
+  const handleRoomChange = useCallback((roomId: string) => {
+    const game = gameInstanceRef.current;
+    if (!game) return;
+
+    const previousSceneId = game.currentSceneId;
+
+    // Fire scene_exit trigger for the room we're leaving
+    getStoryManager().checkTrigger('scene_exit', { sceneId: previousSceneId });
+
+    // Update game instance tracking
+    game.transitionTo(roomId);
+
+    // Look up the RoomConfig for HUD display
+    const roomConfig = game.allRoomConfigs.get(roomId);
+    if (!roomConfig) return;
+
+    setState(prev => ({
+      ...prev,
+      currentRoom: roomConfig,
+      player: {
+        ...prev.player,
+        currentRoom: roomId
+      }
+    }));
+
+    // Fire scene_enter story trigger for the new room
+    getStoryManager().checkTrigger('scene_enter', { sceneId: roomId });
+  }, []);
+
+  // Room transitions — uses GameInstance to move between stage scenes (fallback for single-room mode)
   const transitionToRoom = useCallback((roomId: string, entryDirection: 'north' | 'south' | 'east' | 'west') => {
     const game = gameInstanceRef.current;
     if (!game) return;
+
+    // Fire scene_exit trigger for the room we're leaving
+    const previousSceneId = game.currentSceneId;
+    getStoryManager().checkTrigger('scene_exit', { sceneId: previousSceneId });
 
     // Transition to the target scene in the generated stage
     game.transitionTo(roomId);
@@ -411,9 +573,12 @@ export function useRPGGameState() {
     togglePause,
     returnToMainMenu,
     transitionToRoom,
+    handleRoomChange,
     addToInventory,
     removeFromInventory,
     hasItem,
-    unlockExit
+    unlockExit,
+    advanceStage,
+    dismissStageTransition
   };
 }

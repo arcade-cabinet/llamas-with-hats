@@ -31,7 +31,7 @@ import {
   AbstractMesh
 } from '@babylonjs/core';
 import { BuiltStage, PlacedRoom, Boundary, FLOOR_HEIGHT } from './StageBuilder';
-import { createPropMesh } from './PropFactory';
+import { createPropMeshAsync } from './PropFactory';
 import { createVerticalTransition } from './StageRenderer';
 
 // ============================================
@@ -108,11 +108,11 @@ function createMaterials(scene: Scene) {
 /**
  * Render a BuiltStage into Babylon.js geometry.
  */
-export function renderBuiltStage(
+export async function renderBuiltStage(
   scene: Scene,
   stage: BuiltStage,
   shadowGenerator?: ShadowGenerator
-): RenderedBuiltStage {
+): Promise<RenderedBuiltStage> {
   const root = new TransformNode('stage_root', scene);
   const materials = createMaterials(scene);
   const renderedRooms = new Map<string, RenderedRoom>();
@@ -122,7 +122,7 @@ export function renderBuiltStage(
   // Render each room
   // ─────────────────────────────────────────
   for (const [roomId, room] of stage.rooms) {
-    const renderedRoom = renderRoom(scene, room, materials, shadowGenerator);
+    const renderedRoom = await renderRoom(scene, room, materials, shadowGenerator);
     renderedRoom.root.parent = root;
     renderedRooms.set(roomId, renderedRoom);
   }
@@ -200,12 +200,12 @@ export function renderBuiltStage(
 // Room Rendering
 // ============================================
 
-function renderRoom(
+async function renderRoom(
   scene: Scene,
   room: PlacedRoom,
   materials: ReturnType<typeof createMaterials>,
   shadowGenerator?: ShadowGenerator
-): RenderedRoom {
+): Promise<RenderedRoom> {
   const roomRoot = new TransformNode(`room_${room.id}`, scene);
   roomRoot.position.set(
     room.worldPosition.x,
@@ -309,14 +309,12 @@ function renderRoom(
   // Props
   const props: AbstractMesh[] = [];
   for (const prop of room.props) {
-    const mesh = createPropMesh(scene, prop.type, prop.interactive);
-    if (mesh) {
-      mesh.position.set(prop.position.x, 0, prop.position.z);
-      mesh.rotation.y = prop.rotation;
-      mesh.parent = roomRoot;
-      if (shadowGenerator) shadowGenerator.addShadowCaster(mesh);
-      props.push(mesh);
-    }
+    const mesh = await createPropMeshAsync(scene, prop.type, prop.interactive);
+    mesh.position.set(prop.position.x, 0, prop.position.z);
+    mesh.rotation.y = prop.rotation;
+    mesh.parent = roomRoot;
+    if (shadowGenerator) shadowGenerator.addShadowCaster(mesh);
+    props.push(mesh);
   }
   
   // Calculate world bounds

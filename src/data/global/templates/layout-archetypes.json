@@ -52,8 +52,8 @@
     },
     {
       "id": "house_two_story",
-      "name": "Two-Story House",
-      "description": "Traditional house with entry hall hub on ground floor and linear bedrooms upstairs.",
+      "name": "Two-Story House with Basement",
+      "description": "Traditional house with entry hall hub on ground floor, linear bedrooms upstairs, and a locked basement below.",
       "environment": "interior",
       "levels": [
         {
@@ -72,7 +72,8 @@
             "growthStrategy": "adjacent"
           },
           "verticalConnections": [
-            { "gridPosition": { "x": 0, "z": 1 }, "direction": "up", "targetLevel": 1, "type": "stairs" }
+            { "gridPosition": { "x": 0, "z": 1 }, "direction": "up", "targetLevel": 1, "type": "stairs" },
+            { "gridPosition": { "x": 1, "z": -1 }, "direction": "down", "targetLevel": -1, "type": "stairs", "locked": true, "lockId": "basement_door" }
           ]
         },
         {
@@ -92,11 +93,95 @@
           "verticalConnections": [
             { "gridPosition": { "x": 0, "z": 1 }, "direction": "down", "targetLevel": 0, "type": "stairs" }
           ]
+        },
+        {
+          "level": -1,
+          "name": "Basement",
+          "pattern": "linear",
+          "totalRooms": { "min": 1, "max": 3 },
+          "anchorRooms": [
+            { "purpose": "basement_main", "gridPosition": { "x": 1, "z": -1 }, "templateTags": ["basement", "dark"], "isExit": true, "storyBeats": ["discover_horror"] }
+          ],
+          "fillerRules": {
+            "allowedTemplates": ["room_small", "closet"],
+            "growthStrategy": "adjacent",
+            "palette": "basement_damp"
+          },
+          "verticalConnections": [
+            { "gridPosition": { "x": 1, "z": -1 }, "direction": "up", "targetLevel": 0, "type": "stairs" }
+          ],
+          "palette": "basement_damp"
         }
       ],
       "connectionRules": {
         "defaultType": "wall_door",
         "hallwayType": "open",
+        "maxDoorsPerRoom": 4
+      }
+    },
+    {
+      "id": "space_station",
+      "name": "Space Station",
+      "description": "Linear corridor spine with branching rooms off the main hallway. Entry at docking bay, exit at airlock. Claustrophobic sci-fi interior.",
+      "environment": "interior",
+      "levels": [
+        {
+          "level": 0,
+          "name": "Main Deck",
+          "pattern": "linear",
+          "totalRooms": { "min": 6, "max": 9 },
+          "anchorRooms": [
+            { "purpose": "docking_bay", "gridPosition": { "x": 0, "z": 0 }, "templateTags": ["large", "station"], "isEntry": true },
+            { "purpose": "corridor_a", "gridPosition": { "x": 1, "z": 0 }, "templateTags": ["hallway", "station"] },
+            { "purpose": "mess_hall", "gridPosition": { "x": 2, "z": 0 }, "templateTags": ["medium", "station"] },
+            { "purpose": "crew_quarters", "gridPosition": { "x": 2, "z": 1 }, "templateTags": ["medium", "station"] },
+            { "purpose": "medical_bay", "gridPosition": { "x": 3, "z": 0 }, "templateTags": ["medium", "station"] },
+            { "purpose": "engine_room", "gridPosition": { "x": 3, "z": -1 }, "templateTags": ["large", "station"] },
+            { "purpose": "airlock", "gridPosition": { "x": 4, "z": 0 }, "templateTags": ["small", "station"], "isExit": true }
+          ],
+          "fillerRules": {
+            "allowedTemplates": ["room_small", "hallway_short", "closet"],
+            "growthStrategy": "path"
+          },
+          "verticalConnections": []
+        }
+      ],
+      "connectionRules": {
+        "defaultType": "wall_door",
+        "hallwayType": "wall_archway",
+        "maxDoorsPerRoom": 3
+      }
+    },
+    {
+      "id": "pirate_island",
+      "name": "Pirate Island",
+      "description": "Hub-based island layout with beach as central hub. Branches out to dock, jungle, cave, ghost ship, and lighthouse. Mixed interior/exterior.",
+      "environment": "mixed",
+      "levels": [
+        {
+          "level": 0,
+          "name": "Island",
+          "pattern": "hub",
+          "totalRooms": { "min": 6, "max": 9 },
+          "anchorRooms": [
+            { "purpose": "beach", "gridPosition": { "x": 0, "z": 0 }, "templateTags": ["exterior_plaza", "island"], "isEntry": true },
+            { "purpose": "dock", "gridPosition": { "x": -1, "z": 0 }, "templateTags": ["medium", "island"] },
+            { "purpose": "jungle_path", "gridPosition": { "x": 0, "z": -1 }, "templateTags": ["hallway", "island"] },
+            { "purpose": "cave", "gridPosition": { "x": 1, "z": -1 }, "templateTags": ["medium", "dark"] },
+            { "purpose": "captain_quarters", "gridPosition": { "x": -1, "z": -1 }, "templateTags": ["medium", "ship"] },
+            { "purpose": "crow_nest", "gridPosition": { "x": -1, "z": 1 }, "templateTags": ["small", "ship"] },
+            { "purpose": "lighthouse", "gridPosition": { "x": 1, "z": 1 }, "templateTags": ["small", "island"], "isExit": true }
+          ],
+          "fillerRules": {
+            "allowedTemplates": ["room_small", "hallway_short"],
+            "growthStrategy": "adjacent"
+          },
+          "verticalConnections": []
+        }
+      ],
+      "connectionRules": {
+        "defaultType": "open",
+        "buildingEntryType": "wall_door",
         "maxDoorsPerRoom": 4
       }
     },

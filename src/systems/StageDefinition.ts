@@ -21,11 +21,11 @@
  * 
  * ### Character Paths
  * The game has two playable characters with opposing narrative paths:
- * - **Carl (Order)**: Methodical, rule-following, increasingly horrified by Paul
- * - **Paul (Chaos)**: Oblivious, chaotic, accidentally causes mayhem
- * 
- * When player picks Carl, Yuka AI controls Paul (chaos behavior).
- * When player picks Paul, Yuka AI controls Carl (order behavior).
+ * - **Carl (Chaos)**: Joyful, creative, utterly psychopathic
+ * - **Paul (Order)**: Methodical, horrified, desperately seeking order
+ *
+ * When player picks Carl, Yuka AI controls Paul (order behavior).
+ * When player picks Paul, Yuka AI controls Carl (chaos behavior).
  * 
  * ### Stages vs Scenes
  * - **Stage**: A macro-level story section (e.g., "The Apartment", "The Town")
@@ -47,9 +47,9 @@
 /**
  * The two narrative paths through the game.
  * Each character experiences the story differently.
- * 
- * - `order`: Carl's path - structured, investigative, horror-aware
- * - `chaos`: Paul's path - oblivious, comedic, accidentally destructive
+ *
+ * - `chaos`: Carl's path - joyful, creative, psychopathic
+ * - `order`: Paul's path - methodical, investigative, horror-aware
  */
 export type CharacterPath = 'order' | 'chaos';
 
@@ -92,15 +92,18 @@ export interface StoryBeat {
    * The generator creates appropriate triggers in scenes.
    */
   trigger: {
-    /** 
+    /**
      * Type of trigger:
      * - `scene_enter`: Player enters a specific scene
+     * - `scene_exit`: Player leaves a specific scene
      * - `item_pickup`: Player picks up a specific item
      * - `npc_interact`: Player talks to an NPC
+     * - `interact`: Player interacts with a specific prop (targetId)
      * - `time_elapsed`: Certain time passes in stage
      * - `kills_reached`: (For chaos path) Body count threshold
+     * - `reach_exit`: Player reaches any stage exit
      */
-    type: 'scene_enter' | 'item_pickup' | 'npc_interact' | 'time_elapsed' | 'kills_reached';
+    type: 'scene_enter' | 'scene_exit' | 'item_pickup' | 'npc_interact' | 'interact' | 'time_elapsed' | 'kills_reached' | 'reach_exit';
     
     /** Parameters specific to trigger type */
     params: Record<string, unknown>;
@@ -125,6 +128,9 @@ export interface StoryBeat {
     
     /** ID of the next story beat (for linear progression) */
     nextBeat?: string;
+
+    /** Marks this beat as the stage completion trigger */
+    stageComplete?: boolean;
   };
 }
 
@@ -167,9 +173,12 @@ export interface StageGoal {
   
   /** If true, not required for stage completion */
   optional?: boolean;
-  
+
   /** Beat ID that must fire before this goal is revealed */
   hiddenUntil?: string;
+
+  /** If set, this goal only applies to this character's playthrough */
+  character?: 'carl' | 'paul';
 }
 
 // ============================================

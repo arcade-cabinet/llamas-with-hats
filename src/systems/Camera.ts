@@ -1,47 +1,47 @@
 /**
  * Camera System
  * =============
- * 
- * Fixed isometric/diorama camera with responsive zoom based on viewport size.
- * The camera has NO user rotation controls - this ensures a consistent visual
- * language and predictable gameplay across the entire game.
- * 
+ *
+ * Over-the-shoulder 3rd-person camera that follows behind the player.
+ * The camera orbits behind the player based on their facing direction,
+ * keeping the llama's hat prominently in frame.
+ *
  * ## Design Philosophy
- * 
- * Traditional 3D games let users rotate cameras freely, but this causes:
- * - Disorientation in indoor spaces
- * - Inconsistent screenshot/streaming visuals
- * - Difficulty with fixed camera angles in cutscenes
- * 
- * Instead, we use a fixed "diorama" view like classic isometric RPGs,
- * but with modern responsive adjustments based on screen size.
- * 
- * ## Viewport Responsiveness
- * 
- * ```
- * Phone (< 500px):     Tight zoom, wide FOV, see current room only
- * Tablet (500-900px):  Medium zoom, current room + adjacent glimpses
- * Desktop (900px+):    Classic RPG view, see adjacent rooms
- * Ultrawide (21:9+):   Expanded view, multiple rooms visible
- * ```
- * 
- * ## Camera Angle
- * 
- * The camera looks DOWN and INTO the scene at approximately 36° from horizontal.
- * This creates depth while keeping the floor plan readable.
- * 
+ *
+ * The camera is positioned behind and slightly above the player, looking
+ * at shoulder/head height. This means:
+ * - The player sees the back of their llama with its glorious hat
+ * - Rooms feel like immersive 3D spaces, not dioramas
+ * - Walking through doorways feels like entering a new space
+ *
+ * ## Camera Positioning
+ *
  * ```
  *        Camera
- *          ╲
- *           ╲  ~36°
- *            ╲
- *             ▼
- *     ┌───────────────┐
- *     │    Scene      │
- *     │      ●        │ ← Player
- *     └───────────────┘
+ *          ○
+ *         ╱|
+ *        ╱ | heightOffset
+ *       ╱  |
+ *      ╱   ▼
+ *     ●────── lookAt (shoulder height)
+ *     Player
+ *
+ *     ←distance→
  * ```
- * 
+ *
+ * The camera orbits behind the player at a fixed offset determined by
+ * the player's facing direction (rotation). A damped lag on the rotation
+ * creates a cinematic trailing feel.
+ *
+ * ## Viewport Responsiveness
+ *
+ * ```
+ * Phone (< 500px):     Tight, FOV 1.0, distance 4
+ * Tablet (500-900px):  Medium, FOV 0.9, distance 5
+ * Desktop (900px+):    Classic, FOV 0.8, distance 6
+ * Ultrawide (21:9+):   Wide, FOV 0.7, distance 7
+ * ```
+ *
  * @module Camera
  */
 
@@ -55,39 +55,37 @@ import {
 export type ViewportSize = 'phone' | 'tablet' | 'desktop' | 'ultrawide';
 
 interface CameraConfig {
-  // Fixed angle looking down and into the scene
-  // These values create a classic isometric-like RPG view
-  pitch: number;      // Angle down from horizontal (radians)
-  height: number;     // Camera Y position
-  distance: number;   // Distance back from target on XZ plane
-  fov: number;        // Field of view
+  distance: number;       // Distance behind player on XZ plane
+  heightOffset: number;   // Camera Y above ground
+  lookAtHeight: number;   // Y height the camera looks at (shoulder/head)
+  fov: number;            // Field of view
 }
 
-// Viewport-specific camera configurations
+// Viewport-specific camera configurations — tighter than the old isometric view
 const CAMERA_CONFIGS: Record<ViewportSize, CameraConfig> = {
   phone: {
-    pitch: Math.PI / 4,      // 45 degrees down
-    height: 8,
-    distance: 6,
-    fov: 0.9,                // Wider FOV to see more on small screen
+    distance: 4,
+    heightOffset: 2.5,
+    lookAtHeight: 1.0,
+    fov: 1.0,
   },
   tablet: {
-    pitch: Math.PI / 4.5,    // Slightly less steep
-    height: 10,
-    distance: 8,
-    fov: 0.8,
+    distance: 5,
+    heightOffset: 3.0,
+    lookAtHeight: 1.0,
+    fov: 0.9,
   },
   desktop: {
-    pitch: Math.PI / 5,      // Classic RPG angle ~36 degrees
-    height: 12,
-    distance: 10,
-    fov: 0.7,
+    distance: 6,
+    heightOffset: 3.5,
+    lookAtHeight: 1.2,
+    fov: 0.8,
   },
   ultrawide: {
-    pitch: Math.PI / 5,
-    height: 14,
-    distance: 12,
-    fov: 0.6,                // Narrower FOV, see more rooms
+    distance: 7,
+    heightOffset: 4.0,
+    lookAtHeight: 1.2,
+    fov: 0.7,
   },
 };
 
@@ -103,56 +101,90 @@ export interface GameCamera {
   camera: UniversalCamera;
   viewportSize: ViewportSize;
   visibleRadius: number;
-  
+
   setTarget: (x: number, z: number) => void;
   setViewportSize: (size: ViewportSize) => void;
   getVisibleBounds: () => { minX: number; maxX: number; minZ: number; maxZ: number };
   worldToScreen: (worldPos: Vector3) => { x: number; y: number } | null;
   update: () => void;
+
+  /** Set the player's facing direction so the camera orbits behind them */
+  setPlayerRotation: (radians: number) => void;
+  /** Get the camera's horizontal yaw angle — needed for camera-relative movement */
+  getCameraYaw: () => number;
+  /** Additive shake offset — written by EffectsManager, applied in update() */
+  shakeOffset: Vector3;
+  /** Set walkability checker for camera wall-collision prevention */
+  setWalkableCheck: (fn: (x: number, z: number) => boolean) => void;
 }
 
 export function createGameCamera(scene: Scene, initialSize: ViewportSize = 'desktop'): GameCamera {
   const config = CAMERA_CONFIGS[initialSize];
-  
-  // Calculate initial camera position
-  // Camera looks at origin, positioned behind and above
+
+  // Initial camera position — will be immediately updated in first update() call
   const camera = new UniversalCamera(
     'gameCamera',
-    new Vector3(0, config.height, config.distance),
+    new Vector3(0, config.heightOffset, config.distance),
     scene
   );
-  
-  // Point camera at the scene (down and forward)
+
   camera.setTarget(Vector3.Zero());
   camera.fov = config.fov;
-  
-  // DISABLE all user input - fixed camera
+
+  // DISABLE all user input — camera auto-follows player
   camera.inputs.clear();
-  
+
   let currentTarget = { x: 0, z: 0 };
   let currentSize = initialSize;
   let currentConfig = config;
-  
+
+  // Player rotation tracking with damped lag
+  let targetPlayerRotation = 0;
+  let currentCameraRotation = 0;
+  const ROTATION_LAG = 0.06; // Damping factor — lower = more cinematic lag
+
+  // Shake offset (written externally by EffectsManager)
+  const shakeOffset = Vector3.Zero();
+
+  // Walkability checker for wall-collision prevention (set from GameRenderer)
+  let walkableCheck: ((x: number, z: number) => boolean) | null = null;
+
+  // Minimum camera distance when wall-clipped
+  const MIN_DISTANCE = 1.5;
+
   const gameCamera: GameCamera = {
     camera,
     viewportSize: initialSize,
     visibleRadius: VISIBLE_RADIUS[initialSize],
-    
+    shakeOffset,
+
     setTarget(x: number, z: number) {
       currentTarget = { x, z };
     },
-    
+
+    setPlayerRotation(radians: number) {
+      targetPlayerRotation = radians;
+    },
+
+    getCameraYaw(): number {
+      return currentCameraRotation;
+    },
+
+    setWalkableCheck(fn: (x: number, z: number) => boolean) {
+      walkableCheck = fn;
+    },
+
     setViewportSize(size: ViewportSize) {
       if (size === currentSize) return;
-      
+
       currentSize = size;
       currentConfig = CAMERA_CONFIGS[size];
       gameCamera.viewportSize = size;
       gameCamera.visibleRadius = VISIBLE_RADIUS[size];
-      
+
       camera.fov = currentConfig.fov;
     },
-    
+
     getVisibleBounds() {
       const r = VISIBLE_RADIUS[currentSize];
       return {
@@ -162,7 +194,7 @@ export function createGameCamera(scene: Scene, initialSize: ViewportSize = 'desk
         maxZ: currentTarget.z + r,
       };
     },
-    
+
     worldToScreen(worldPos: Vector3) {
       const engine = scene.getEngine();
       const screenPos = Vector3.Project(
@@ -171,27 +203,73 @@ export function createGameCamera(scene: Scene, initialSize: ViewportSize = 'desk
         scene.getTransformMatrix(),
         camera.viewport.toGlobal(engine.getRenderWidth(), engine.getRenderHeight())
       );
-      
+
       if (screenPos.z < 0 || screenPos.z > 1) return null;
       return { x: screenPos.x, y: screenPos.y };
     },
-    
+
     update() {
-      // Smoothly follow target
-      const targetPos = new Vector3(
-        currentTarget.x,
-        currentConfig.height,
-        currentTarget.z + currentConfig.distance
-      );
-      
+      // Damped rotation following — camera smoothly catches up to player rotation
+      // Normalize the angle difference to handle wrapping around ±PI
+      let rotDiff = targetPlayerRotation - currentCameraRotation;
+      while (rotDiff > Math.PI) rotDiff -= Math.PI * 2;
+      while (rotDiff < -Math.PI) rotDiff += Math.PI * 2;
+      currentCameraRotation += rotDiff * ROTATION_LAG;
+
+      // Camera orbits BEHIND player:
+      // Player facing direction is (-sin(rot), -cos(rot)).
+      // "Behind" is the opposite: (+sin(rot), +cos(rot)).
+      const orbitX = Math.sin(currentCameraRotation);
+      const orbitZ = Math.cos(currentCameraRotation);
+
+      // Start at full distance, reduce if camera would clip through a wall
+      let dist = currentConfig.distance;
+
+      if (walkableCheck) {
+        // Step along the orbit ray from player toward desired camera position.
+        // If the full-distance point is outside walkable area, pull camera closer.
+        while (dist > MIN_DISTANCE) {
+          const testX = currentTarget.x + orbitX * dist;
+          const testZ = currentTarget.z + orbitZ * dist;
+          if (walkableCheck(testX, testZ)) break;
+          dist -= 0.5; // step inward
+        }
+      }
+
+      const camX = currentTarget.x + orbitX * dist;
+      const camZ = currentTarget.z + orbitZ * dist;
+
+      // When distance is reduced (tight corridors/near walls), pivot the camera
+      // toward a top-down view so walls don't block the player:
+      //  - Raise the camera much higher (up to +6 units)
+      //  - Lower the look-at height toward the floor
+      //  - Widen FOV to keep context
+      // The result: in tight rooms the camera smoothly transitions to near-overhead.
+      const distRatio = dist / currentConfig.distance; // 1.0 = full distance, <1 = clipped
+      const clipAmount = 1 - distRatio; // 0 = no clipping, 1 = fully clipped
+      const camY = currentConfig.heightOffset + clipAmount * 6; // raise up to +6 units
+      const targetFov = currentConfig.fov + clipAmount * 0.3; // widen up to +0.3 rad
+      camera.fov += (targetFov - camera.fov) * 0.08; // smooth FOV transition
+
+      const targetPos = new Vector3(camX, camY, camZ);
+
       // Lerp camera position for smooth follow
       camera.position = Vector3.Lerp(camera.position, targetPos, 0.1);
-      
-      // Always look at target point (slightly above ground)
-      camera.setTarget(new Vector3(currentTarget.x, 0.5, currentTarget.z));
+
+      // Add shake offset (written by EffectsManager)
+      camera.position.addInPlace(shakeOffset);
+
+      // Pivot look-at toward ground level as camera goes top-down.
+      // At full distance: look at shoulder height. When clipped close: look at feet.
+      const lookY = currentConfig.lookAtHeight * (1 - clipAmount * 0.8);
+      camera.setTarget(new Vector3(
+        currentTarget.x,
+        lookY,
+        currentTarget.z
+      ));
     }
   };
-  
+
   return gameCamera;
 }
 
@@ -199,22 +277,22 @@ export function createGameCamera(scene: Scene, initialSize: ViewportSize = 'desk
 export function getViewportSize(width: number, height: number): ViewportSize {
   const aspectRatio = width / height;
   const minDimension = Math.min(width, height);
-  
+
   // Ultrawide detection (21:9 or wider)
   if (aspectRatio >= 2.2) {
     return 'ultrawide';
   }
-  
+
   // Phone (small screens, typically portrait or small landscape)
   if (minDimension < 500 || (width < 768 && height < 500)) {
     return 'phone';
   }
-  
+
   // Tablet (medium screens)
   if (minDimension < 900 || width < 1200) {
     return 'tablet';
   }
-  
+
   // Desktop (large screens)
   return 'desktop';
 }
@@ -226,27 +304,27 @@ export function getRoomsToLoad(
   viewportSize: ViewportSize
 ): Set<string> {
   const rooms = new Set<string>([currentRoomId]);
-  
+
   // Phone: just current room
   if (viewportSize === 'phone') {
     return rooms;
   }
-  
+
   // Get adjacent rooms
   const adjacent = roomConnections.get(currentRoomId) ?? [];
-  
+
   // Tablet: current + immediate neighbors
   if (viewportSize === 'tablet') {
     adjacent.forEach(id => rooms.add(id));
     return rooms;
   }
-  
+
   // Desktop/Ultrawide: current + neighbors + their neighbors
   adjacent.forEach(id => {
     rooms.add(id);
     const nextLevel = roomConnections.get(id) ?? [];
     nextLevel.forEach(nextId => rooms.add(nextId));
   });
-  
+
   return rooms;
 }

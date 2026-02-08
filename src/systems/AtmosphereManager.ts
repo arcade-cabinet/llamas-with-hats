@@ -51,7 +51,7 @@
  */
 
 // Note: Audio is handled via AudioManager, not directly via Tone here
-import { Scene, Color3, Color4, PointLight, HemisphericLight } from '@babylonjs/core';
+import { Scene, Color3, Color4, PointLight, HemisphericLight, Vector3 } from '@babylonjs/core';
 
 // ============================================
 // Atmosphere Preset Definitions
@@ -554,9 +554,6 @@ export function createAtmosphereManager(): AtmosphereManager {
     },
   };
 }
-
-// Need Vector3 for light positioning
-import { Vector3 } from '@babylonjs/core';
 
 // Singleton instance
 let atmosphereManagerInstance: AtmosphereManager | null = null;

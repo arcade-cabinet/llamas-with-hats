@@ -264,6 +264,7 @@ export interface GeneratedVerticalConnection {
 
 const GRID_CELL_SIZE = 12;
 const FLOOR_HEIGHT = 4;
+const WALL_GAP = 0.2;
 
 const DIRECTION_OFFSETS: Record<string, { x: number; z: number }> = {
   north: { x: 0, z: -1 },
@@ -589,10 +590,165 @@ export function generateLayout(
     }
   }
   
+  // Reposition rooms edge-to-edge so adjacent rooms share walls
+  tightenWorldPositions(layout, stageDef);
+
   // Generate horizontal connections based on pattern
   generateConnections(layout, stageDef.connectionRules, rng);
-  
+
   return layout;
+}
+
+// ============================================
+// Tight Room Positioning
+// ============================================
+
+/**
+ * Reposition rooms so they sit edge-to-edge with only a thin WALL_GAP
+ * between adjacent rooms, eliminating the large grid-cell gaps that
+ * make the layout look like office cubicles.
+ *
+ * For each level:
+ *  1. Find unique grid X columns and Z rows
+ *  2. Column width = max(room.size.width) across rooms in that column
+ *  3. Row depth  = max(room.size.height) across rooms in that row
+ *  4. Ceiling height = max across all rooms on this level (uniform per floor)
+ *  5. Compute cumulative positions outward from entry column/row (grid 0,0)
+ *  6. Override each room's worldPosition and stretch size to fill its column/row
+ *
+ * Skips levels whose pattern is 'open' (exterior stages keep grid spacing).
+ */
+function tightenWorldPositions(
+  layout: GeneratedLayout,
+  stageDef: StageLayoutDefinition
+): void {
+  for (const levelDef of stageDef.levels) {
+    // Skip exterior/open levels — they use grid spacing intentionally
+    if (levelDef.pattern === 'open') continue;
+
+    // Collect all rooms on this level
+    const levelRooms: GeneratedRoom[] = [];
+    for (const room of layout.rooms.values()) {
+      if (room.level === levelDef.level) levelRooms.push(room);
+    }
+    if (levelRooms.length === 0) continue;
+
+    // Find unique grid columns and rows
+    const colSet = new Set<number>();
+    const rowSet = new Set<number>();
+    for (const room of levelRooms) {
+      colSet.add(room.gridPosition.x);
+      rowSet.add(room.gridPosition.z);
+    }
+    const columns = Array.from(colSet).sort((a, b) => a - b);
+    const rows = Array.from(rowSet).sort((a, b) => a - b);
+
+    // Column width = max room width in that column
+    const colWidth = new Map<number, number>();
+    for (const col of columns) {
+      let maxW = 0;
+      for (const room of levelRooms) {
+        if (room.gridPosition.x === col) maxW = Math.max(maxW, room.size.width);
+      }
+      colWidth.set(col, maxW);
+    }
+
+    // Row depth = max room height in that row
+    const rowDepth = new Map<number, number>();
+    for (const row of rows) {
+      let maxH = 0;
+      for (const room of levelRooms) {
+        if (room.gridPosition.z === row) maxH = Math.max(maxH, room.size.height);
+      }
+      rowDepth.set(row, maxH);
+    }
+
+    // Uniform ceiling height for this level
+    let levelCeiling = 0;
+    for (const room of levelRooms) {
+      levelCeiling = Math.max(levelCeiling, room.size.ceilingHeight);
+    }
+
+    // Compute cumulative X centers starting from entry column (grid X=0)
+    const colCenter = new Map<number, number>();
+    const entryColIdx = columns.indexOf(0);
+    // If entry column exists, start from it; otherwise start from first column
+    const startColIdx = entryColIdx >= 0 ? entryColIdx : 0;
+    colCenter.set(columns[startColIdx], 0); // entry column at world X=0
+
+    // Expand rightward from start
+    for (let i = startColIdx + 1; i < columns.length; i++) {
+      const prevCol = columns[i - 1];
+      const curCol = columns[i];
+      const prevHalfW = colWidth.get(prevCol)! / 2;
+      const curHalfW = colWidth.get(curCol)! / 2;
+      colCenter.set(curCol, colCenter.get(prevCol)! + prevHalfW + WALL_GAP + curHalfW);
+    }
+    // Expand leftward from start
+    for (let i = startColIdx - 1; i >= 0; i--) {
+      const nextCol = columns[i + 1];
+      const curCol = columns[i];
+      const nextHalfW = colWidth.get(nextCol)! / 2;
+      const curHalfW = colWidth.get(curCol)! / 2;
+      colCenter.set(curCol, colCenter.get(nextCol)! - nextHalfW - WALL_GAP - curHalfW);
+    }
+
+    // Compute cumulative Z centers starting from entry row (grid Z=0)
+    const rowCenter = new Map<number, number>();
+    const entryRowIdx = rows.indexOf(0);
+    const startRowIdx = entryRowIdx >= 0 ? entryRowIdx : 0;
+    rowCenter.set(rows[startRowIdx], 0); // entry row at world Z=0
+
+    // Expand southward (positive Z) from start
+    for (let i = startRowIdx + 1; i < rows.length; i++) {
+      const prevRow = rows[i - 1];
+      const curRow = rows[i];
+      const prevHalfH = rowDepth.get(prevRow)! / 2;
+      const curHalfH = rowDepth.get(curRow)! / 2;
+      rowCenter.set(curRow, rowCenter.get(prevRow)! + prevHalfH + WALL_GAP + curHalfH);
+    }
+    // Expand northward (negative Z) from start
+    for (let i = startRowIdx - 1; i >= 0; i--) {
+      const nextRow = rows[i + 1];
+      const curRow = rows[i];
+      const nextHalfH = rowDepth.get(nextRow)! / 2;
+      const curHalfH = rowDepth.get(curRow)! / 2;
+      rowCenter.set(curRow, rowCenter.get(nextRow)! - nextHalfH - WALL_GAP - curHalfH);
+    }
+
+    // Override each room's position and stretch to fill its column/row
+    for (const room of levelRooms) {
+      room.worldPosition.x = colCenter.get(room.gridPosition.x)!;
+      room.worldPosition.z = rowCenter.get(room.gridPosition.z)!;
+      room.size.width = colWidth.get(room.gridPosition.x)!;
+      room.size.height = rowDepth.get(room.gridPosition.z)!;
+      room.size.ceilingHeight = levelCeiling;
+    }
+
+    // Update level bounds
+    const genLevel = layout.levels.find(l => l.level === levelDef.level);
+    if (genLevel) {
+      genLevel.bounds = { minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity };
+      for (const room of levelRooms) {
+        genLevel.bounds.minX = Math.min(genLevel.bounds.minX, room.worldPosition.x - room.size.width / 2);
+        genLevel.bounds.maxX = Math.max(genLevel.bounds.maxX, room.worldPosition.x + room.size.width / 2);
+        genLevel.bounds.minZ = Math.min(genLevel.bounds.minZ, room.worldPosition.z - room.size.height / 2);
+        genLevel.bounds.maxZ = Math.max(genLevel.bounds.maxZ, room.worldPosition.z + room.size.height / 2);
+      }
+    }
+
+    // Update vertical connection positions to match tightened rooms
+    for (const vc of layout.verticalConnections) {
+      if (vc.upperLevel === levelDef.level || vc.lowerLevel === levelDef.level) {
+        // Find the room this VC is associated with on this level
+        const roomId = vc.upperLevel === levelDef.level ? vc.upperRoom : vc.lowerRoom;
+        const room = layout.rooms.get(roomId);
+        if (room) {
+          vc.position = { x: room.worldPosition.x, z: room.worldPosition.z };
+        }
+      }
+    }
+  }
 }
 
 // ============================================
@@ -701,11 +857,8 @@ function generateConnections(
         
         if (existingConnection) continue;
         
-        // Check if rooms should connect (based on their connection lists)
-        const shouldConnect = 
-          room.connections.includes(neighbor.id) ||
-          neighbor.connections.includes(room.id) ||
-          (!room.isAnchor || !neighbor.isAnchor); // Always connect if one is filler
+        // Adjacent rooms on the same level should always connect
+        const shouldConnect = true;
         
         if (!shouldConnect) continue;
         
@@ -890,4 +1043,4 @@ export function validateLayout(layout: GeneratedLayout): { valid: boolean; error
 // Export Constants
 // ============================================
 
-export { GRID_CELL_SIZE, FLOOR_HEIGHT, DIRECTION_OFFSETS, OPPOSITE_DIRECTION };
+export { GRID_CELL_SIZE, FLOOR_HEIGHT, WALL_GAP, DIRECTION_OFFSETS, OPPOSITE_DIRECTION };
