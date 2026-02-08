@@ -61,31 +61,31 @@ interface CameraConfig {
   fov: number;            // Field of view
 }
 
-// Viewport-specific camera configurations — tighter than the old isometric view
+// Viewport-specific camera configurations — must stay below room ceiling heights (2-3 units)
 const CAMERA_CONFIGS: Record<ViewportSize, CameraConfig> = {
   phone: {
-    distance: 4,
-    heightOffset: 2.5,
-    lookAtHeight: 1.0,
+    distance: 3.5,
+    heightOffset: 1.8,
+    lookAtHeight: 0.8,
     fov: 1.0,
   },
   tablet: {
-    distance: 5,
-    heightOffset: 3.0,
+    distance: 4,
+    heightOffset: 2.0,
+    lookAtHeight: 0.9,
+    fov: 0.95,
+  },
+  desktop: {
+    distance: 4.5,
+    heightOffset: 2.2,
     lookAtHeight: 1.0,
     fov: 0.9,
   },
-  desktop: {
-    distance: 6,
-    heightOffset: 3.5,
-    lookAtHeight: 1.2,
-    fov: 0.8,
-  },
   ultrawide: {
-    distance: 7,
-    heightOffset: 4.0,
-    lookAtHeight: 1.2,
-    fov: 0.7,
+    distance: 5,
+    heightOffset: 2.4,
+    lookAtHeight: 1.0,
+    fov: 0.85,
   },
 };
 
@@ -239,16 +239,12 @@ export function createGameCamera(scene: Scene, initialSize: ViewportSize = 'desk
       const camX = currentTarget.x + orbitX * dist;
       const camZ = currentTarget.z + orbitZ * dist;
 
-      // When distance is reduced (tight corridors/near walls), pivot the camera
-      // toward a top-down view so walls don't block the player:
-      //  - Raise the camera much higher (up to +6 units)
-      //  - Lower the look-at height toward the floor
-      //  - Widen FOV to keep context
-      // The result: in tight rooms the camera smoothly transitions to near-overhead.
+      // When distance is reduced (tight corridors/near walls), raise camera slightly
+      // and widen FOV to keep the player visible. Stay below ceiling (~3 units).
       const distRatio = dist / currentConfig.distance; // 1.0 = full distance, <1 = clipped
       const clipAmount = 1 - distRatio; // 0 = no clipping, 1 = fully clipped
-      const camY = currentConfig.heightOffset + clipAmount * 6; // raise up to +6 units
-      const targetFov = currentConfig.fov + clipAmount * 0.3; // widen up to +0.3 rad
+      const camY = currentConfig.heightOffset + clipAmount * 0.6; // raise up to +0.6, stays below ceiling
+      const targetFov = currentConfig.fov + clipAmount * 0.15; // widen up to +0.15 rad
       camera.fov += (targetFov - camera.fov) * 0.08; // smooth FOV transition
 
       const targetPos = new Vector3(camX, camY, camZ);

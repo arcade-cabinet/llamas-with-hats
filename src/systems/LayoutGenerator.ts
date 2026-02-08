@@ -145,7 +145,7 @@ export interface LevelDefinition {
 
 export interface AnchorRoomDef {
   id: string;
-  purpose: 'entry' | 'exit' | 'connector' | 'story_critical' | 'exploration';
+  purpose: string;
   templateId: string;
   gridPosition: { x: number; z: number };
   storyBeats?: string[];
