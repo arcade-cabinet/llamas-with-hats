@@ -270,7 +270,6 @@ test.describe('Character Selection', () => {
 
   test('shuffle button changes the world seed', async ({ page }) => {
     const seedInput = page.getByPlaceholder('Enter seed...');
-    const oldValue = await seedInput.inputValue();
 
     // Click shuffle (the button with title "Shuffle seed")
     await page.getByTitle('Shuffle seed').click();
