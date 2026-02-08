@@ -591,6 +591,20 @@ export function createAudioManager(): AudioManager {
         break;
       }
 
+      // ─────────────────────────────────────────────────────────────────────
+      // ATMOSPHERE - Triggered by AtmosphereManager
+      // ─────────────────────────────────────────────────────────────────────
+      case 'clock_tick': {
+        // Percussive clock tick — short square-wave click with fast decay
+        const tick = new Tone.Synth({
+          oscillator: { type: 'square' },
+          envelope: { attack: 0.001, decay: 0.03, sustain: 0, release: 0.02 }
+        }).connect(sfxGain!);
+        tick.triggerAttackRelease(1200 * pitch, '64n', now, 0.25 * volume);
+        setTimeout(() => tick.dispose(), 150);
+        break;
+      }
+
       default:
         console.warn(`Unknown sound effect: ${id}`);
     }
