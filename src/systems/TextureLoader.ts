@@ -50,6 +50,16 @@ const ROOM_TEXTURE_MAP: Record<string, TextureMapping> = {
   study:        { floor: 'floors/wood/oak_planks',             wall: 'walls/plaster/worn_painted_wall' },
 };
 
+// AmbientCG texture sets that do NOT include an AO map.
+// Attempting to load _ao.jpg for these causes 404 console errors.
+const TEXTURES_WITHOUT_AO = [
+  'white_plaster',       // Plaster001
+  'cracked_concrete',    // Concrete022
+  'white_square',        // Tiles074
+  'subtle_texture',      // Wallpaper002A
+  'checkered_marble',    // Tiles046
+];
+
 const DEFAULT_TEXTURES: TextureMapping = {
   floor: 'floors/wood/pine_planks',
   wall: 'walls/plaster/white_plaster',
@@ -186,11 +196,15 @@ export function createPBRMaterial(options: PBRTextureOptions): PBRMaterial | nul
     mat.metallic = metallic;
     mat.roughness = roughness;
 
-    // Ambient occlusion (may not exist for all texture sets)
-    const ao = new Texture(`${basePath}_ao.jpg`, scene);
-    ao.uScale = uScale;
-    ao.vScale = vScale;
-    mat.ambientTexture = ao;
+    // Ambient occlusion — only load if the texture set is known to include one.
+    // Some AmbientCG packs (Plaster001, Concrete022, Tiles074, Wallpaper002A, Tiles046)
+    // don't ship an AO map, so unconditionally loading _ao.jpg causes 404 console errors.
+    if (!TEXTURES_WITHOUT_AO.some(suffix => texturePath.endsWith(suffix))) {
+      const ao = new Texture(`${basePath}_ao.jpg`, scene);
+      ao.uScale = uScale;
+      ao.vScale = vScale;
+      mat.ambientTexture = ao;
+    }
 
     materialCache.set(cacheKey, mat);
     return mat;
