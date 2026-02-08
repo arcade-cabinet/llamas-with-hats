@@ -131,6 +131,9 @@ dist/
 # Local artifacts
 *.webp
 *.png
+# But keep GLB model textures (Kenney CC0 colormaps required by .glb files)
+!public/assets/models/**/Textures/*.png
+!public/assets/models/**/*_texture.png
 build_log*.txt
 *.zip
 
