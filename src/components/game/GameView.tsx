@@ -167,15 +167,11 @@ export const GameView: React.FC<GameViewProps> = ({
 
     if (treeLineIndex < node.lines.length - 1) {
       setTreeLineIndex(prev => prev + 1);
+    } else if (node.options.length > 0) {
+      setShowTreeOptions(true);
     } else {
-      // All lines shown — show options or close
-      if (node.options.length > 0) {
-        setShowTreeOptions(true);
-      } else {
-        // No options = end of conversation
-        setShowDialogueTree(false);
-        setDialogueTree(null);
-      }
+      setShowDialogueTree(false);
+      setDialogueTree(null);
     }
   }, [dialogueTree, treeNodeId, treeLineIndex]);
 
@@ -585,9 +581,8 @@ const DialogueTreeBox: React.FC<{
 
   const speakerColor = line?.speaker === 'carl' ? 'border-carl' : 'border-paul';
   const speakerBg = line?.speaker === 'carl' ? 'bg-carl' : 'bg-paul';
-  const speakerName = line?.speaker === 'narrator'
-    ? null
-    : line?.speaker === 'carl' ? 'Carl' : 'Paul';
+  const speakerNameMap: Record<string, string | null> = { narrator: null, carl: 'Carl', paul: 'Paul' };
+  const speakerName = speakerNameMap[line?.speaker ?? ''] ?? 'Paul';
 
   return (
     <div className="absolute inset-x-0 bottom-0 pointer-events-auto z-40">
@@ -612,7 +607,13 @@ const DialogueTreeBox: React.FC<{
 
         {/* Show current line text, or options */}
         {!showOptions && line && (
-          <div onClick={onAdvanceLine} className="cursor-pointer">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={onAdvanceLine}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onAdvanceLine(); }}
+            className="cursor-pointer"
+          >
             <p className={clsx(
               'text-gray-200 leading-relaxed mt-2',
               isCompact ? 'text-sm' : 'text-base'
@@ -628,9 +629,9 @@ const DialogueTreeBox: React.FC<{
         {/* Options — shown after all lines in a node have been read */}
         {showOptions && node.options.length > 0 && (
           <div className="mt-2 space-y-2">
-            {node.options.map((option, i) => (
+            {node.options.map((option) => (
               <button
-                key={i}
+                key={option.next}
                 onClick={() => onSelectOption(option.next)}
                 className={clsx(
                   'w-full text-left px-4 py-2 rounded-lg border transition-colors',
