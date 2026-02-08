@@ -387,6 +387,117 @@
         "intensity": 0.35,
         "shadows": true
       }
+    },
+    {
+      "id": "house_worn",
+      "name": "Worn House",
+      "floors": {
+        "primary": { "color": [0.4, 0.32, 0.24] },
+        "accent": { "color": [0.45, 0.36, 0.28] },
+        "worn": { "color": [0.35, 0.28, 0.2] }
+      },
+      "walls": {
+        "primary": { "color": [0.6, 0.55, 0.48] },
+        "trim": { "color": [0.45, 0.4, 0.32] },
+        "damaged": { "color": [0.5, 0.45, 0.38] }
+      },
+      "propSets": ["house_furniture", "house_clutter"],
+      "lighting": {
+        "ambient": [0.95, 0.88, 0.75],
+        "intensity": 0.6,
+        "shadows": true
+      }
+    },
+    {
+      "id": "house_dark",
+      "name": "Dark House",
+      "floors": {
+        "primary": { "color": [0.28, 0.22, 0.16] },
+        "accent": { "color": [0.32, 0.26, 0.2] }
+      },
+      "walls": {
+        "primary": { "color": [0.42, 0.38, 0.32] },
+        "trim": { "color": [0.32, 0.28, 0.22] }
+      },
+      "propSets": ["house_furniture", "horror_props"],
+      "lighting": {
+        "ambient": [0.55, 0.48, 0.42],
+        "intensity": 0.35,
+        "shadows": true
+      }
+    },
+    {
+      "id": "station_sterile",
+      "name": "Sterile Station",
+      "floors": {
+        "primary": { "color": [0.55, 0.58, 0.6] },
+        "accent": { "color": [0.48, 0.5, 0.52] }
+      },
+      "walls": {
+        "primary": { "color": [0.65, 0.68, 0.7] },
+        "trim": { "color": [0.5, 0.52, 0.55] }
+      },
+      "propSets": ["station_equipment", "station_furniture"],
+      "lighting": {
+        "ambient": [0.75, 0.8, 0.9],
+        "intensity": 0.7,
+        "shadows": true
+      }
+    },
+    {
+      "id": "station_damaged",
+      "name": "Damaged Station",
+      "floors": {
+        "primary": { "color": [0.35, 0.32, 0.3] },
+        "accent": { "color": [0.4, 0.35, 0.32] }
+      },
+      "walls": {
+        "primary": { "color": [0.45, 0.42, 0.4] },
+        "trim": { "color": [0.35, 0.32, 0.3] },
+        "damaged": { "color": [0.3, 0.28, 0.26] }
+      },
+      "propSets": ["station_equipment", "horror_props"],
+      "lighting": {
+        "ambient": [0.5, 0.45, 0.4],
+        "intensity": 0.35,
+        "shadows": true
+      }
+    },
+    {
+      "id": "island_tropical",
+      "name": "Tropical Island",
+      "floors": {
+        "primary": { "color": [0.55, 0.5, 0.35] },
+        "accent": { "color": [0.45, 0.42, 0.3] }
+      },
+      "walls": {
+        "primary": { "color": [0.5, 0.45, 0.35] },
+        "trim": { "color": [0.4, 0.38, 0.28] }
+      },
+      "propSets": ["island_props", "pirate_props"],
+      "lighting": {
+        "ambient": [1.0, 0.95, 0.8],
+        "intensity": 0.85,
+        "shadows": true
+      }
+    },
+    {
+      "id": "island_dark",
+      "name": "Dark Island",
+      "floors": {
+        "primary": { "color": [0.3, 0.28, 0.2] },
+        "accent": { "color": [0.25, 0.22, 0.16] }
+      },
+      "walls": {
+        "primary": { "color": [0.35, 0.32, 0.25] },
+        "trim": { "color": [0.28, 0.25, 0.2] }
+      },
+      "propSets": ["island_props", "horror_props"],
+      "lighting": {
+        "ambient": [0.4, 0.45, 0.5],
+        "intensity": 0.3,
+        "shadows": true
+      }
     }
   ],
   
@@ -398,6 +509,12 @@
     "outdoor_props": ["bench", "lamp", "plant", "tree", "fence", "rock", "suburban_fence", "suburban_tree", "planter", "sign"],
     "urban_props": ["bench", "lightpost", "billboard", "planter", "iron_fence", "trash", "barrel", "crate"],
     "graveyard_props": ["gravestone", "cross", "coffin", "lantern", "iron_fence", "pumpkin", "pine", "campfire"],
-    "debris": ["debris", "trash", "crate", "barrel", "rock"]
+    "debris": ["debris", "trash", "crate", "barrel", "rock"],
+    "house_furniture": ["table", "chair", "bookshelf", "cabinet", "bed", "dresser", "couch", "wardrobe", "nightstand", "desk"],
+    "house_clutter": ["lamp", "rug", "plant", "curtain", "painting", "tv", "stool", "trash_can"],
+    "station_equipment": ["generator", "pipe", "barrel", "crate", "desk", "chair", "cabinet"],
+    "station_furniture": ["table", "chair", "stool", "bed", "lamp", "chest"],
+    "island_props": ["grass_patch", "barrel", "crate", "rowboat", "dock_platform", "cannon"],
+    "pirate_props": ["chest", "barrel", "crate", "lamp", "cannon", "lighthouse"]
   }
 }
