@@ -58,6 +58,11 @@ const TEXTURES_WITHOUT_AO = [
   'white_square',        // Tiles074
   'subtle_texture',      // Wallpaper002A
   'checkered_marble',    // Tiles046
+  'kitchen_mixed',       // custom linoleum set
+  'ash_grain',           // custom wood set
+  'white_carrara',       // custom marble set
+  'brushed_steel',       // custom metal set
+  'dark_road',           // custom asphalt set
 ];
 
 const DEFAULT_TEXTURES: TextureMapping = {
