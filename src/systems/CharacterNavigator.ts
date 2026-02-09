@@ -62,6 +62,11 @@ export interface NavigatorConfig {
   maxSpeed?: number;
   maxForce?: number;
   obstacles?: PropCollider[];
+  /** Optional walkable check — returns true if (x, z) is walkable terrain.
+   *  Used by ObjectiveAI for full-layout navigation instead of rectangular bounds. */
+  walkableCheck?: (x: number, z: number) => boolean;
+  /** Optional ground height function — returns Y at (x, z) for multi-floor nav. */
+  getGroundY?: (x: number, z: number) => number;
 }
 
 export interface NavigatorState {
@@ -83,7 +88,7 @@ export interface CharacterNavigator {
   flee(targetX: number, targetZ: number): void;
   
   // Position management
-  setPosition(x: number, z: number): void;
+  setPosition(x: number, z: number, y?: number): void;
   getPosition(): { x: number; z: number; rotation: number };
   
   // For follow/flee modes - update the target position
@@ -109,6 +114,15 @@ export interface CharacterNavigator {
   
   // Adjust max speed at runtime
   setMaxSpeed(speed: number): void;
+
+  // Set walkable check callback
+  setWalkableCheck(fn: ((x: number, z: number) => boolean) | null): void;
+
+  // Set ground Y callback
+  setGetGroundY(fn: ((x: number, z: number) => number) | null): void;
+
+  // Get current Y position
+  getY(): number;
 
   // Cleanup
   dispose(): void;
@@ -145,8 +159,12 @@ export function createCharacterNavigator(config: NavigatorConfig): CharacterNavi
     bounds,
     maxSpeed = 4,
     maxForce = 10,
-    obstacles = []
+    obstacles = [],
+    walkableCheck,
+    getGroundY,
   } = config;
+  let currentWalkableCheck = walkableCheck;
+  let currentGetGroundY = getGroundY;
   
   // Yuka setup
   const entityManager = new EntityManager();
@@ -240,8 +258,8 @@ export function createCharacterNavigator(config: NavigatorConfig): CharacterNavi
       arrived = false;
     },
     
-    setPosition(x: number, z: number) {
-      vehicle.position.set(x, 0, z);
+    setPosition(x: number, z: number, y?: number) {
+      vehicle.position.set(x, y ?? 0, z);
     },
     
     getPosition() {
@@ -273,7 +291,19 @@ export function createCharacterNavigator(config: NavigatorConfig): CharacterNavi
     setMaxSpeed(speed: number) {
       vehicle.maxSpeed = speed;
     },
-    
+
+    setWalkableCheck(fn: ((x: number, z: number) => boolean) | null) {
+      currentWalkableCheck = fn ?? undefined;
+    },
+
+    setGetGroundY(fn: ((x: number, z: number) => number) | null) {
+      currentGetGroundY = fn ?? undefined;
+    },
+
+    getY() {
+      return vehicle.position.y;
+    },
+
     update(deltaTime: number): NavigatorState {
       // Check arrival for moveTo mode
       if (mode === 'moveTo' && !arrived) {
@@ -288,10 +318,14 @@ export function createCharacterNavigator(config: NavigatorConfig): CharacterNavi
         }
       }
       
+      // Snapshot position before Yuka physics so we can revert if needed
+      const prevX = vehicle.position.x;
+      const prevZ = vehicle.position.z;
+
       // Update Yuka
       entityManager.update(deltaTime);
-      
-      // Clamp to bounds
+
+      // Clamp to bounds first
       vehicle.position.x = Math.max(
         currentBounds.minX + 0.5,
         Math.min(currentBounds.maxX - 0.5, vehicle.position.x)
@@ -300,6 +334,19 @@ export function createCharacterNavigator(config: NavigatorConfig): CharacterNavi
         currentBounds.minZ + 0.5,
         Math.min(currentBounds.maxZ - 0.5, vehicle.position.z)
       );
+
+      // If walkableCheck is provided and the new position is outside all rooms,
+      // revert to the last valid position and kill velocity
+      if (currentWalkableCheck && !currentWalkableCheck(vehicle.position.x, vehicle.position.z)) {
+        vehicle.position.x = prevX;
+        vehicle.position.z = prevZ;
+        vehicle.velocity.set(0, 0, 0);
+      }
+
+      // Apply ground Y for multi-floor positioning
+      if (currentGetGroundY) {
+        vehicle.position.y = currentGetGroundY(vehicle.position.x, vehicle.position.z);
+      }
       
       // Update rotation
       const vel = vehicle.velocity;

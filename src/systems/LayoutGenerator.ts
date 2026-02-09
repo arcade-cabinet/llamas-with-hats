@@ -366,6 +366,39 @@ const DEFAULT_TEMPLATES: Record<string, RoomTemplate> = {
 };
 
 // ============================================
+// Helpers
+// ============================================
+
+/**
+ * Find a room on a specific level by grid position.
+ * Prefers an exact grid-coordinate match; falls back to the nearest room
+ * on that level so vertical connections still resolve when the archetype's
+ * stair grid position doesn't align with an actual room.
+ */
+function findRoomOnLevel(
+  layout: GeneratedLayout,
+  level: number,
+  gridX: number,
+  gridZ: number,
+): GeneratedRoom | undefined {
+  let best: GeneratedRoom | undefined;
+  let bestDist = Infinity;
+
+  for (const room of layout.rooms.values()) {
+    if (room.level !== level) continue;
+    const dx = room.gridPosition.x - gridX;
+    const dz = room.gridPosition.z - gridZ;
+    const dist = dx * dx + dz * dz;
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = room;
+    }
+  }
+
+  return best;
+}
+
+// ============================================
 // Main Generator
 // ============================================
 
@@ -391,7 +424,11 @@ export function generateLayout(
   
   let roomIdCounter = 0;
   let propIdCounter = 0;
-  
+
+  // Track vertical connections already created to avoid duplicates
+  // (both levels in a pair may define the same staircase from opposite directions)
+  const vcPairsSeen = new Set<string>();
+
   // Generate each level
   for (const levelDef of stageDef.levels) {
     const generatedLevel: GeneratedLevel = {
@@ -570,23 +607,45 @@ export function generateLayout(
     }
     
     layout.levels.push(generatedLevel);
-    
-    // Generate vertical connections for this level
+
+    // Generate vertical connections for this level.
+    // Resolve room IDs by matching grid positions — GameInitializer leaves
+    // fromRoom/targetRoom as empty strings, so we look up actual rooms here.
+    // Process BOTH "up" and "down" directions; deduplicate by room pair.
     for (const vc of levelDef.verticalConnections) {
-      if (vc.direction === 'down') {
-        layout.verticalConnections.push({
-          id: vc.id,
-          type: vc.type,
-          upperRoom: vc.fromRoom,
-          lowerRoom: vc.targetRoom,
-          upperLevel: levelDef.level,
-          lowerLevel: vc.targetLevel,
-          position: vc.position,
-          heightDifference: FLOOR_HEIGHT,
-          locked: vc.locked,
-          lockId: vc.lockId
-        });
-      }
+      const isDown = vc.direction === 'down';
+      const thisLevel = levelDef.level;
+      const otherLevel = vc.targetLevel;
+
+      // Find room on THIS level at the VC's grid position (exact match or nearest)
+      const thisRoom = findRoomOnLevel(layout, thisLevel, vc.position.x, vc.position.z);
+      // Find room on TARGET level at the same grid position (exact match or nearest)
+      const otherRoom = findRoomOnLevel(layout, otherLevel, vc.position.x, vc.position.z);
+
+      if (!thisRoom || !otherRoom) continue;
+
+      const upperRoom = isDown ? thisRoom : otherRoom;
+      const lowerRoom = isDown ? otherRoom : thisRoom;
+      const upperLevel = isDown ? thisLevel : otherLevel;
+      const lowerLevel = isDown ? otherLevel : thisLevel;
+
+      // Deduplicate — skip if this room pair already has a vertical connection
+      const pairKey = `${upperRoom.id}|${lowerRoom.id}`;
+      if (vcPairsSeen.has(pairKey)) continue;
+      vcPairsSeen.add(pairKey);
+
+      layout.verticalConnections.push({
+        id: vc.id,
+        type: vc.type,
+        upperRoom: upperRoom.id,
+        lowerRoom: lowerRoom.id,
+        upperLevel,
+        lowerLevel,
+        position: { x: thisRoom.worldPosition.x, z: thisRoom.worldPosition.z },
+        heightDifference: FLOOR_HEIGHT,
+        locked: vc.locked,
+        lockId: vc.lockId
+      });
     }
   }
   

@@ -51,6 +51,7 @@ import {
   Vector3,
   Matrix
 } from '@babylonjs/core';
+import type { AutoHealAdjustment } from './CameraAutoHeal';
 
 export type ViewportSize = 'phone' | 'tablet' | 'desktop' | 'ultrawide';
 
@@ -116,6 +117,8 @@ export interface GameCamera {
   shakeOffset: Vector3;
   /** Set walkability checker for camera wall-collision prevention */
   setWalkableCheck: (fn: (x: number, z: number) => boolean) => void;
+  /** Apply auto-heal adjustment from CameraAutoHeal system */
+  setAutoHealAdjustment: (adj: AutoHealAdjustment) => void;
 }
 
 export function createGameCamera(scene: Scene, initialSize: ViewportSize = 'desktop'): GameCamera {
@@ -152,6 +155,16 @@ export function createGameCamera(scene: Scene, initialSize: ViewportSize = 'desk
   // Minimum camera distance when wall-clipped
   const MIN_DISTANCE = 1.5;
 
+  // Auto-heal adjustment (written by CameraAutoHeal, applied in update)
+  let autoHealAdj: AutoHealAdjustment = {
+    heightDelta: 0,
+    distanceDelta: 0,
+    fovDelta: 0,
+    fadeMeshes: [],
+    isHealing: false,
+    healReason: 'none',
+  };
+
   const gameCamera: GameCamera = {
     camera,
     viewportSize: initialSize,
@@ -172,6 +185,10 @@ export function createGameCamera(scene: Scene, initialSize: ViewportSize = 'desk
 
     setWalkableCheck(fn: (x: number, z: number) => boolean) {
       walkableCheck = fn;
+    },
+
+    setAutoHealAdjustment(adj: AutoHealAdjustment) {
+      autoHealAdj = adj;
     },
 
     setViewportSize(size: ViewportSize) {
@@ -236,6 +253,9 @@ export function createGameCamera(scene: Scene, initialSize: ViewportSize = 'desk
         }
       }
 
+      // Apply auto-heal distance adjustment (pulls closer)
+      dist = Math.max(MIN_DISTANCE, dist + autoHealAdj.distanceDelta);
+
       const camX = currentTarget.x + orbitX * dist;
       const camZ = currentTarget.z + orbitZ * dist;
 
@@ -243,8 +263,8 @@ export function createGameCamera(scene: Scene, initialSize: ViewportSize = 'desk
       // and widen FOV to keep the player visible. Stay below ceiling (~3 units).
       const distRatio = dist / currentConfig.distance; // 1.0 = full distance, <1 = clipped
       const clipAmount = 1 - distRatio; // 0 = no clipping, 1 = fully clipped
-      const camY = currentConfig.heightOffset + clipAmount * 0.6; // raise up to +0.6, stays below ceiling
-      const targetFov = currentConfig.fov + clipAmount * 0.15; // widen up to +0.15 rad
+      const camY = currentConfig.heightOffset + clipAmount * 0.6 + autoHealAdj.heightDelta;
+      const targetFov = currentConfig.fov + clipAmount * 0.15 + autoHealAdj.fovDelta;
       camera.fov += (targetFov - camera.fov) * 0.08; // smooth FOV transition
 
       const targetPos = new Vector3(camX, camY, camZ);

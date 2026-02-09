@@ -168,6 +168,13 @@ export function useRPGGameState() {
     storyManager.setCharacterPath(selectedCharacter === 'carl' ? 'chaos' : 'order');
     await storyManager.loadStage(stageId);
 
+    // Load story beats from the stage definition into StoryManager.
+    // loadStage loads dialogue data from story.json, but the beat definitions
+    // (triggers, consequences) are in definition.json and need separate loading.
+    if (game.storyBeats.length > 0) {
+      storyManager.loadBeats(game.storyBeats as any[]);
+    }
+
     // Set initial horror from stage atmosphere + entry room override
     const entryHorror = game.atmosphere.perRoomOverrides?.[startRoom.id]?.horrorLevel
       ?? game.atmosphere.baseHorrorLevel;

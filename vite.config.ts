@@ -8,6 +8,17 @@ export default defineConfig({
   plugins: [
     react(),
   ],
+  server: {
+    // Fix HMR WebSocket failures when restarting the dev server while the
+    // browser tab stays open.  Without this, Vite's client-side HMR code
+    // sometimes loads React from two module graphs and crashes hooks.
+    hmr: {
+      overlay: true,
+    },
+    watch: {
+      usePolling: false,
+    },
+  },
   // Optimize Babylon.js imports
   optimizeDeps: {
     include: ['@babylonjs/core', '@babylonjs/gui', '@babylonjs/loaders'],

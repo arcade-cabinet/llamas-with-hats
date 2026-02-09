@@ -97,10 +97,11 @@ export interface StoryManager {
   loadStage(stageId: string): Promise<void>;
 
   // Trigger checking
-  checkTrigger(type: TriggerType, params: TriggerParams): void;
+  /** Check triggers. Optional triggeredBy selects the character path variant. */
+  checkTrigger(type: TriggerType, params: TriggerParams, triggeredBy?: 'carl' | 'paul'): void;
 
   // Manual beat activation (for testing/debugging)
-  activateBeat(beatId: string): void;
+  activateBeat(beatId: string, triggeredBy?: 'carl' | 'paul'): void;
 
   // Scene-based horror
   /** Set the base horror level for the current scene (from atmosphere data).
@@ -369,21 +370,27 @@ export function createStoryManager(): StoryManager {
       }
     },
 
-    checkTrigger(type: TriggerType, params: TriggerParams) {
+    checkTrigger(type: TriggerType, params: TriggerParams, triggeredBy?: 'carl' | 'paul') {
       for (const [beatId, beat] of beats) {
         // Skip already completed beats
         if (beat.completed) continue;
 
         // Check if trigger matches
         if (matchesTrigger(beat, type, params)) {
-          this.activateBeat(beatId);
+          this.activateBeat(beatId, triggeredBy);
         }
       }
     },
 
-    activateBeat(beatId: string) {
+    activateBeat(beatId: string, triggeredBy?: 'carl' | 'paul') {
       const beat = beats.get(beatId);
       if (!beat || beat.completed) return;
+
+      // If triggeredBy is set, temporarily override characterPath for variant selection
+      const savedPath = characterPath;
+      if (triggeredBy) {
+        characterPath = triggeredBy === 'carl' ? 'chaos' : 'order';
+      }
 
       // Mark as triggered and completed
       beat.triggered = true;
@@ -428,6 +435,11 @@ export function createStoryManager(): StoryManager {
       // Update current beat
       if (beat.consequences?.nextBeat) {
         currentBeat = beat.consequences.nextBeat;
+      }
+
+      // Restore characterPath if it was temporarily overridden
+      if (triggeredBy) {
+        characterPath = savedPath;
       }
     },
 

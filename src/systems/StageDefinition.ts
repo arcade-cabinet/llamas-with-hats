@@ -165,12 +165,16 @@ export interface StageGoal {
    * - `interact_npc`: Talk to an NPC
    * - `survive_time`: Stay alive for duration
    * - `eliminate`: (Chaos path) Defeat enemies
+   * - `visit_scenes`: Visit multiple scenes
+   * - `interact`: Interact with a specific prop (targetId)
+   * - `reach_exit`: Reach any stage exit
    */
-  type: 'reach_scene' | 'collect_items' | 'interact_npc' | 'survive_time' | 'eliminate';
-  
+  type: 'reach_scene' | 'collect_items' | 'interact_npc' | 'survive_time' | 'eliminate'
+    | 'visit_scenes' | 'interact' | 'reach_exit';
+
   /** Parameters specific to goal type */
   params: Record<string, unknown>;
-  
+
   /** If true, not required for stage completion */
   optional?: boolean;
 
@@ -179,6 +183,43 @@ export interface StageGoal {
 
   /** If set, this goal only applies to this character's playthrough */
   character?: 'carl' | 'paul';
+
+  /** Priority for goal ordering (lower = higher priority). Defaults to index order. */
+  priority?: number;
+
+  /** ID of the coupled goal on the other character's track */
+  coupledGoalId?: string;
+
+  /**
+   * How this goal interferes with its coupled goal:
+   * - `racing`: First to complete wins; loser gets onFailed
+   * - `blocking`: Completing this blocks the coupled goal
+   * - `enabling`: Completing this enables the coupled goal
+   * - `sabotaging`: Completing this actively harms the coupled goal
+   */
+  interferenceType?: 'racing' | 'blocking' | 'enabling' | 'sabotaging';
+
+  /** Consequences when this goal completes */
+  onComplete?: {
+    /** Cancel these goal IDs */
+    blockGoals?: string[];
+    /** Activate these goal IDs (transition hidden→active) */
+    enableGoals?: string[];
+    /** Move an item to a different room */
+    relocateItem?: { itemId: string; toRoom: string };
+    /** Lock a door/exit */
+    lockExit?: string;
+    /** Trigger a story beat */
+    fireBeat?: string;
+  };
+
+  /** Consequences when this goal fails (e.g., coupled goal completed first) */
+  onFailed?: {
+    /** Replace with this substitute goal */
+    substituteGoal?: string;
+    /** Trigger a story beat */
+    fireBeat?: string;
+  };
 }
 
 // ============================================

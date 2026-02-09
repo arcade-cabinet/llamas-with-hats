@@ -264,7 +264,10 @@
         "character": "paul",
         "description": "Look around the house",
         "type": "reach_scene",
-        "params": { "sceneId": "kitchen" }
+        "params": { "sceneId": "kitchen" },
+        "priority": 0,
+        "coupledGoalId": "check_kitchen_masterpiece",
+        "interferenceType": "racing"
       },
       {
         "id": "search_rooms",
@@ -272,7 +275,8 @@
         "description": "Search every room",
         "type": "visit_scenes",
         "params": { "scenes": ["master_bedroom", "bathroom", "kitchen"] },
-        "hiddenUntil": "explore_house"
+        "hiddenUntil": "explore_house",
+        "priority": 1
       },
       {
         "id": "find_basement_key",
@@ -280,7 +284,13 @@
         "description": "Find the basement key",
         "type": "collect_items",
         "params": { "items": ["basement_key"] },
-        "hiddenUntil": "discover_blood"
+        "hiddenUntil": "discover_blood",
+        "priority": 2,
+        "coupledGoalId": "hide_basement_key",
+        "interferenceType": "racing",
+        "onComplete": {
+          "fireBeat": "find_key"
+        }
       },
       {
         "id": "enter_basement",
@@ -288,7 +298,10 @@
         "description": "Descend into the basement",
         "type": "reach_scene",
         "params": { "sceneId": "basement_main" },
-        "hiddenUntil": "find_key"
+        "hiddenUntil": "find_key",
+        "priority": 3,
+        "coupledGoalId": "prepare_gallery",
+        "interferenceType": "enabling"
       },
       {
         "id": "discover_truth",
@@ -296,14 +309,37 @@
         "description": "Discover the truth",
         "type": "interact",
         "params": { "targetId": "basement_evidence" },
-        "hiddenUntil": "basement_descent"
+        "hiddenUntil": "basement_descent",
+        "priority": 4,
+        "coupledGoalId": "show_paul_the_art",
+        "interferenceType": "racing"
       },
       {
         "id": "check_kitchen_masterpiece",
         "character": "carl",
         "description": "Check on the kitchen experiment",
         "type": "reach_scene",
-        "params": { "sceneId": "kitchen" }
+        "params": { "sceneId": "kitchen" },
+        "priority": 0,
+        "coupledGoalId": "investigate_house",
+        "interferenceType": "racing"
+      },
+      {
+        "id": "hide_basement_key",
+        "character": "carl",
+        "description": "Hide the basement key somewhere harder to find",
+        "type": "reach_scene",
+        "params": { "sceneId": "master_bedroom" },
+        "hiddenUntil": "discover_blood",
+        "priority": 1,
+        "coupledGoalId": "find_basement_key",
+        "interferenceType": "racing",
+        "onComplete": {
+          "relocateItem": { "itemId": "basement_key", "toRoom": "bathroom" }
+        },
+        "onFailed": {
+          "fireBeat": "find_key"
+        }
       },
       {
         "id": "prepare_gallery",
@@ -311,7 +347,10 @@
         "description": "Prepare the basement gallery",
         "type": "reach_scene",
         "params": { "sceneId": "basement_main" },
-        "hiddenUntil": "discover_blood"
+        "hiddenUntil": "discover_blood",
+        "priority": 2,
+        "coupledGoalId": "enter_basement",
+        "interferenceType": "enabling"
       },
       {
         "id": "show_paul_the_art",
@@ -319,14 +358,18 @@
         "description": "Show Paul your basement masterpiece",
         "type": "interact",
         "params": { "targetId": "basement_evidence" },
-        "hiddenUntil": "basement_descent"
+        "hiddenUntil": "basement_descent",
+        "priority": 3,
+        "coupledGoalId": "discover_truth",
+        "interferenceType": "racing"
       },
       {
         "id": "escape_house",
         "description": "Complete this chapter",
         "type": "reach_exit",
         "params": {},
-        "hiddenUntil": "discover_horror"
+        "hiddenUntil": "discover_horror",
+        "priority": 5
       }
     ],
     "startingBeat": "wake_up",

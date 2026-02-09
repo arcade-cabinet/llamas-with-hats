@@ -122,9 +122,26 @@
     {
       "id": "space_station",
       "name": "Space Station",
-      "description": "Linear corridor spine with branching rooms off the main hallway. Entry at docking bay, exit at airlock. Claustrophobic sci-fi interior.",
+      "description": "Multi-deck station with linear corridor spine on main deck, upper observation level, and lower engineering deck. Entry at docking bay, exit at airlock.",
       "environment": "interior",
       "levels": [
+        {
+          "level": 1,
+          "name": "Upper Deck",
+          "pattern": "linear",
+          "totalRooms": { "min": 2, "max": 3 },
+          "anchorRooms": [
+            { "purpose": "bridge", "gridPosition": { "x": 1, "z": 0 }, "templateTags": ["medium", "station"] },
+            { "purpose": "observation_deck", "gridPosition": { "x": 2, "z": 0 }, "templateTags": ["medium", "station"] }
+          ],
+          "fillerRules": {
+            "allowedTemplates": ["room_small", "hallway_short"],
+            "growthStrategy": "path"
+          },
+          "verticalConnections": [
+            { "gridPosition": { "x": 1, "z": 0 }, "direction": "down", "targetLevel": 0, "type": "stairs" }
+          ]
+        },
         {
           "level": 0,
           "name": "Main Deck",
@@ -143,7 +160,28 @@
             "allowedTemplates": ["room_small", "hallway_short", "closet"],
             "growthStrategy": "path"
           },
-          "verticalConnections": []
+          "verticalConnections": [
+            { "gridPosition": { "x": 1, "z": 0 }, "direction": "up", "targetLevel": 1, "type": "stairs" },
+            { "gridPosition": { "x": 3, "z": -1 }, "direction": "down", "targetLevel": -1, "type": "stairs" }
+          ]
+        },
+        {
+          "level": -1,
+          "name": "Lower Deck",
+          "pattern": "linear",
+          "totalRooms": { "min": 2, "max": 3 },
+          "anchorRooms": [
+            { "purpose": "cargo_hold", "gridPosition": { "x": 3, "z": -1 }, "templateTags": ["large", "station"] },
+            { "purpose": "reactor_core", "gridPosition": { "x": 4, "z": -1 }, "templateTags": ["medium", "station"] }
+          ],
+          "fillerRules": {
+            "allowedTemplates": ["room_small", "closet"],
+            "growthStrategy": "path"
+          },
+          "verticalConnections": [
+            { "gridPosition": { "x": 3, "z": -1 }, "direction": "up", "targetLevel": 0, "type": "stairs" }
+          ],
+          "palette": "basement_damp"
         }
       ],
       "connectionRules": {
@@ -155,9 +193,26 @@
     {
       "id": "pirate_island",
       "name": "Pirate Island",
-      "description": "Hub-based island layout with beach as central hub. Branches out to dock, jungle, cave, ghost ship, and lighthouse. Mixed interior/exterior.",
+      "description": "Hub-based island with beach center. Lighthouse tower above, deep cave system below. Branches to dock, jungle, cave, ghost ship.",
       "environment": "mixed",
       "levels": [
+        {
+          "level": 1,
+          "name": "Lighthouse",
+          "pattern": "linear",
+          "totalRooms": { "min": 2, "max": 2 },
+          "anchorRooms": [
+            { "purpose": "lighthouse_base", "gridPosition": { "x": 1, "z": 1 }, "templateTags": ["small", "island"] },
+            { "purpose": "lamp_room", "gridPosition": { "x": 1, "z": 2 }, "templateTags": ["small", "island"], "isExit": true }
+          ],
+          "fillerRules": {
+            "allowedTemplates": [],
+            "growthStrategy": "adjacent"
+          },
+          "verticalConnections": [
+            { "gridPosition": { "x": 1, "z": 1 }, "direction": "down", "targetLevel": 0, "type": "stairs" }
+          ]
+        },
         {
           "level": 0,
           "name": "Island",
@@ -170,13 +225,34 @@
             { "purpose": "cave", "gridPosition": { "x": 1, "z": -1 }, "templateTags": ["medium", "dark"] },
             { "purpose": "captain_quarters", "gridPosition": { "x": -1, "z": -1 }, "templateTags": ["medium", "ship"] },
             { "purpose": "crow_nest", "gridPosition": { "x": -1, "z": 1 }, "templateTags": ["small", "ship"] },
-            { "purpose": "lighthouse", "gridPosition": { "x": 1, "z": 1 }, "templateTags": ["small", "island"], "isExit": true }
+            { "purpose": "lighthouse", "gridPosition": { "x": 1, "z": 1 }, "templateTags": ["small", "island"] }
           ],
           "fillerRules": {
             "allowedTemplates": ["room_small", "hallway_short"],
             "growthStrategy": "adjacent"
           },
-          "verticalConnections": []
+          "verticalConnections": [
+            { "gridPosition": { "x": 1, "z": 1 }, "direction": "up", "targetLevel": 1, "type": "stairs" },
+            { "gridPosition": { "x": 1, "z": -1 }, "direction": "down", "targetLevel": -1, "type": "ramp" }
+          ]
+        },
+        {
+          "level": -1,
+          "name": "Cave Depths",
+          "pattern": "linear",
+          "totalRooms": { "min": 2, "max": 3 },
+          "anchorRooms": [
+            { "purpose": "deep_cave", "gridPosition": { "x": 1, "z": -1 }, "templateTags": ["medium", "dark"] },
+            { "purpose": "treasure_chamber", "gridPosition": { "x": 2, "z": -1 }, "templateTags": ["medium", "dark"] }
+          ],
+          "fillerRules": {
+            "allowedTemplates": ["room_small", "closet"],
+            "growthStrategy": "adjacent"
+          },
+          "verticalConnections": [
+            { "gridPosition": { "x": 1, "z": -1 }, "direction": "up", "targetLevel": 0, "type": "ramp" }
+          ],
+          "palette": "basement_damp"
         }
       ],
       "connectionRules": {
