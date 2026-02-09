@@ -13,6 +13,9 @@ import { VictoryOverlay } from './components/ui/VictoryOverlay';
 import { LandscapeOverlay } from './components/ui/LandscapeOverlay';
 import { GameView } from './components/game/GameView';
 import { DevAIOverlay } from './components/game/DevAIOverlay';
+import { FilmGrainOverlay } from './components/ui/FilmGrainOverlay';
+import { HorrorEffects } from './components/ui/HorrorEffects';
+import { GameToastProvider } from './components/ui/GameToast';
 import { getAudioManager } from './systems/AudioManager';
 import { getGoalTracker } from './systems/GoalTracker';
 
@@ -107,7 +110,11 @@ const App: React.FC = () => {
   const activeRoom = state.isPlaying ? state.currentRoom : menuRoom;
   const activeSeed = state.isPlaying ? state.worldSeed?.seedString : 'menu-preview';
 
+  // Compute horror level from atmosphere (0-3)
+  const horrorLevel = state.stageAtmosphere?.baseHorrorLevel ?? 0;
+
   return (
+    <GameToastProvider>
     <div className={clsx(
       'fixed inset-0 bg-shadow overflow-hidden',
       'safe-area-inset'
@@ -228,9 +235,20 @@ const App: React.FC = () => {
         />
       )}
 
+      {/* Horror escalation effects — z-index 9 (below film grain) */}
+      {state.isPlaying && horrorLevel > 0 && (
+        <HorrorEffects horrorLevel={horrorLevel} />
+      )}
+
+      {/* Film grain overlay — horror-responsive, z-index 10 */}
+      {state.isPlaying && (
+        <FilmGrainOverlay horrorLevel={horrorLevel} />
+      )}
+
       {/* Landscape requirement overlay */}
       {showLandscapeOverlay && <LandscapeOverlay />}
     </div>
+    </GameToastProvider>
   );
 };
 

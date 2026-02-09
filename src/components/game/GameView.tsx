@@ -215,6 +215,8 @@ export const GameView: React.FC<GameViewProps> = ({
           joystickElRef={joystickElRef}
           stageGoals={stageGoals}
           onPause={onPause}
+          playerPosition={playerPosition}
+          opponentPosition={opponentPosition}
         />
       )}
 

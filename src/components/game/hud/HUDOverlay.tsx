@@ -4,8 +4,9 @@ import type { CharacterType, RoomConfig } from '../../../types/game';
 import type { StageGoal } from '../../../systems/GameInitializer';
 import type { InteractionState } from '../../../systems/InteractionSystem';
 import type { InputMode, JoystickState } from '../../../hooks/useInputController';
-import { getItemIcon } from '../../../utils/itemIcons';
-import { Minimap } from './Minimap';
+import { RadialHealthGauge } from './RadialHealthGauge';
+import { RadarMinimap } from './RadarMinimap';
+import { GlowInventory } from './GlowInventory';
 import { QuestTracker } from './QuestTracker';
 
 interface HUDOverlayProps {
@@ -25,43 +26,48 @@ interface HUDOverlayProps {
   joystickElRef: React.RefObject<HTMLDivElement>;
   stageGoals: StageGoal[];
   onPause: () => void;
+  playerPosition?: { x: number; z: number };
+  opponentPosition?: { x: number; z: number };
 }
 
 export const HUDOverlay: React.FC<HUDOverlayProps> = ({
   worldName, currentRoom, playerCharacter, playerHealth, playerMaxHealth,
   playerInventory, isCompact, showMinimap, inputMode, interactionState,
   showDialogue, showTouchControls, joystickState, joystickElRef,
-  stageGoals, onPause,
+  stageGoals, onPause, playerPosition, opponentPosition,
 }) => {
-  const healthPercent = (playerHealth / playerMaxHealth) * 100;
-
   return (
     <div className="absolute inset-0 pointer-events-none">
       {/* Top Bar */}
       <div className={clsx(
         'absolute top-0 left-0 right-0 flex items-center justify-between',
-        'bg-gradient-to-b from-shadow/90 to-transparent pointer-events-auto',
+        'pointer-events-auto',
         isCompact ? 'px-3 py-2' : 'px-4 py-3'
-      )}>
+      )} style={{
+        background: 'linear-gradient(to bottom, rgba(10,10,12,0.9), transparent)',
+      }}>
         {/* Location */}
         <div>
           <p className={clsx(
-            'text-wood font-serif italic',
+            'font-serif italic',
             isCompact ? 'text-xs' : 'text-sm'
-          )}>
+          )} style={{ color: 'var(--color-pumpkin)' }}>
             {worldName}
           </p>
-          <p className="text-gray-500 text-xs">
+          <p style={{ fontSize: 10, color: 'var(--color-hud-muted)' }}>
             {currentRoom.name}
           </p>
         </div>
 
         {/* Character badge */}
         <div className={clsx(
-          'px-3 py-1 bg-shadow-light/80 rounded-full border border-wood-dark/50',
+          'px-3 py-1 rounded-full border',
           isCompact ? 'text-xs' : 'text-sm'
-        )}>
-          <span className={playerCharacter === 'carl' ? 'text-carl' : 'text-paul'}>
+        )} style={{
+          background: 'var(--color-hud-bg)',
+          borderColor: 'var(--color-hud-border)',
+        }}>
+          <span style={{ color: playerCharacter === 'carl' ? 'var(--color-carl)' : 'var(--color-paul)' }}>
             {playerCharacter === 'carl' ? 'Carl' : 'Paul'}
           </span>
         </div>
@@ -69,9 +75,13 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({
         {/* Menu button */}
         <button
           onClick={onPause}
-          className="p-2 bg-shadow-light/80 rounded-lg border border-wood-dark/50 hover:border-wood"
+          className="p-2 rounded-lg border hover:border-wood"
+          style={{
+            background: 'var(--color-hud-bg)',
+            borderColor: 'var(--color-hud-border)',
+          }}
         >
-          <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--color-hud-muted)' }}>
             <line x1="3" y1="6" x2="21" y2="6" />
             <line x1="3" y1="12" x2="21" y2="12" />
             <line x1="3" y1="18" x2="21" y2="18" />
@@ -79,80 +89,67 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({
         </button>
       </div>
 
-      {/* Left Side - Health & Stats */}
+      {/* Left Side - Health Gauge & Inventory */}
       <div className={clsx(
-        'absolute left-0 flex flex-col gap-3 pointer-events-auto',
+        'absolute left-0 flex flex-col gap-3 pointer-events-auto items-start',
         isCompact ? 'top-14 left-2' : 'top-16 left-4'
       )}>
-        {/* Health */}
-        <div>
-          <p className="text-gray-600 text-[10px] uppercase tracking-wider mb-1">Health</p>
-          <div className={clsx(
-            'bg-shadow-light/80 rounded-full overflow-hidden border border-wood-dark/30',
-            isCompact ? 'w-20 h-2' : 'w-28 h-3'
-          )}>
-            <div
-              className={clsx(
-                'h-full rounded-full transition-all duration-300',
-                healthPercent > 50 ? 'bg-carl' : healthPercent > 25 ? 'bg-yellow-600' : 'bg-blood'
-              )}
-              style={{ width: `${healthPercent}%` }}
-            />
-          </div>
-        </div>
+        {/* Radial Health Gauge */}
+        <RadialHealthGauge
+          health={playerHealth}
+          maxHealth={playerMaxHealth}
+          label={playerCharacter === 'carl' ? 'CARL' : 'PAUL'}
+          size={isCompact ? 56 : 72}
+        />
 
-        {/* Inventory — shows abbreviated item names */}
-        <div>
-          <p className="text-gray-600 text-[10px] uppercase tracking-wider mb-1">Items</p>
-          <div className="grid grid-cols-2 gap-1">
-            {[0, 1, 2, 3].map(i => (
-              <div
-                key={i}
-                className={clsx(
-                  'bg-shadow-light/80 rounded border border-wood-dark/30 flex items-center justify-center',
-                  isCompact ? 'w-7 h-7' : 'w-9 h-9',
-                  playerInventory[i] && 'border-wood/50'
-                )}
-                title={playerInventory[i]?.replace(/_/g, ' ')}
-              >
-                {playerInventory[i] && (
-                  <span className={clsx(
-                    'text-wood font-bold leading-none',
-                    isCompact ? 'text-[8px]' : 'text-[9px]'
-                  )}>
-                    {getItemIcon(playerInventory[i])}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* Glowing Inventory Grid */}
+        <GlowInventory
+          items={playerInventory}
+          maxSlots={4}
+          isCompact={isCompact}
+        />
       </div>
 
       {/* Right Side - Minimap & Quest Tracker */}
       <div className={clsx(
-        'absolute pointer-events-auto flex flex-col gap-3',
+        'absolute pointer-events-auto flex flex-col gap-3 items-end',
         isCompact ? 'top-14 right-2' : 'top-16 right-4'
       )}>
         {showMinimap && (
-          <div>
-            <p className="text-gray-600 text-[10px] uppercase tracking-wider mb-1">Map</p>
-            <Minimap room={currentRoom} isCompact={isCompact} />
-          </div>
+          <RadarMinimap
+            currentRoom={currentRoom}
+            playerPosition={playerPosition}
+            opponentPosition={opponentPosition}
+            size={isCompact ? 64 : 80}
+            isCompact={isCompact}
+          />
         )}
         {stageGoals.length > 0 && (
           <QuestTracker goals={stageGoals} isCompact={isCompact} playerCharacter={playerCharacter} />
         )}
       </div>
 
-      {/* Interaction Prompt - only shown on keyboard mode when near interactable */}
+      {/* Interaction Prompt - keyboard mode near interactable */}
       {inputMode === 'keyboard' && interactionState?.canInteract && !showDialogue && (
         <div className="absolute bottom-36 left-1/2 -translate-x-1/2 pointer-events-none">
-          <div className="bg-shadow-light/90 border border-wood/50 rounded-lg px-4 py-2 flex items-center gap-3">
-            <span className="text-wood font-bold text-sm border border-wood/50 rounded px-2 py-0.5">
+          <div
+            className="rounded-lg px-4 py-2 flex items-center gap-3 backdrop-blur-sm"
+            style={{
+              background: 'rgba(10, 10, 12, 0.85)',
+              border: '1px solid rgba(245, 129, 12, 0.3)',
+            }}
+          >
+            <span
+              className="font-bold text-sm rounded px-2 py-0.5"
+              style={{
+                color: 'var(--color-pumpkin)',
+                border: '1px solid rgba(245, 129, 12, 0.4)',
+                animation: 'glow-pulse 2s ease-in-out infinite',
+              }}
+            >
               E
             </span>
-            <span className="text-gray-300 text-sm">
+            <span style={{ fontSize: 13, color: 'var(--color-hud-text)' }}>
               {interactionState.interactPrompt}
             </span>
           </div>
@@ -162,12 +159,13 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({
       {/* Bottom - Controls */}
       <div className={clsx(
         'absolute bottom-0 left-0 right-0',
-        'bg-gradient-to-t from-shadow/80 to-transparent',
         isCompact ? 'h-24' : 'h-32'
-      )}>
+      )} style={{
+        background: 'linear-gradient(to top, rgba(10,10,12,0.8), transparent)',
+      }}>
         {/* Controls hint (keyboard mode) */}
         {inputMode === 'keyboard' && (
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-4 text-gray-600 text-xs">
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-4 text-xs" style={{ color: 'var(--color-hud-muted)' }}>
             <span>WASD to move</span>
             <span>Click to interact</span>
             <span>ESC to pause</span>
@@ -182,25 +180,32 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({
             style={{ width: 120, height: 120 }}
           >
             {/* Outer ring */}
-            <div className="absolute inset-0 rounded-full border-2 border-wood-dark/50 bg-shadow/40 backdrop-blur-sm">
-              {/* Dead zone indicator — subtle inner circle at 30% radius */}
+            <div
+              className="absolute inset-0 rounded-full backdrop-blur-sm"
+              style={{
+                border: '2px solid rgba(245, 129, 12, 0.25)',
+                background: 'rgba(10, 10, 12, 0.4)',
+              }}
+            >
+              {/* Dead zone indicator */}
               <div
-                className="absolute rounded-full border border-dashed border-wood-dark/20"
+                className="absolute rounded-full"
                 style={{
                   width: '36%', height: '36%',
                   top: '32%', left: '32%',
+                  border: '1px dashed rgba(245, 129, 12, 0.12)',
                 }}
               />
             </div>
-            {/* Inner knob — follows finger within outer ring */}
+            {/* Inner knob */}
             <div
               className="absolute rounded-full"
               style={{
                 width: 50, height: 50,
                 background: joystickState.active
-                  ? 'linear-gradient(135deg, #8B6914 0%, #7A1B1B 100%)'
-                  : 'linear-gradient(135deg, #8B691480 0%, #7A1B1B80 100%)',
-                border: '2px solid rgba(139, 105, 20, 0.6)',
+                  ? 'linear-gradient(135deg, #f5810c 0%, #8B0000 100%)'
+                  : 'linear-gradient(135deg, rgba(245,129,12,0.5) 0%, rgba(139,0,0,0.5) 100%)',
+                border: '2px solid rgba(245, 129, 12, 0.6)',
                 left: 60 + joystickState.knobX * 35 - 25,
                 top: 60 + joystickState.knobY * 35 - 25,
                 transition: joystickState.active ? 'none' : 'left 0.15s, top 0.15s',
@@ -211,7 +216,7 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({
 
         {/* Gamepad hint */}
         {inputMode === 'gamepad' && (
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-4 text-gray-600 text-xs">
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-4 text-xs" style={{ color: 'var(--color-hud-muted)' }}>
             <span>Left stick to move</span>
             <span>A to interact</span>
             <span>Start to pause</span>

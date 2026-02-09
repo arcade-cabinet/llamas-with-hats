@@ -67,7 +67,12 @@ export const MenuOverlay: React.FC<MenuOverlayProps> = ({
   return (
     <div className="absolute inset-0 z-50 pointer-events-none">
       {/* Dim overlay - darkens the game scene underneath */}
-      <div className="absolute inset-0 bg-black/75 pointer-events-auto" />
+      <div
+        className="absolute inset-0 pointer-events-auto"
+        style={{
+          background: 'radial-gradient(ellipse at center, rgba(10,10,12,0.8) 40%, rgba(26,26,46,0.9) 100%)',
+        }}
+      />
       
       {/* Content container */}
       <div className={clsx(
@@ -83,17 +88,17 @@ export const MenuOverlay: React.FC<MenuOverlayProps> = ({
             'font-serif font-bold leading-tight',
             isCompact ? 'text-3xl' : 'text-5xl'
           )}>
-            <span className="text-wood tracking-widest drop-shadow-lg">LLAMAS</span>
+            <span className="tracking-widest text-shadow-wood" style={{ color: 'var(--color-pumpkin)' }}>LLAMAS</span>
             <span className={clsx(
-              'mx-3 text-gray-500 italic',
+              'mx-3 italic',
               isCompact ? 'text-lg' : 'text-2xl'
-            )}>with</span>
-            <span className="text-blood tracking-[0.2em] drop-shadow-lg">HATS</span>
+            )} style={{ color: 'var(--color-hud-muted)' }}>with</span>
+            <span className="tracking-[0.2em] text-shadow-blood" style={{ color: 'var(--color-blood)' }}>HATS</span>
           </h1>
           <p className={clsx(
-            'text-gray-500 mt-2',
+            'mt-2',
             isCompact ? 'text-xs' : 'text-sm'
-          )}>
+          )} style={{ color: 'var(--color-hud-muted)' }}>
             A Dark Comedy RPG
           </p>
         </div>
@@ -101,11 +106,13 @@ export const MenuOverlay: React.FC<MenuOverlayProps> = ({
         {/* Menu panel */}
         <div className={clsx(
           'pointer-events-auto',
-          'bg-gradient-to-br from-shadow-light/95 to-shadow/95',
-          'border-2 border-wood-dark/50 rounded-2xl shadow-2xl',
+          'rounded-2xl shadow-2xl',
           'backdrop-blur-sm',
           isCompact ? 'w-80 p-4' : 'w-96 p-6'
-        )}>
+        )} style={{
+          background: 'linear-gradient(135deg, rgba(26,26,46,0.95), rgba(10,10,12,0.95))',
+          border: '1px solid var(--color-hud-border)',
+        }}>
           {currentScreen === 'main' && (
             <MainMenuPanel
               hasSaves={hasSaves}
@@ -152,9 +159,9 @@ export const MenuOverlay: React.FC<MenuOverlayProps> = ({
         {/* Warning text */}
         {currentScreen === 'main' && (
           <p className={clsx(
-            'text-center text-gray-600 max-w-sm pointer-events-auto mt-6',
+            'text-center max-w-sm pointer-events-auto mt-6',
             isCompact ? 'text-xs px-4' : 'text-sm'
-          )}>
+          )} style={{ color: 'var(--color-hud-muted)', animation: 'flicker 4s linear infinite' }}>
             Warning: Contains absurdist dark comedy and questionable life choices by llamas.
           </p>
         )}
@@ -441,10 +448,17 @@ const MenuButton: React.FC<{
       'w-full py-3 px-6 rounded-lg font-serif text-lg uppercase tracking-wider',
       'transition-all duration-200 active:scale-[0.98]',
       'disabled:opacity-50 disabled:cursor-not-allowed',
-      primary
-        ? 'bg-blood/80 border-2 border-blood text-white shadow-lg shadow-blood/30 hover:bg-blood hover:shadow-xl'
-        : 'bg-shadow border-2 border-wood-dark/50 text-gray-300 hover:border-wood hover:text-white'
     )}
+    style={primary ? {
+      background: 'linear-gradient(135deg, #8B0000 0%, #4a0000 100%)',
+      border: '1px solid rgba(139,0,0,0.6)',
+      color: '#fff',
+      boxShadow: '0 4px 20px rgba(139,0,0,0.3)',
+    } : {
+      background: 'rgba(10,10,12,0.6)',
+      border: '1px solid var(--color-hud-border)',
+      color: 'var(--color-hud-text)',
+    }}
   >
     {children}
   </button>

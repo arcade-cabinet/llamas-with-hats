@@ -2,7 +2,7 @@
 
 /* Custom theme extending Tailwind */
 @theme {
-  /* Dark fantasy color palette */
+  /* ── Core dark fantasy palette ── */
   --color-blood: #8B0000;
   --color-blood-dark: #4a0000;
   --color-wood: #8B4513;
@@ -12,8 +12,38 @@
   --color-parchment: #f5e6d3;
   --color-shadow: #1a0a0a;
   --color-shadow-light: #2d1515;
-  
-  /* Responsive breakpoints for devices */
+
+  /* ── Production accent palette ── */
+  --color-void: #0a0a0c;
+  --color-midnight: #1a1a2e;
+  --color-pumpkin: #f5810c;
+  --color-teal: #00bcd4;
+  --color-crimson: #f43f5e;
+  --color-rose: #dd7bbb;
+  --color-cold-blue: #84b5ff;
+  --color-gold: #fbbf24;
+  --color-ghost: rgba(255, 255, 255, 0.06);
+
+  /* ── HUD semantic tokens ── */
+  --color-hud-bg: rgba(0, 0, 0, 0.5);
+  --color-hud-border: rgba(139, 69, 19, 0.3);
+  --color-hud-text: rgba(255, 255, 255, 0.8);
+  --color-hud-muted: rgba(255, 255, 255, 0.3);
+
+  /* ── Health gauge colors ── */
+  --color-health-high: #22c55e;
+  --color-health-mid: #f5810c;
+  --color-health-low: #f43f5e;
+  --color-health-critical: #ff0000;
+
+  /* ── Toast accent colors ── */
+  --color-toast-item: #f5810c;
+  --color-toast-goal: #00bcd4;
+  --color-toast-fail: #f43f5e;
+  --color-toast-story: #dd7bbb;
+  --color-toast-unlock: #fbbf24;
+
+  /* ── Responsive breakpoints for devices ── */
   --breakpoint-phone: 480px;
   --breakpoint-tablet: 768px;
   --breakpoint-foldable-open: 900px;
@@ -109,9 +139,65 @@
   .text-shadow-blood {
     text-shadow: 0 0 20px rgba(139, 0, 0, 0.5), 2px 2px 4px rgba(0, 0, 0, 0.8);
   }
-  
+
   .text-shadow-wood {
     text-shadow: 0 0 15px rgba(139, 69, 19, 0.4), 2px 2px 4px rgba(0, 0, 0, 0.8);
+  }
+
+  /* Production glow text shadows */
+  .text-shadow-pumpkin {
+    text-shadow: 0 0 12px rgba(245, 129, 12, 0.4), 0 0 4px rgba(245, 129, 12, 0.2);
+  }
+
+  .text-shadow-teal {
+    text-shadow: 0 0 12px rgba(0, 188, 212, 0.4), 0 0 4px rgba(0, 188, 212, 0.2);
+  }
+
+  .text-shadow-crimson {
+    text-shadow: 0 0 12px rgba(244, 63, 94, 0.4), 0 0 4px rgba(244, 63, 94, 0.2);
+  }
+
+  /* HUD typography presets */
+  .hud-label {
+    font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-hud-muted);
+  }
+
+  .hud-value {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+  }
+
+  /* Vignette overlay — used for horror atmosphere */
+  .vignette {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse at center,
+      transparent 50%,
+      rgba(0, 0, 0, 0.4) 100%
+    );
+  }
+
+  .vignette-horror {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse at center,
+      transparent 40%,
+      rgba(80, 0, 0, 0.3) 100%
+    );
+  }
+
+  /* Radar sweep animation for minimap */
+  .radar-sweep {
+    animation: radar-spin 2s linear infinite;
+    transform-origin: 50% 0;
   }
 }
 
@@ -129,4 +215,81 @@
 @keyframes float {
   0%, 100% { transform: translateY(0) rotate(0deg); }
   50% { transform: translateY(-8px) rotate(2deg); }
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.97; }
+  75% { opacity: 0.93; }
+}
+
+@keyframes radar-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.7; }
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slide-up-fade {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(-20px); opacity: 0; }
+}
+
+@keyframes progress-fill {
+  from { width: 0%; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 4px currentColor; }
+  50% { box-shadow: 0 0 12px currentColor, 0 0 20px currentColor; }
+}
+
+@keyframes text-glitch {
+  0%, 90%, 100% { transform: none; filter: none; }
+  92% { transform: translateX(-2px) skewX(-1deg); filter: hue-rotate(90deg); }
+  94% { transform: translateX(2px); filter: none; }
+  96% { transform: translateX(-1px) skewX(1deg); filter: hue-rotate(-90deg); }
+  98% { transform: none; filter: none; }
+}
+
+@keyframes clip-circle-expand {
+  from { clip-path: circle(0% at 50% 50%); }
+  to { clip-path: circle(100% at 50% 50%); }
+}
+
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes dialogue-slide-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes dialogue-prompt-glow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@keyframes screen-shake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-2px, 1px); }
+  40% { transform: translate(2px, -1px); }
+  60% { transform: translate(-1px, -2px); }
+  80% { transform: translate(1px, 2px); }
+}
+
+@keyframes splatter-fade {
+  0% { opacity: 0; transform: scale(0.5); }
+  30% { opacity: 0.85; transform: scale(1.1); }
+  100% { opacity: 0; transform: scale(1); }
 }
