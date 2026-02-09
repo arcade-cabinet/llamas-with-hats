@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { clsx } from 'clsx';
+import { getAudioManager, SoundEffects } from '../../systems/AudioManager';
 
 interface StageTransitionOverlayProps {
   stageName: string;
@@ -22,6 +23,8 @@ export const StageTransitionOverlay: React.FC<StageTransitionOverlayProps> = ({
   const [contentVisible, setContentVisible] = useState(false);
 
   useEffect(() => {
+    // Play a dramatic sting as the circle-expand reveal starts
+    getAudioManager().playSound(SoundEffects.HORROR_STING, { volume: 0.35 });
     // The circle-expand reveal runs for 0.6s.
     // Wait 0.5s after it completes before showing inner content.
     const timer = setTimeout(() => setContentVisible(true), 1100);
@@ -120,7 +123,7 @@ export const StageTransitionOverlay: React.FC<StageTransitionOverlayProps> = ({
 
         {/* --- Continue button with gentle pulse --- */}
         <button
-          onClick={handleDismiss}
+          onClick={() => { getAudioManager().playSound(SoundEffects.UI_CLICK); handleDismiss(); }}
           className="px-8 py-3 rounded-lg font-serif cursor-pointer transition-colors"
           style={{
             background: 'rgba(139,0,0,0.2)',
@@ -136,61 +139,7 @@ export const StageTransitionOverlay: React.FC<StageTransitionOverlayProps> = ({
         </button>
       </div>
 
-      {/* Scoped keyframes for the staggered content animations */}
-      <style>{`
-        @keyframes stage-subtitle-in {
-          from {
-            opacity: 0;
-            transform: translateY(12px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes stage-title-in {
-          from {
-            opacity: 0;
-            transform: scale(1.05);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-
-        @keyframes stage-desc-in {
-          from {
-            opacity: 0;
-            transform: translateY(8px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes stage-btn-in {
-          from {
-            opacity: 0;
-            transform: translateY(6px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes stage-btn-pulse {
-          0%, 100% {
-            box-shadow: 0 0 6px rgba(139,0,0,0.3), 0 0 12px rgba(139,0,0,0.1);
-          }
-          50% {
-            box-shadow: 0 0 14px rgba(139,0,0,0.5), 0 0 28px rgba(139,0,0,0.2);
-          }
-        }
-      `}</style>
+      {/* Keyframes defined in index.css: stage-subtitle-in, stage-title-in, stage-desc-in, stage-btn-in, stage-btn-pulse */}
     </div>
   );
 };

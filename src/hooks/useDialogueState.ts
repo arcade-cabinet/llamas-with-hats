@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { NpcDialogueTree } from '../systems/StoryManager';
 
 export interface DialogueState {
@@ -24,12 +24,25 @@ export interface DialogueState {
   isInDialogue: boolean;
 }
 
+interface QueuedDialogue {
+  lines: string[];
+  speaker: 'carl' | 'paul';
+}
+
+/** Max queued dialogues to prevent unbounded buildup */
+const MAX_QUEUE = 4;
+
 export function useDialogueState(): DialogueState {
   // Simple dialogue state
   const [dialogueLines, setDialogueLines] = useState<string[]>([]);
   const [dialogueSpeaker, setDialogueSpeaker] = useState<'carl' | 'paul'>('carl');
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
   const [showDialogue, setShowDialogue] = useState(false);
+
+  // Dialogue queue — ref so it doesn't trigger re-renders
+  const dialogueQueue = useRef<QueuedDialogue[]>([]);
+  // Track whether dialogue is currently showing (ref mirrors state for sync access)
+  const isShowingRef = useRef(false);
 
   // Dialogue tree state (branching NPC conversations)
   const [dialogueTree, setDialogueTree] = useState<NpcDialogueTree | null>(null);
@@ -77,24 +90,45 @@ export function useDialogueState(): DialogueState {
     setShowTreeOptions(false);
   }, [dialogueTree]);
 
-  // Handle dialogue from interaction system
-  const handleDialogue = useCallback((lines: string[], speaker: 'carl' | 'paul') => {
+  /** Show a dialogue entry immediately */
+  const showEntry = useCallback((lines: string[], speaker: 'carl' | 'paul') => {
     setDialogueLines(lines);
     setDialogueSpeaker(speaker);
     setCurrentLineIndex(0);
     setShowDialogue(true);
+    isShowingRef.current = true;
   }, []);
 
-  // Advance dialogue
+  // Handle dialogue — queues if another dialogue is currently showing
+  const handleDialogue = useCallback((lines: string[], speaker: 'carl' | 'paul') => {
+    if (!isShowingRef.current) {
+      // Nothing showing — display immediately
+      showEntry(lines, speaker);
+    } else {
+      // Already showing — queue it (drop if queue is full)
+      if (dialogueQueue.current.length < MAX_QUEUE) {
+        dialogueQueue.current.push({ lines, speaker });
+      }
+    }
+  }, [showEntry]);
+
+  // Advance dialogue — dequeues next entry when current dialogue finishes
   const advanceDialogue = useCallback(() => {
     if (currentLineIndex < dialogueLines.length - 1) {
       setCurrentLineIndex(prev => prev + 1);
     } else {
-      setShowDialogue(false);
-      setDialogueLines([]);
-      setCurrentLineIndex(0);
+      // Current dialogue finished — check queue
+      const next = dialogueQueue.current.shift();
+      if (next) {
+        showEntry(next.lines, next.speaker);
+      } else {
+        setShowDialogue(false);
+        setDialogueLines([]);
+        setCurrentLineIndex(0);
+        isShowingRef.current = false;
+      }
     }
-  }, [currentLineIndex, dialogueLines.length]);
+  }, [currentLineIndex, dialogueLines.length, showEntry]);
 
   return {
     showDialogue,

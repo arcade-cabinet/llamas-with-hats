@@ -3,7 +3,8 @@ export type GameToastType =
   | 'goal_complete'
   | 'goal_failed'
   | 'story_beat'
-  | 'area_unlocked';
+  | 'area_unlocked'
+  | 'achievement';
 
 export interface GameToastData {
   id: number;

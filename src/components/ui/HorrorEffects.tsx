@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { clsx } from 'clsx';
+import { getAudioManager, SoundEffects } from '../../systems/AudioManager';
 
 interface HorrorEffectsProps {
   /** Horror intensity level (0-3). Controls which visual effects are active. */
@@ -78,6 +79,7 @@ export const HorrorEffects: React.FC<HorrorEffectsProps> = ({
       const delay = 4000 + Math.random() * 6000; // 4-10s
       flashTimerRef.current = setTimeout(() => {
         setFlashActive(true);
+        getAudioManager().playSound(SoundEffects.HORROR_STING, { volume: 0.6 });
         setTimeout(() => {
           setFlashActive(false);
         }, 200); // 0.2s flash
@@ -91,6 +93,31 @@ export const HorrorEffects: React.FC<HorrorEffectsProps> = ({
       if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
     };
   }, [level]);
+
+  // --- Periodic heartbeat for level 2+ (fires every ~3s, louder at level 3) ---
+  const heartbeatTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (level < 2) return;
+
+    const vol = level >= 3 ? 0.5 : 0.25;
+    heartbeatTimerRef.current = setInterval(() => {
+      getAudioManager().playSound(SoundEffects.HEARTBEAT, { volume: vol });
+    }, 3000);
+
+    return () => {
+      if (heartbeatTimerRef.current) clearInterval(heartbeatTimerRef.current);
+    };
+  }, [level]);
+
+  // --- Blood splatter sound trigger ---
+  const prevBloodSplatterRef = useRef(false);
+  useEffect(() => {
+    if (bloodSplatter && !prevBloodSplatterRef.current) {
+      getAudioManager().playSound(SoundEffects.BLOOD_SPLATTER, { volume: 0.5 });
+    }
+    prevBloodSplatterRef.current = bloodSplatter;
+  }, [bloodSplatter]);
 
   // --- Blood splatter positions (memoized so they don't shift on re-render) ---
   const splatters = useMemo(() => {
@@ -192,6 +219,28 @@ export const HorrorEffects: React.FC<HorrorEffectsProps> = ({
             background: 'rgba(10, 10, 12, 0.08)',
           }}
         />
+      )}
+
+      {/* Level 3: Chromatic aberration — RGB channel offset simulation */}
+      {level >= 3 && (
+        <>
+          <div
+            className="absolute inset-0 animate-[flicker_2s_ease-in-out_infinite]"
+            style={{
+              background: 'rgba(255, 0, 0, 0.03)',
+              transform: 'translate(-1.5px, 0.5px)',
+              mixBlendMode: 'screen',
+            }}
+          />
+          <div
+            className="absolute inset-0 animate-[flicker_2.5s_ease-in-out_infinite_0.3s]"
+            style={{
+              background: 'rgba(0, 0, 255, 0.03)',
+              transform: 'translate(1.5px, -0.5px)',
+              mixBlendMode: 'screen',
+            }}
+          />
+        </>
       )}
 
       {/* Blood splatter overlay */}

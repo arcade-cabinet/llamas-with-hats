@@ -16,12 +16,119 @@ import { DevAIOverlay } from './components/game/DevAIOverlay';
 import { FilmGrainOverlay } from './components/ui/FilmGrainOverlay';
 import { HorrorEffects } from './components/ui/HorrorEffects';
 import { GameToastProvider } from './components/ui/GameToast';
-import { getAudioManager } from './systems/AudioManager';
+import { getAudioManager, SoundEffects } from './systems/AudioManager';
 import { getGoalTracker } from './systems/GoalTracker';
+import { getAchievementSystem } from './systems/AchievementSystem';
+import { getStoryManager } from './systems/StoryManager';
+import { useGameToast } from './components/ui/GameToast';
 
 // Check URL params for dev mode
 const urlParams = new URLSearchParams(window.location.search);
 const devAIMode = urlParams.get('dev') === 'ai';
+
+// Bridge: wires AchievementSystem unlock events to the toast notification system.
+// Must live inside GameToastProvider to access the toast context.
+const AchievementToastBridge: React.FC = () => {
+  const { addToast } = useGameToast();
+
+  useEffect(() => {
+    getAchievementSystem().setCallbacks({
+      onUnlock: (achievement) => {
+        addToast('achievement', `${achievement.name} — ${achievement.description}`, achievement.icon);
+        // Play ascending sparkle chime for achievement unlock
+        getAudioManager().playSound(SoundEffects.ITEM_PICKUP, { pitch: 1.2 });
+      },
+    });
+    return () => getAchievementSystem().setCallbacks({});
+  }, [addToast]);
+
+  return null;
+};
+
+// ---------------------------------------------------------------------------
+// Loading Screen — cinematic loading state with animated progressive bar
+// ---------------------------------------------------------------------------
+
+const LoadingScreen: React.FC = () => (
+  <div
+    className="fixed inset-0 flex flex-col items-center justify-center"
+    style={{ background: 'var(--color-void)' }}
+  >
+    {/* Title */}
+    <h1
+      className="font-serif mb-2"
+      style={{
+        fontSize: 'clamp(1.5rem, 6vw, 2.5rem)',
+        background: 'linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.4) 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.6))',
+        animation: 'count-up 0.6s ease-out both',
+      }}
+    >
+      Llamas With Hats
+    </h1>
+
+    <p
+      style={{
+        fontSize: 11,
+        textTransform: 'uppercase',
+        letterSpacing: '0.2em',
+        color: 'var(--color-hud-muted)',
+        marginBottom: 24,
+        animation: 'count-up 0.4s ease-out 0.2s both',
+      }}
+    >
+      Preparing the scene
+    </p>
+
+    {/* Progressive bar */}
+    <div
+      style={{
+        width: 'min(280px, 60vw)',
+        height: 4,
+        borderRadius: 2,
+        background: 'rgba(255,255,255,0.06)',
+        overflow: 'hidden',
+        animation: 'count-up 0.4s ease-out 0.3s both',
+      }}
+    >
+      <div
+        style={{
+          height: '100%',
+          borderRadius: 2,
+          background: 'linear-gradient(90deg, var(--color-pumpkin), var(--color-gold))',
+          animation: 'loading-bar 2s ease-in-out infinite',
+          width: '40%',
+        }}
+      />
+    </div>
+
+    {/* Loading dots */}
+    <div
+      style={{
+        display: 'flex',
+        gap: 4,
+        marginTop: 16,
+        animation: 'count-up 0.4s ease-out 0.4s both',
+      }}
+    >
+      {[0, 1, 2].map(i => (
+        <div
+          key={i}
+          style={{
+            width: 4,
+            height: 4,
+            borderRadius: '50%',
+            background: 'var(--color-pumpkin)',
+            animation: `loading-dot 1.2s ease-in-out ${i * 0.2}s infinite`,
+          }}
+        />
+      ))}
+    </div>
+  </div>
+);
 
 const App: React.FC = () => {
   const {
@@ -55,12 +162,14 @@ const App: React.FC = () => {
     isPlaying: state.isPlaying,
     isPaused: state.isPaused,
     currentRoom: state.currentRoom,
+    currentStageId: state.currentStageId,
     layout: state.layout,
     selectedCharacter: state.selectedCharacter as 'carl' | 'paul' | null,
     playerPosition: state.player.position,
     opponentPosition: state.opponentPosition,
     stageGoals: state.stageGoals,
     devAIMode,
+    difficulty: state.settings.difficulty,
     updatePlayerPosition,
     updateOpponent,
   });
@@ -115,6 +224,7 @@ const App: React.FC = () => {
 
   return (
     <GameToastProvider>
+    <AchievementToastBridge />
     <div className={clsx(
       'fixed inset-0 bg-shadow overflow-hidden',
       'safe-area-inset'
@@ -145,6 +255,7 @@ const App: React.FC = () => {
           hideHUD={showMenu}
           onItemPickup={(itemId) => {
             addToInventory(itemId);
+            getAudioManager().playSound(SoundEffects.ITEM_PICKUP);
             getGoalTracker().checkGoalCompletion({
               type: 'item_pickup',
               character: (state.selectedCharacter as 'carl' | 'paul') || 'carl',
@@ -153,6 +264,7 @@ const App: React.FC = () => {
           }}
           onUnlockExit={(lockId) => {
             unlockExit(lockId);
+            getAudioManager().playSound(SoundEffects.DOOR_UNLOCK);
             ai.objectiveAIRef.current?.onDoorUnlocked(lockId);
             ai.playerObjectiveAIRef.current?.onDoorUnlocked(lockId);
           }}
@@ -190,12 +302,8 @@ const App: React.FC = () => {
         />
       )}
 
-      {/* Loading state while layout initializes */}
-      {!activeLayout && (
-        <div className="fixed inset-0 bg-shadow flex items-center justify-center">
-          <p className="text-wood font-serif">Loading...</p>
-        </div>
-      )}
+      {/* Loading state while layout initializes or stage loads */}
+      {(!activeLayout || state.isLoadingStage) && <LoadingScreen />}
 
       {/* Menu Overlay - shown on top of game scene */}
       {showMenu && (
@@ -232,6 +340,12 @@ const App: React.FC = () => {
           selectedCharacter={state.selectedCharacter || 'carl'}
           worldSeed={state.worldSeed}
           onReturnToMenu={returnToMainMenu}
+          playTimeSeconds={state.playTimeSeconds}
+          roomsExplored={getAchievementSystem().getStats().roomsExplored.length}
+          totalRooms={state.allRoomConfigs?.size ?? 0}
+          itemsCollected={state.player.inventory.length}
+          beatsTriggered={getStoryManager().getCompletedBeats().length}
+          horrorPeak={Math.round(getStoryManager().getHorrorLevel())}
         />
       )}
 

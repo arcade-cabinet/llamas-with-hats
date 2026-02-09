@@ -53,6 +53,7 @@
 import { CollisionSystem, PropCollider } from './CollisionSystem';
 import { getPropDialogue, getInteractPrompt } from '../data';
 import { getStoryManager, NpcDialogueTree } from './StoryManager';
+import { getAchievementSystem } from './AchievementSystem';
 import storyDialoguesData from '../data/dialogues/story-dialogues.json';
 
 // Note: Prop dialogues are now loaded from src/data/dialogues/prop-dialogues.json
@@ -188,6 +189,7 @@ export function createInteractionSystem(): InteractionSystem {
         const tree = getStoryManager().getNpcDialogueTree(propType);
         if (tree && callbacks.onDialogueTree) {
           callbacks.onDialogueTree(tree);
+          getAchievementSystem().trackNpcInteraction();
           // Still fire triggers below
           getStoryManager().checkTrigger('interact', { targetId: propType });
           getStoryManager().checkTrigger('npc_interact', { npcId: propType });
@@ -195,13 +197,33 @@ export function createInteractionSystem(): InteractionSystem {
         }
       }
 
-      // Get dialogue from data module (handles fallback to default)
-      const dialogue = getPropDialogue(propType);
-      const lines = character === 'carl' ? dialogue.carl : dialogue.paul;
+      // Check StoryManager for stage-specific prop overrides (rich multi-variant dialogue)
+      const storyOverride = getStoryManager().getPropOverride(propType);
+      let lines: string[];
+      if (storyOverride) {
+        const charLines = character === 'carl' ? storyOverride.carl : storyOverride.paul;
+        const horrorLines = storyOverride.horror ?? [];
+        const horrorLevel = getStoryManager().getHorrorLevel();
+        // Use horror lines at high horror, character lines otherwise
+        if (horrorLines.length > 0 && horrorLevel >= 6) {
+          lines = horrorLines;
+        } else if (charLines && charLines.length > 0) {
+          lines = charLines;
+        } else {
+          // Fallback to standard prop dialogue
+          const dialogue = getPropDialogue(propType);
+          lines = character === 'carl' ? dialogue.carl : dialogue.paul;
+        }
+      } else {
+        // Fallback to standard prop dialogue
+        const dialogue = getPropDialogue(propType);
+        lines = character === 'carl' ? dialogue.carl : dialogue.paul;
+      }
 
-      // Dialogue variations are now handled by atmosphere system
-      // Props can trigger atmosphere changes via their interaction actions
       callbacks.onDialogue(lines, character);
+
+      // Track prop examination for achievements
+      getAchievementSystem().trackPropExamined(propType);
 
       // If the prop drops an item, fire item_pickup story trigger
       if (itemDrop) {

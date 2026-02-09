@@ -294,6 +294,18 @@
           "stageComplete": true,
           "nextStage": "stage3_pirate"
         }
+      },
+      {
+        "id": "leave_medical",
+        "description": "Leaving the medical bay - the horror lingers",
+        "dialogueId": "stage2_leave_medical",
+        "trigger": {
+          "type": "scene_exit",
+          "params": { "sceneId": "medical_bay" }
+        },
+        "consequences": {
+          "horrorLevelChange": 1
+        }
       }
     ],
     "goals": [

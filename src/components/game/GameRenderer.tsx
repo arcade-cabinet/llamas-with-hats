@@ -157,6 +157,9 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
   // Handle interaction callback
   const handleInteraction = useCallback(() => {
     interactionSystemRef.current?.interact(playerCharacter);
+    // Fire npc_interact trigger for story beats that respond to NPC dialogue
+    const opponentCharacter = playerCharacter === 'carl' ? 'paul' : 'carl';
+    getStoryManager().checkTrigger('npc_interact', { npcId: opponentCharacter });
   }, [playerCharacter]);
 
   useEffect(() => {
@@ -316,7 +319,7 @@ export const GameRenderer: React.FC<GameRendererProps> = ({
     playerMovementRef.current = playerMovement;
 
     const roomTracker = createRoomTracker(
-      scene, currentRoom.id, audioManager, storyManager,
+      scene, currentRoom.id, audioManager, storyManager, layout,
     );
     roomTrackerRef.current = roomTracker;
 

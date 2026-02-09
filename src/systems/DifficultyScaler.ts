@@ -68,28 +68,45 @@ export interface DifficultyScaler {
 }
 
 // ============================================
+// Configuration
+// ============================================
+
+export interface DifficultyConfig {
+  /** Sliding window size for averaging goal times (default: 5) */
+  metricWindow: number;
+  /** How quickly difficulty adjusts, 0-1 (default: 0.15) */
+  adaptationRate: number;
+  /** Minimum difficulty floor (default: 0.1) */
+  minDifficulty: number;
+  /** Maximum difficulty ceiling (default: 0.95) */
+  maxDifficulty: number;
+  /** Baseline expected goal time in seconds (default: 30) */
+  expectedGoalTime: number;
+  /** Baseline expected idle ratio (default: 0.3) */
+  expectedIdleRatio: number;
+  /** Seconds between difficulty evaluations (default: 10) */
+  evalInterval: number;
+}
+
+const DEFAULT_CONFIG: DifficultyConfig = {
+  metricWindow: 5,
+  adaptationRate: 0.15,
+  minDifficulty: 0.1,
+  maxDifficulty: 0.95,
+  expectedGoalTime: 30,
+  expectedIdleRatio: 0.3,
+  evalInterval: 10,
+};
+
+// ============================================
 // Implementation
 // ============================================
 
-/** Sliding window size for averaging metrics */
-const METRIC_WINDOW = 5;
-
-/** How quickly difficulty adjusts (0-1, higher = faster adaptation) */
-const ADAPTATION_RATE = 0.15;
-
-/** Difficulty thresholds */
-const MIN_DIFFICULTY = 0.1;
-const MAX_DIFFICULTY = 0.95;
-
-/** Expected goal completion time in seconds (for calibration) */
-const EXPECTED_GOAL_TIME = 30;
-
-/** Expected idle ratio (fraction of time not moving) */
-const EXPECTED_IDLE_RATIO = 0.3;
-
 export function createDifficultyScaler(
-  initialDifficulty = 0.5
+  initialDifficulty = 0.5,
+  configOverrides?: Partial<DifficultyConfig>,
 ): DifficultyScaler {
+  const cfg = { ...DEFAULT_CONFIG, ...configOverrides };
   let difficulty = initialDifficulty;
 
   // Metric tracking
@@ -102,7 +119,6 @@ export function createDifficultyScaler(
   // Per-evaluation window
   let windowTime = 0;
   let windowIdleTime = 0;
-  const EVAL_INTERVAL = 10; // Evaluate every 10 seconds of play
 
   /**
    * Map difficulty (0-1) to tuning parameters.
@@ -128,10 +144,10 @@ export function createDifficultyScaler(
     // Factor 1: Goal completion speed
     if (goalTimes.length > 0) {
       const avgTime = goalTimes.reduce((a, b) => a + b, 0) / goalTimes.length;
-      if (avgTime < EXPECTED_GOAL_TIME * 0.6) {
+      if (avgTime < cfg.expectedGoalTime * 0.6) {
         // Player is fast — increase difficulty
         pressureUp += 0.3;
-      } else if (avgTime > EXPECTED_GOAL_TIME * 1.5) {
+      } else if (avgTime > cfg.expectedGoalTime * 1.5) {
         // Player is slow — decrease difficulty
         pressureDown += 0.3;
       }
@@ -139,10 +155,10 @@ export function createDifficultyScaler(
 
     // Factor 2: Idle ratio
     const idleRatio = windowTime > 0 ? windowIdleTime / windowTime : 0;
-    if (idleRatio > EXPECTED_IDLE_RATIO * 1.5) {
+    if (idleRatio > cfg.expectedIdleRatio * 1.5) {
       // Player is idle a lot — they might be stuck
       pressureDown += 0.2;
-    } else if (idleRatio < EXPECTED_IDLE_RATIO * 0.5) {
+    } else if (idleRatio < cfg.expectedIdleRatio * 0.5) {
       // Player is very active
       pressureUp += 0.1;
     }
@@ -159,8 +175,8 @@ export function createDifficultyScaler(
 
     // Apply pressure
     const netPressure = pressureUp - pressureDown;
-    difficulty += netPressure * ADAPTATION_RATE;
-    difficulty = Math.max(MIN_DIFFICULTY, Math.min(MAX_DIFFICULTY, difficulty));
+    difficulty += netPressure * cfg.adaptationRate;
+    difficulty = Math.max(cfg.minDifficulty, Math.min(cfg.maxDifficulty, difficulty));
 
     // Reset window
     windowTime = 0;
@@ -179,7 +195,7 @@ export function createDifficultyScaler(
       }
 
       // Periodic evaluation
-      if (windowTime >= EVAL_INTERVAL) {
+      if (windowTime >= cfg.evalInterval) {
         evaluate();
       }
     },
@@ -190,11 +206,11 @@ export function createDifficultyScaler(
 
     onGoalCompleted(goalId: string) {
       const activatedAt = goalActivationTimes.get(goalId);
-      const elapsed = activatedAt !== undefined ? totalTime - activatedAt : EXPECTED_GOAL_TIME;
+      const elapsed = activatedAt !== undefined ? totalTime - activatedAt : cfg.expectedGoalTime;
       goalActivationTimes.delete(goalId);
       goalTimes.push(elapsed);
       // Keep only last N
-      while (goalTimes.length > METRIC_WINDOW) {
+      while (goalTimes.length > cfg.metricWindow) {
         goalTimes.shift();
       }
     },

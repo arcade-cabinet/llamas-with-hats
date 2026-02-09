@@ -651,3 +651,306 @@ describe('cross-trigger type isolation', () => {
     expect(sm.isCompleted('beat_b')).toBe(true);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Tests for room-based narrative content loaded via loadStage()
+// ---------------------------------------------------------------------------
+
+/**
+ * Mock story data that mirrors the shape returned by loadStageStoryDialogues.
+ * Covers ambientDialogues, reEntryDialogues, crossStageReferences, and propOverrides.
+ */
+const mockStoryData: Record<string, unknown> = {
+  beats: [],
+  storyDialogues: {},
+  npcDialogues: {},
+  ambientDialogues: {
+    living_room: {
+      carl: [
+        'Living room carl line 1',
+        'Living room carl line 2',
+        'Living room carl line 3',
+      ],
+      paul: [
+        'Living room paul line 1',
+        'Living room paul line 2',
+      ],
+    },
+    kitchen: {
+      carl: ['Kitchen carl line 1'],
+      paul: ['Kitchen paul line 1', 'Kitchen paul line 2'],
+    },
+  },
+  reEntryDialogues: {
+    entry_hall: {
+      carl: ['Entry hall re-entry carl 1', 'Entry hall re-entry carl 2'],
+      paul: ['Entry hall re-entry paul 1'],
+    },
+    kitchen: {
+      carl: ['Kitchen re-entry carl 1'],
+      paul: ['Kitchen re-entry paul 1', 'Kitchen re-entry paul 2'],
+    },
+  },
+  crossStageReferences: {
+    from_stage1: {
+      carl: [
+        'Cross ref stage1 carl line 1',
+        'Cross ref stage1 carl line 2',
+      ],
+      paul: [
+        'Cross ref stage1 paul line 1',
+      ],
+    },
+    from_stage2: {
+      carl: ['Cross ref stage2 carl line 1'],
+      paul: [
+        'Cross ref stage2 paul line 1',
+        'Cross ref stage2 paul line 2',
+      ],
+    },
+  },
+  propOverrides: {
+    couch: {
+      carl: ['Couch carl line 1', 'Couch carl line 2'],
+      paul: ['Couch paul line 1'],
+      prompt: 'Examine couch',
+    },
+    counter: {
+      carl: ['Counter carl line 1'],
+      paul: ['Counter paul line 1'],
+      horror: ['Counter horror line 1', 'Counter horror line 2'],
+      prompt: 'Examine counter',
+    },
+  },
+};
+
+// Mock the data module so loadStage() can populate caches without real file I/O
+vi.mock('../data', () => ({
+  loadStageStoryDialogues: vi.fn(() => Promise.resolve(mockStoryData)),
+}));
+
+describe('getAmbientDialogue', () => {
+  let sm: StoryManager;
+
+  beforeEach(async () => {
+    sm = createStoryManager();
+    await sm.loadStage('stage1_apartment');
+  });
+
+  it('should return null for an unknown room', () => {
+    expect(sm.getAmbientDialogue('nonexistent_room', 'carl')).toBeNull();
+    expect(sm.getAmbientDialogue('nonexistent_room', 'paul')).toBeNull();
+  });
+
+  it('should return a string for a known room', () => {
+    const line = sm.getAmbientDialogue('living_room', 'carl');
+    expect(line).toBeTypeOf('string');
+    expect(line!.length).toBeGreaterThan(0);
+  });
+
+  it('should return carl-specific lines for carl', () => {
+    const carlLine = sm.getAmbientDialogue('living_room', 'carl');
+    const carlLines = (mockStoryData.ambientDialogues as Record<string, { carl: string[] }>).living_room.carl;
+    expect(carlLines).toContain(carlLine);
+  });
+
+  it('should return paul-specific lines for paul', () => {
+    const paulLine = sm.getAmbientDialogue('living_room', 'paul');
+    const paulLines = (mockStoryData.ambientDialogues as Record<string, { paul: string[] }>).living_room.paul;
+    expect(paulLines).toContain(paulLine);
+  });
+
+  it('should cycle through lines and not repeat immediately', () => {
+    const carlLines = (mockStoryData.ambientDialogues as Record<string, { carl: string[] }>).living_room.carl;
+
+    const results: string[] = [];
+    for (let i = 0; i < carlLines.length; i++) {
+      results.push(sm.getAmbientDialogue('living_room', 'carl')!);
+    }
+
+    // First full cycle should return all lines in order (index 0, 1, 2)
+    expect(results).toEqual(carlLines);
+
+    // No immediate repetition: consecutive calls differ (when > 1 line)
+    for (let i = 1; i < results.length; i++) {
+      expect(results[i]).not.toBe(results[i - 1]);
+    }
+  });
+
+  it('should wrap around to the first line after exhausting the list', () => {
+    const carlLines = (mockStoryData.ambientDialogues as Record<string, { carl: string[] }>).living_room.carl;
+
+    // Exhaust all lines
+    for (let i = 0; i < carlLines.length; i++) {
+      sm.getAmbientDialogue('living_room', 'carl');
+    }
+
+    // The next call should wrap back to the first line
+    const wrapped = sm.getAmbientDialogue('living_room', 'carl');
+    expect(wrapped).toBe(carlLines[0]);
+  });
+});
+
+describe('getReEntryDialogue', () => {
+  let sm: StoryManager;
+
+  beforeEach(async () => {
+    sm = createStoryManager();
+    await sm.loadStage('stage1_apartment');
+  });
+
+  it('should return null for an unknown room', () => {
+    expect(sm.getReEntryDialogue('nonexistent_room', 'carl')).toBeNull();
+    expect(sm.getReEntryDialogue('nonexistent_room', 'paul')).toBeNull();
+  });
+
+  it('should return a string for a known room', () => {
+    const line = sm.getReEntryDialogue('entry_hall', 'carl');
+    expect(line).toBeTypeOf('string');
+    expect(line!.length).toBeGreaterThan(0);
+  });
+
+  it('should return carl-specific lines for carl', () => {
+    const carlLine = sm.getReEntryDialogue('entry_hall', 'carl');
+    const carlLines = (mockStoryData.reEntryDialogues as Record<string, { carl: string[] }>).entry_hall.carl;
+    expect(carlLines).toContain(carlLine);
+  });
+
+  it('should return paul-specific lines for paul', () => {
+    const paulLine = sm.getReEntryDialogue('kitchen', 'paul');
+    const paulLines = (mockStoryData.reEntryDialogues as Record<string, { paul: string[] }>).kitchen.paul;
+    expect(paulLines).toContain(paulLine);
+  });
+
+  it('should cycle through lines and not repeat immediately', () => {
+    const carlLines = (mockStoryData.reEntryDialogues as Record<string, { carl: string[] }>).entry_hall.carl;
+
+    const results: string[] = [];
+    for (let i = 0; i < carlLines.length; i++) {
+      results.push(sm.getReEntryDialogue('entry_hall', 'carl')!);
+    }
+
+    expect(results).toEqual(carlLines);
+
+    for (let i = 1; i < results.length; i++) {
+      expect(results[i]).not.toBe(results[i - 1]);
+    }
+  });
+
+  it('should wrap around to the first line after exhausting the list', () => {
+    const paulLines = (mockStoryData.reEntryDialogues as Record<string, { paul: string[] }>).kitchen.paul;
+
+    for (let i = 0; i < paulLines.length; i++) {
+      sm.getReEntryDialogue('kitchen', 'paul');
+    }
+
+    const wrapped = sm.getReEntryDialogue('kitchen', 'paul');
+    expect(wrapped).toBe(paulLines[0]);
+  });
+});
+
+describe('getCrossStageReferences', () => {
+  let sm: StoryManager;
+
+  beforeEach(async () => {
+    sm = createStoryManager();
+    await sm.loadStage('stage2_space');
+  });
+
+  it('should return an empty array for an unknown key', () => {
+    expect(sm.getCrossStageReferences('from_stage99', 'carl')).toEqual([]);
+    expect(sm.getCrossStageReferences('from_stage99', 'paul')).toEqual([]);
+  });
+
+  it('should return carl lines for a valid key', () => {
+    const lines = sm.getCrossStageReferences('from_stage1', 'carl');
+    expect(lines).toEqual([
+      'Cross ref stage1 carl line 1',
+      'Cross ref stage1 carl line 2',
+    ]);
+  });
+
+  it('should return paul lines for a valid key', () => {
+    const lines = sm.getCrossStageReferences('from_stage1', 'paul');
+    expect(lines).toEqual([
+      'Cross ref stage1 paul line 1',
+    ]);
+  });
+
+  it('should return lines from from_stage2 key', () => {
+    const carlLines = sm.getCrossStageReferences('from_stage2', 'carl');
+    expect(carlLines).toEqual(['Cross ref stage2 carl line 1']);
+
+    const paulLines = sm.getCrossStageReferences('from_stage2', 'paul');
+    expect(paulLines).toEqual([
+      'Cross ref stage2 paul line 1',
+      'Cross ref stage2 paul line 2',
+    ]);
+  });
+});
+
+describe('getAllCrossStageReferences', () => {
+  let sm: StoryManager;
+
+  beforeEach(async () => {
+    sm = createStoryManager();
+    await sm.loadStage('stage3_island');
+  });
+
+  it('should return combined carl lines from all from_stageN keys', () => {
+    const allCarl = sm.getAllCrossStageReferences('carl');
+    expect(allCarl).toContain('Cross ref stage1 carl line 1');
+    expect(allCarl).toContain('Cross ref stage1 carl line 2');
+    expect(allCarl).toContain('Cross ref stage2 carl line 1');
+    expect(allCarl.length).toBe(3);
+  });
+
+  it('should return combined paul lines from all from_stageN keys', () => {
+    const allPaul = sm.getAllCrossStageReferences('paul');
+    expect(allPaul).toContain('Cross ref stage1 paul line 1');
+    expect(allPaul).toContain('Cross ref stage2 paul line 1');
+    expect(allPaul).toContain('Cross ref stage2 paul line 2');
+    expect(allPaul.length).toBe(3);
+  });
+
+  it('should return an empty array when no cross-stage references are loaded', () => {
+    sm.reset();
+    expect(sm.getAllCrossStageReferences('carl')).toEqual([]);
+    expect(sm.getAllCrossStageReferences('paul')).toEqual([]);
+  });
+});
+
+describe('getPropOverride', () => {
+  let sm: StoryManager;
+
+  beforeEach(async () => {
+    sm = createStoryManager();
+    await sm.loadStage('stage1_apartment');
+  });
+
+  it('should return null for an unknown prop', () => {
+    expect(sm.getPropOverride('nonexistent_prop')).toBeNull();
+  });
+
+  it('should return data with carl and paul arrays for a known prop', () => {
+    const data = sm.getPropOverride('couch');
+    expect(data).not.toBeNull();
+    expect(data!.carl).toEqual(['Couch carl line 1', 'Couch carl line 2']);
+    expect(data!.paul).toEqual(['Couch paul line 1']);
+    expect(data!.prompt).toBe('Examine couch');
+  });
+
+  it('should return data with horror array when present', () => {
+    const data = sm.getPropOverride('counter');
+    expect(data).not.toBeNull();
+    expect(data!.horror).toEqual(['Counter horror line 1', 'Counter horror line 2']);
+    expect(data!.carl).toEqual(['Counter carl line 1']);
+    expect(data!.paul).toEqual(['Counter paul line 1']);
+  });
+
+  it('should not have horror array when the prop does not define one', () => {
+    const data = sm.getPropOverride('couch');
+    expect(data).not.toBeNull();
+    expect(data!.horror).toBeUndefined();
+  });
+});

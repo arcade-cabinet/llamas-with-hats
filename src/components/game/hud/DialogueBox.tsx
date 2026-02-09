@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { clsx } from 'clsx';
+import { getAudioManager, SoundEffects } from '../../../systems/AudioManager';
 
 interface DialogueBoxProps {
   speaker: 'carl' | 'paul';
@@ -61,7 +62,13 @@ export const DialogueBox: React.FC<DialogueBoxProps> = ({
     }
 
     timeoutRef.current = setTimeout(() => {
-      setRevealedCount((c) => c + 1);
+      setRevealedCount((c) => {
+        // Play blip every 3rd visible character for typewriter cadence
+        if ((c + 1) % 3 === 0 && text[c] !== ' ') {
+          getAudioManager().playSound(SoundEffects.DIALOGUE_BLIP, { volume: 0.15 });
+        }
+        return c + 1;
+      });
     }, delay);
 
     return clearPending;
@@ -85,7 +92,7 @@ export const DialogueBox: React.FC<DialogueBoxProps> = ({
   return (
     <div
       className="absolute inset-x-0 bottom-0 pointer-events-auto z-40"
-      onClick={onAdvance}
+      onClick={() => { getAudioManager().playSound(SoundEffects.UI_CLICK); onAdvance(); }}
       style={{ animation: 'dialogue-slide-up 350ms cubic-bezier(0.22, 1, 0.36, 1) both' }}
     >
       {/* Gradient vignette above the box */}

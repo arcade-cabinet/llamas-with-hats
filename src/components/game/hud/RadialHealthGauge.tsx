@@ -37,6 +37,11 @@ export const RadialHealthGauge: React.FC<RadialHealthGaugeProps> = ({
   return (
     <div
       className={className}
+      role="meter"
+      aria-label={`${label ?? 'Health'}: ${Math.round(healthPercent)}%`}
+      aria-valuenow={health}
+      aria-valuemin={0}
+      aria-valuemax={maxHealth}
       style={{ width: size, height: size, position: 'relative' }}
     >
       <svg

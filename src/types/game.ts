@@ -31,6 +31,9 @@ export interface GameSettings {
   sfxVolume: number;
   cameraZoom: number;
   showMinimap: boolean;
+  difficulty: Difficulty;
+  showTimer: boolean;
+  hudColorScheme: HudColorScheme;
 }
 
 export interface RoomConfig {
@@ -114,6 +117,8 @@ export type MenuScreen =
   | 'newGame'
   | 'loadGame'
   | 'settings'
+  | 'achievements'
+  | 'stats'
   | 'inGame'
   | 'victory';
 
@@ -124,3 +129,54 @@ export interface MenuState {
   savedGames: SavedGame[];
   settings: GameSettings;
 }
+
+// Achievement system types
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  condition: AchievementCondition;
+  secret?: boolean;
+  characterRequired?: CharacterType;
+}
+
+export type AchievementCondition =
+  | { type: 'complete_stage'; stageId: string }
+  | { type: 'complete_game' }
+  | { type: 'collect_item'; itemId: string }
+  | { type: 'visit_room'; roomPurpose: string; stageId: string }
+  | { type: 'complete_as'; character: CharacterType }
+  | { type: 'speed_run'; maxMinutes: number }
+  | { type: 'completionist'; allItems: true }
+  | { type: 'explore_all_rooms'; stageId: string }
+  | { type: 'horror_max'; level: number }
+  | { type: 'dialogue_branch'; dialogueId: string; branchId: string }
+  | { type: 'play_count'; count: number }
+  | { type: 'both_characters' }
+  | { type: 'prop_examine_count'; count: number }
+  | { type: 'npc_interact_count'; count: number }
+  | { type: 'world_seed_count'; count: number }
+  | { type: 'horror_below'; maxLevel: number; stageId: string };
+
+export interface PlayerStats {
+  gamesStarted: number;
+  gamesCompleted: number;
+  carlCompletions: number;
+  paulCompletions: number;
+  totalPlayTimeSeconds: number;
+  fastestCompletionSeconds: number | null;
+  roomsExplored: string[];
+  itemsCollected: string[];
+  beatsTriggered: string[];
+  dialogueBranchesExplored: string[];
+  encountersWitnessed: number;
+  highestHorrorReached: number;
+  propsExamined: string[];
+  npcInteractions: number;
+  worldSeedsUsed: string[];
+}
+
+export type Difficulty = 'normal' | 'nightmare';
+
+export type HudColorScheme = 'default' | 'blood' | 'ocean' | 'void';

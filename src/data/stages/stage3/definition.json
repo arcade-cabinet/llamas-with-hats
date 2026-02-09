@@ -282,6 +282,18 @@
         "consequences": {
           "stageComplete": true
         }
+      },
+      {
+        "id": "leave_cave",
+        "description": "Leaving the cave - Carl's treasures are burned into memory",
+        "dialogueId": "stage3_leave_cave",
+        "trigger": {
+          "type": "scene_exit",
+          "params": { "sceneId": "cave" }
+        },
+        "consequences": {
+          "horrorLevelChange": 1
+        }
       }
     ],
     "goals": [

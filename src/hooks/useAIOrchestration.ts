@@ -7,6 +7,8 @@ import { createObjectiveAI, type ObjectiveAI, type ObjectiveAIState } from '../s
 import { createCharacterNavigator } from '../systems/CharacterNavigator';
 import { createDualStoryContext, setDualStoryContext, resetDualStoryContext, type DualStoryContext } from '../systems/DualStoryContext';
 import { createDifficultyScaler, type DifficultyScaler } from '../systems/DifficultyScaler';
+import { getAmbientEventSystem } from '../systems/AmbientEventSystem';
+import { getEncounterSystem } from '../systems/EncounterSystem';
 import type { GeneratedLayout } from '../systems/LayoutGenerator';
 import type { RoomConfig } from '../types/game';
 import type { StageGoal } from '../systems/GameInitializer';
@@ -15,12 +17,14 @@ interface UseAIOrchestrationOptions {
   isPlaying: boolean;
   isPaused: boolean;
   currentRoom: RoomConfig | null;
+  currentStageId: string | null;
   layout: GeneratedLayout | null;
   selectedCharacter: 'carl' | 'paul' | null;
   playerPosition: { x: number; y?: number; z: number };
   opponentPosition: { x: number; y?: number; z: number };
   stageGoals: StageGoal[];
   devAIMode: boolean;
+  difficulty?: 'normal' | 'nightmare';
   updatePlayerPosition: (x: number, y: number, z: number, rotation: number) => void;
   updateOpponent: (x: number, y: number, z: number, rotation: number) => void;
 }
@@ -38,8 +42,8 @@ export interface AIOrchestrationState {
 
 export function useAIOrchestration(options: UseAIOrchestrationOptions): AIOrchestrationState {
   const {
-    isPlaying, isPaused, currentRoom, layout, selectedCharacter,
-    playerPosition, opponentPosition, stageGoals, devAIMode,
+    isPlaying, isPaused, currentRoom, currentStageId, layout, selectedCharacter,
+    playerPosition, opponentPosition, stageGoals, devAIMode, difficulty = 'normal',
     updatePlayerPosition, updateOpponent,
   } = options;
 
@@ -70,13 +74,20 @@ export function useAIOrchestration(options: UseAIOrchestrationOptions): AIOrches
       dualStoryRef.current = dualStory;
       setDualStoryContext(dualStory);
 
-      difficultyRef.current = createDifficultyScaler(0.5);
+      // Nightmare mode starts the AI at a much higher difficulty (0.85 vs 0.5)
+      difficultyRef.current = createDifficultyScaler(difficulty === 'nightmare' ? 0.85 : 0.5);
+
+      // Initialize ambient event system for atmospheric events
+      const ambientSystem = getAmbientEventSystem();
+      ambientSystem.setCharacter(selectedCharacter as 'carl' | 'paul');
+      ambientSystem.setPaused(false);
 
       return () => {
         resetDualStoryContext();
         dualStoryRef.current = null;
         difficultyRef.current?.reset();
         difficultyRef.current = null;
+        getAmbientEventSystem().setPaused(true);
       };
     }
   }, [isPlaying, stageGoals]);
@@ -143,6 +154,13 @@ export function useAIOrchestration(options: UseAIOrchestrationOptions): AIOrches
           if (newRoom) {
             goalTracker.trackSceneVisit(char, newRoom.purpose);
             dualStoryRef.current?.characterTrigger(char, 'scene_enter', { sceneId: newRoom.purpose });
+
+            // Check for encounters when opponent enters the player's room
+            const playerRoomId = pathfinder.getRoomAtPosition(playerPosRef.current.x, playerPosRef.current.z);
+            if (playerRoomId === newRoomId && currentStageId) {
+              const completedBeats = getStoryManager().getCompletedBeats();
+              getEncounterSystem().check(newRoom.purpose, currentStageId, char, completedBeats);
+            }
           }
         },
         onInteraction: (goalState) => {
@@ -319,6 +337,14 @@ export function useAIOrchestration(options: UseAIOrchestrationOptions): AIOrches
         aiRef.current.setHorrorLevel(horrorLevel);
       }
 
+      // Update ambient event system each frame
+      const ambientSystem = getAmbientEventSystem();
+      ambientSystem.setHorrorLevel(horrorLevel);
+      ambientSystem.update(deltaTime);
+
+      // Update encounter cooldowns
+      getEncounterSystem().update(deltaTime);
+
       const completedBeats = getStoryManager().getCompletedBeats();
       getGoalTracker().refreshVisibility(completedBeats);
 
@@ -377,6 +403,7 @@ export function useAIOrchestration(options: UseAIOrchestrationOptions): AIOrches
 
       const roomPurpose = currentRoom.name?.toLowerCase().replace(/\s+/g, '_');
       if (roomPurpose) {
+        getAmbientEventSystem().setRoom(roomPurpose);
         getGoalTracker().trackSceneVisit(
           (selectedCharacter as 'carl' | 'paul') || 'carl',
           roomPurpose

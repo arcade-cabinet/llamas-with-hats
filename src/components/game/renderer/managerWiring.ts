@@ -22,6 +22,8 @@ import type { AtmospherePreset } from '../../../systems/AtmosphereManager';
 import type { EffectsManager } from '../../../systems/EffectsManager';
 import { createPropMeshAsync } from '../../../systems/PropFactory';
 import type { StageAtmosphere } from '../../../systems/GameInitializer';
+import { getAmbientEventSystem } from '../../../systems/AmbientEventSystem';
+import { getEncounterSystem } from '../../../systems/EncounterSystem';
 import type { PropsSnapshot } from './types';
 
 interface WireManagersConfig {
@@ -215,6 +217,54 @@ export function wireManagers(config: WireManagersConfig): void {
     },
     onDramaticZoom: (fov, duration) => {
       effectsManager.zoomCamera(fov, duration, 1000);
+    },
+  });
+
+  // --- Ambient event system callbacks ---
+  // Routes random atmospheric dialogue/sound/effects to the display pipeline.
+  getAmbientEventSystem().setCallbacks({
+    onDialogue: (lines, speaker) => {
+      propsRef.current.onDialogue?.(lines, speaker as 'carl' | 'paul');
+    },
+    onSound: (soundId) => {
+      audioManager.playSound(soundId);
+    },
+    onEffect: (effectType) => {
+      switch (effectType) {
+        case 'screen_shake':
+          effectsManager.shakeCamera(0.08, 300);
+          break;
+        case 'horror_pulse':
+          audioManager.playSound(SoundEffects.HORROR_STING, { volume: 0.3 });
+          break;
+        case 'flicker':
+          atmosphereManager.pulse('dread', 1000);
+          break;
+      }
+    },
+  });
+
+  // --- Encounter system callbacks ---
+  // Routes AI-opponent encounter dialogue and effects to the display pipeline.
+  getEncounterSystem().setCallbacks({
+    onEncounter: (encounter) => {
+      if (encounter.lines.length > 0) {
+        const lines = encounter.lines.map(l => l.text);
+        const speaker = encounter.lines[0].speaker as 'carl' | 'paul';
+        propsRef.current.onDialogue?.(lines, speaker);
+      }
+      if (encounter.effects) {
+        for (const effect of encounter.effects) {
+          switch (effect.type) {
+            case 'horror_pulse':
+              audioManager.playSound(SoundEffects.HORROR_STING, { volume: effect.intensity ?? 0.3 });
+              break;
+            case 'screen_shake':
+              effectsManager.shakeCamera(effect.intensity ?? 0.15, 500);
+              break;
+          }
+        }
+      }
     },
   });
 

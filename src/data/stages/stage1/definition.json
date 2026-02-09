@@ -256,6 +256,50 @@
           "stageComplete": true,
           "nextStage": "stage2_space"
         }
+      },
+      {
+        "id": "leave_kitchen_shock",
+        "description": "Leaving the kitchen after discovering blood - Carl calls out",
+        "dialogueId": "stage1_leave_kitchen",
+        "trigger": {
+          "type": "scene_exit",
+          "params": { "sceneId": "kitchen" }
+        },
+        "consequences": {
+          "horrorLevelChange": 1,
+          "characterPathVariants": {
+            "chaos": {
+              "dialogue": ["Wait Paul, you didn't try the sauce!", "It's my best batch yet! Come BACK!"],
+              "horrorLevelChange": 0
+            },
+            "order": {
+              "dialogue": ["I need to get away from that kitchen.", "The smell is going to haunt me."],
+              "horrorLevelChange": 1
+            }
+          }
+        }
+      },
+      {
+        "id": "leave_basement",
+        "description": "Leaving the basement - Carl begs you to stay",
+        "dialogueId": "stage1_leave_basement",
+        "trigger": {
+          "type": "scene_exit",
+          "params": { "sceneId": "basement_main" }
+        },
+        "consequences": {
+          "horrorLevelChange": 1,
+          "characterPathVariants": {
+            "chaos": {
+              "dialogue": ["Paul? PAUL! Come back!", "You didn't even see the centerpiece!"],
+              "horrorLevelChange": 0
+            },
+            "order": {
+              "dialogue": ["I can still hear Carl calling from down there.", "I'm never going back."],
+              "horrorLevelChange": 1
+            }
+          }
+        }
       }
     ],
     "goals": [

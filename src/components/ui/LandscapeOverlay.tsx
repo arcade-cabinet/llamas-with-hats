@@ -1,14 +1,29 @@
 import React from 'react';
 
 export const LandscapeOverlay: React.FC = () => (
-  <div className="fixed inset-0 z-[9999] bg-shadow flex items-center justify-center p-8">
+  <div
+    className="fixed inset-0 z-[9999] flex items-center justify-center p-8"
+    style={{ background: 'var(--color-void)' }}
+  >
     <div className="text-center">
-      <div className="text-6xl mb-4 animate-bounce">{'\u{1F4F1}'}</div>
-      <p className="text-wood text-xl font-serif">
-        Please rotate your device to landscape mode
+      {/* Rotating phone icon */}
+      <div
+        className="text-6xl mb-4"
+        style={{
+          animation: 'landscape-rotate 1.5s ease-in-out infinite',
+          display: 'inline-block',
+        }}
+      >
+        {'\u{1F4F1}'}
+      </div>
+      <p
+        className="font-serif text-xl mb-2"
+        style={{ color: 'var(--color-pumpkin)' }}
+      >
+        Please rotate your device
       </p>
-      <p className="text-gray-500 text-sm mt-2">
-        For the best gameplay experience
+      <p style={{ fontSize: 13, color: 'var(--color-hud-muted)' }}>
+        Landscape mode provides the best experience
       </p>
     </div>
   </div>

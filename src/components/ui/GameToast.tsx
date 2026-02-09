@@ -32,6 +32,7 @@ const ACCENT_COLORS: Record<GameToastType, string> = {
   goal_failed: '#f43f5e',
   story_beat: '#dd7bbb',
   area_unlocked: '#fbbf24',
+  achievement: '#ffd700',
 };
 
 const AUTO_DISMISS_MS = 3_000;
@@ -147,6 +148,7 @@ export const GameToastContainer: React.FC<{ toasts: GameToastData[] }> = ({
 
 const ToastItem: React.FC<{ toast: GameToastData }> = ({ toast }) => {
   const accent = ACCENT_COLORS[toast.type];
+  const isAchievement = toast.type === 'achievement';
 
   return (
     <motion.div
@@ -163,39 +165,78 @@ const ToastItem: React.FC<{ toast: GameToastData }> = ({ toast }) => {
         transition: { duration: 0.3 },
       }}
       style={{
-        width: 280,
-        background: 'rgba(10, 10, 12, 0.9)',
+        width: isAchievement ? 300 : 280,
+        background: isAchievement
+          ? 'linear-gradient(135deg, rgba(10,10,12,0.95), rgba(40,30,0,0.9))'
+          : 'rgba(10, 10, 12, 0.9)',
         borderRadius: 8,
         borderLeft: `4px solid ${accent}`,
         display: 'flex',
         alignItems: 'center',
         gap: 10,
-        padding: '10px 14px',
+        padding: isAchievement ? '12px 16px' : '10px 14px',
         pointerEvents: 'auto',
+        boxShadow: isAchievement
+          ? `0 0 16px rgba(255, 215, 0, 0.15), 0 0 4px rgba(255, 215, 0, 0.1)`
+          : undefined,
+        position: 'relative',
+        overflow: 'hidden',
       }}
       className="backdrop-blur-sm"
     >
+      {/* Achievement shimmer overlay */}
+      {isAchievement && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(90deg, transparent 0%, rgba(255,215,0,0.06) 40%, rgba(255,215,0,0.12) 50%, rgba(255,215,0,0.06) 60%, transparent 100%)',
+            backgroundSize: '200% 100%',
+            animation: 'achievement-shimmer 2s ease-in-out infinite',
+            pointerEvents: 'none',
+          }}
+        />
+      )}
       {toast.icon && (
         <span
           style={{
-            fontSize: 18,
+            fontSize: isAchievement ? 24 : 18,
             lineHeight: 1,
             flexShrink: 0,
+            position: 'relative',
+            ...(isAchievement ? { filter: 'drop-shadow(0 0 4px rgba(255,215,0,0.5))' } : {}),
           }}
         >
           {toast.icon}
         </span>
       )}
-      <span
-        style={{
-          color: '#ffffff',
-          fontSize: 13,
-          letterSpacing: '0.025em',
-          lineHeight: 1.4,
-        }}
-      >
-        {toast.message}
-      </span>
+      <div style={{ position: 'relative' }}>
+        {isAchievement && (
+          <span
+            style={{
+              display: 'block',
+              fontSize: 9,
+              textTransform: 'uppercase',
+              letterSpacing: '0.15em',
+              color: '#ffd700',
+              marginBottom: 2,
+            }}
+          >
+            Achievement Unlocked
+          </span>
+        )}
+        <span
+          style={{
+            color: isAchievement ? '#ffd700' : '#ffffff',
+            fontSize: 13,
+            letterSpacing: '0.025em',
+            lineHeight: 1.4,
+            fontWeight: isAchievement ? 600 : undefined,
+          }}
+        >
+          {toast.message}
+        </span>
+      </div>
     </motion.div>
   );
 };

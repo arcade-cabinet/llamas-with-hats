@@ -5,10 +5,23 @@ import {
   NOUNS
 } from '../types/game';
 
-export function generateWorldSeed(): WorldSeed {
-  const adj1 = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
-  const adj2 = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
-  const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)];
+export interface BonusWordPool {
+  adjectives?: string[];
+  nouns?: string[];
+}
+
+export function generateWorldSeed(bonus?: BonusWordPool): WorldSeed {
+  // Merge bonus words (unlocked through play) with the base pools
+  const adjPool = bonus?.adjectives?.length
+    ? [...ADJECTIVES, ...bonus.adjectives.filter(a => !ADJECTIVES.includes(a))]
+    : ADJECTIVES;
+  const nounPool = bonus?.nouns?.length
+    ? [...NOUNS, ...bonus.nouns.filter(n => !NOUNS.includes(n))]
+    : NOUNS;
+
+  const adj1 = adjPool[Math.floor(Math.random() * adjPool.length)];
+  const adj2 = adjPool[Math.floor(Math.random() * adjPool.length)];
+  const noun = nounPool[Math.floor(Math.random() * nounPool.length)];
 
   return {
     adjective1: adj1,
@@ -18,15 +31,23 @@ export function generateWorldSeed(): WorldSeed {
   };
 }
 
-export function parseWorldSeed(seedString: string): WorldSeed | null {
+export function parseWorldSeed(seedString: string, bonus?: BonusWordPool): WorldSeed | null {
   const parts = seedString.split('-');
   if (parts.length !== 3) return null;
 
   const [adj1, adj2, noun] = parts;
 
-  const validAdj1 = ADJECTIVES.find(a => a.toLowerCase() === adj1.toLowerCase());
-  const validAdj2 = ADJECTIVES.find(a => a.toLowerCase() === adj2.toLowerCase());
-  const validNoun = NOUNS.find(n => n.toLowerCase() === noun.toLowerCase());
+  // Include bonus words when validating
+  const adjPool = bonus?.adjectives?.length
+    ? [...ADJECTIVES, ...bonus.adjectives.filter(a => !ADJECTIVES.includes(a))]
+    : ADJECTIVES;
+  const nounPool = bonus?.nouns?.length
+    ? [...NOUNS, ...bonus.nouns.filter(n => !NOUNS.includes(n))]
+    : NOUNS;
+
+  const validAdj1 = adjPool.find(a => a.toLowerCase() === adj1.toLowerCase());
+  const validAdj2 = adjPool.find(a => a.toLowerCase() === adj2.toLowerCase());
+  const validNoun = nounPool.find(n => n.toLowerCase() === noun.toLowerCase());
 
   if (!validAdj1 || !validAdj2 || !validNoun) return null;
 

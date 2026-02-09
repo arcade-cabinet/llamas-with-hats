@@ -231,6 +231,26 @@
         { "speaker": "carl", "text": "Great times! Remember that day, Paul? The picnic?" },
         { "speaker": "paul", "text": "You mean the day you brought 'homemade sausages' and nobody could identify the meat?" }
       ]
+    },
+
+    "stage1_leave_kitchen": {
+      "id": "stage1_leave_kitchen",
+      "type": "cutscene",
+      "lines": [
+        { "speaker": "carl", "text": "Wait! You didn't try my sauce!", "delay": 800 },
+        { "speaker": "carl", "text": "It's my best batch yet! The secret ingredient is commitment!", "delay": 1000 },
+        { "speaker": "paul", "text": "I need to get away from that kitchen.", "delay": 600 }
+      ]
+    },
+    "stage1_leave_basement": {
+      "id": "stage1_leave_basement",
+      "type": "cutscene",
+      "lines": [
+        { "speaker": "carl", "text": "Paul? PAUL! Come back!", "delay": 800 },
+        { "speaker": "carl", "text": "You didn't even see the centerpiece! I worked SO hard on it!", "delay": 1200 },
+        { "speaker": "narrator", "text": "Carl's voice echoes up the stairwell, growing more desperate.", "delay": 1000 },
+        { "speaker": "paul", "text": "I'm never going back down there.", "delay": 600 }
+      ]
     }
   },
 
@@ -513,6 +533,144 @@
     }
   },
 
+  "ambientDialogues": {
+    "living_room": {
+      "carl": [
+        "The living room! Where ALL the living happens. And some of the dying.",
+        "I love what I've done with this space. Very open concept. Very... ventilated.",
+        "This room has the best acoustics. Trust me, I've tested it. Extensively."
+      ],
+      "paul": [
+        "The living room looks normal. That's what worries me the most.",
+        "Something about this room feels wrong. Like it's been cleaned too thoroughly.",
+        "I used to feel safe in here. Past tense."
+      ]
+    },
+    "kitchen": {
+      "carl": [
+        "My culinary laboratory! The experiments never stop!",
+        "I should really clean the ceiling. The splatter adds character though.",
+        "Hungry, Paul? I've got leftovers. SO many leftovers."
+      ],
+      "paul": [
+        "The counter is still sticky. I'm not touching anything.",
+        "Why are there so many knives? We only had a set of four.",
+        "The garbage disposal has been running all morning. I'm not checking why."
+      ]
+    },
+    "master_bedroom": {
+      "carl": [
+        "The feng shui is PERFECT now. Worth all the effort.",
+        "I sleep like a baby in here. Well, I sleep. The baby... never mind.",
+        "I reorganized the closet! Very efficient use of space now."
+      ],
+      "paul": [
+        "The drag marks on the floor lead to the hallway. I can't unsee that.",
+        "There's a new lock on the closet door. From the outside.",
+        "The mattress has been flipped. Something dark stains the underside."
+      ]
+    },
+    "bathroom": {
+      "carl": [
+        "The bathroom! Where miracles happen! And evidence disappears!",
+        "I've been experimenting with bath bombs. VERY red bath bombs.",
+        "The drain was clogged earlier. Fixed it though! Very hands-on."
+      ],
+      "paul": [
+        "The grout between the tiles used to be white. It's pink now.",
+        "Someone scrubbed this bathroom recently. With bleach. A LOT of bleach.",
+        "The mirror still has that word on it. I can see it even through the fog."
+      ]
+    },
+    "basement_main": {
+      "carl": [
+        "Welcome to the gallery! Every piece hand-selected. Hand-made. Hand... sourced.",
+        "The temperature is perfect for preservation down here. Very professional.",
+        "I need more wall space. The collection is growing faster than anticipated!"
+      ],
+      "paul": [
+        "I can hear dripping. Slow, rhythmic dripping. I don't want to find the source.",
+        "The air down here tastes like iron. I'm breathing through my mouth.",
+        "Every shadow looks like it's moving. I need to get back upstairs."
+      ]
+    },
+    "entry_hall": {
+      "carl": [
+        "Home sweet home! Isn't it WONDERFUL to have a place like this?",
+        "I should get a welcome mat. Something with personality. Something... organic.",
+        "The front door is always open, Paul! Well, for coming in. Not so much for leaving."
+      ],
+      "paul": [
+        "The front door. Freedom is right there. But I can't leave yet.",
+        "There are scratches on the inside of the front door. Someone tried to get out.",
+        "The coat rack has too many coats. None of them are ours."
+      ]
+    }
+  },
+
+  "reEntryDialogues": {
+    "entry_hall": {
+      "carl": [
+        "Back at the door! Changed your mind about the tour?",
+        "The entry hall misses you when you leave, Paul!"
+      ],
+      "paul": [
+        "Back here again. The front door is still locked from the inside.",
+        "I keep coming back to this hallway. Like the house wants me here."
+      ]
+    },
+    "kitchen": {
+      "carl": [
+        "Kitchen encore! Want to try my new recipe? It's a KILLER.",
+        "Back for seconds? The sauce is even better reheated!"
+      ],
+      "paul": [
+        "The kitchen again. The smell hasn't gotten any better.",
+        "I thought I cleaned that stain. It's back. Or it's a new one."
+      ]
+    },
+    "basement_main": {
+      "carl": [
+        "You came back! I KNEW you'd appreciate the gallery!",
+        "Return visitor! Should I stamp your loyalty card?"
+      ],
+      "paul": [
+        "Why am I back down here? What am I hoping to find?",
+        "The basement. Again. The dripping is louder this time."
+      ]
+    },
+    "living_room": {
+      "carl": [
+        "Back in the living room! It's even MORE alive the second time around!",
+        "You can't stay away, can you? This room has a special energy!"
+      ],
+      "paul": [
+        "I'm back in here. Every time I return, I notice something new and horrible.",
+        "The living room again. Now I see the bleach stains on the carpet. Fresh bleach stains."
+      ]
+    },
+    "master_bedroom": {
+      "carl": [
+        "Bedroom visit number TWO! The feng shui just keeps getting better!",
+        "Couldn't resist coming back? I understand. My design work is magnetic!"
+      ],
+      "paul": [
+        "Back in the bedroom. The closet door is slightly open now. I didn't open it.",
+        "I'm in the bedroom again. The drag marks seem deeper than before. Or I'm just seeing them clearly now."
+      ]
+    },
+    "bathroom": {
+      "carl": [
+        "The bathroom beckons you back! That's normal. Totally normal behavior!",
+        "Another visit! The mirror really makes an impression, doesn't it?"
+      ],
+      "paul": [
+        "The bathroom. The word on the mirror is still there. Still 'SORRY'.",
+        "Back at the mirror. Each time I look, the handwriting seems more frantic."
+      ]
+    }
+  },
+
   "genericLines": {
     "locked_door": {
       "carl": ["Oh, that's locked! I wonder where I put the key..."],
@@ -545,6 +703,22 @@
         "I can't just leave. I need to know what Carl has done.",
         "The answers are somewhere in this house."
       ]
-    }
+    },
+    "hints": [
+      { "speaker": "paul", "text": "The bedroom nightstand. Carl said to check under it." },
+      { "speaker": "paul", "text": "There's a trail of something leading to the basement door. I should follow it." },
+      { "speaker": "paul", "text": "Maybe Carl's journal has answers. He writes everything down." },
+      { "speaker": "paul", "text": "The bathroom mirror has something written on it. I should take a closer look." },
+      { "speaker": "paul", "text": "I should check the bedroom closet. Carl mentioned reorganizing it." },
+      { "speaker": "paul", "text": "The back door might be unlocked. It's worth checking for a way out." }
+    ],
+    "ambient": [
+      { "speaker": "narrator", "text": "The house settles. Floorboards creak in rooms where nobody is standing." },
+      { "speaker": "narrator", "text": "A faucet drips somewhere. The rhythm is almost like a heartbeat." },
+      { "speaker": "narrator", "text": "The smell of copper and something sweet hangs in the air like a question." },
+      { "speaker": "narrator", "text": "Something moves in the walls. A scratching sound, then silence." },
+      { "speaker": "narrator", "text": "The air tastes metallic. Your tongue knows what blood tastes like even when your mind denies it." },
+      { "speaker": "narrator", "text": "A shadow crosses the hallway ahead. When you look directly at it, nothing is there." }
+    ]
   }
 }

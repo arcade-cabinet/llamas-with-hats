@@ -15,6 +15,10 @@ import { getStartingStage, getNextStage } from '../data';
 import { getStoryManager, resetStoryManager, StoryState } from '../systems/StoryManager';
 import { resetAtmosphereManager } from '../systems/AtmosphereManager';
 import { resetAudioManager } from '../systems/AudioManager';
+import { getAchievementSystem } from '../systems/AchievementSystem';
+import { resetAmbientEventSystem } from '../systems/AmbientEventSystem';
+import { resetEncounterSystem } from '../systems/EncounterSystem';
+import { getUnlockableSystem } from '../systems/UnlockableSystem';
 import { initializeGame, getSpawnPosition, GameInstance, StageAtmosphere, StageGoal } from '../systems/GameInitializer';
 
 const STORAGE_KEY = 'llamas-rpg-saves';
@@ -49,13 +53,19 @@ export interface RPGGameState {
   showInventory: boolean;
   isLoadingStage: boolean;
   showVictory: boolean;
+
+  // Tracking
+  playTimeSeconds: number;
 }
 
 const DEFAULT_SETTINGS: GameSettings = {
   musicVolume: 0.7,
   sfxVolume: 0.8,
   cameraZoom: 12,
-  showMinimap: true
+  showMinimap: true,
+  difficulty: 'normal',
+  showTimer: false,
+  hudColorScheme: 'default',
 };
 
 const DEFAULT_PLAYER: PlayerState = {
@@ -93,7 +103,8 @@ export function useRPGGameState() {
     isPaused: false,
     showInventory: false,
     isLoadingStage: false,
-    showVictory: false
+    showVictory: false,
+    playTimeSeconds: 0
   });
 
   const gameInstanceRef = useRef<GameInstance | null>(null);
@@ -126,6 +137,31 @@ export function useRPGGameState() {
     }
   }, []);
 
+  // Time elapsed tracking for time_elapsed story triggers
+  useEffect(() => {
+    if (!state.isPlaying || state.isPaused) return;
+
+    const startTime = Date.now();
+    const interval = setInterval(() => {
+      const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+      getStoryManager().checkTrigger('time_elapsed', { timeSeconds: elapsedSeconds });
+    }, 30000); // Check every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [state.isPlaying, state.isPaused]);
+
+  // Play time tracking — increments every second while playing
+  useEffect(() => {
+    if (!state.isPlaying || state.isPaused) return;
+
+    const interval = setInterval(() => {
+      setState(prev => ({ ...prev, playTimeSeconds: prev.playTimeSeconds + 1 }));
+      getAchievementSystem().trackPlayTime(1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [state.isPlaying, state.isPaused]);
+
   // Navigation
   const navigateTo = useCallback((screen: MenuScreen) => {
     setState(prev => ({ ...prev, menuScreen: screen }));
@@ -142,7 +178,11 @@ export function useRPGGameState() {
   }, []);
 
   const shuffleWorldSeed = useCallback(() => {
-    const newSeed = generateWorldSeed();
+    const unlockable = getUnlockableSystem();
+    const newSeed = generateWorldSeed({
+      adjectives: unlockable.getBonusAdjectives(),
+      nouns: unlockable.getBonusNouns(),
+    });
     setState(prev => ({ ...prev, worldSeed: newSeed }));
   }, []);
 
@@ -175,9 +215,18 @@ export function useRPGGameState() {
       storyManager.loadBeats(game.storyBeats as any[]);
     }
 
-    // Set initial horror from stage atmosphere + entry room override
-    const entryHorror = game.atmosphere.perRoomOverrides?.[startRoom.id]?.horrorLevel
+    // Apply New Game+ horror boost if enabled
+    const isNewGamePlus = state.settings.showTimer && getUnlockableSystem().isNewGamePlusAvailable();
+    const ngPlusConfig = isNewGamePlus
+      ? getUnlockableSystem().getNewGamePlusConfig(getStoryManager().getHorrorLevel())
+      : null;
+
+    // Set initial horror from stage atmosphere + entry room override (+ NG+ boost)
+    const baseHorror = game.atmosphere.perRoomOverrides?.[startRoom.id]?.horrorLevel
       ?? game.atmosphere.baseHorrorLevel;
+    const entryHorror = ngPlusConfig
+      ? Math.max(baseHorror, ngPlusConfig.startingHorrorLevel)
+      : baseHorror;
     storyManager.setSceneHorrorLevel(entryHorror);
 
     setState(prev => ({
@@ -195,6 +244,7 @@ export function useRPGGameState() {
       stageName: game.stageName,
       stageDescription: game.stageDescription,
       showStageTransition: false,
+      playTimeSeconds: 0,
       player: {
         ...DEFAULT_PLAYER,
         position: { x: 0, y: 0, z: 2 },
@@ -206,6 +256,12 @@ export function useRPGGameState() {
 
     // Fire scene_enter trigger for the starting room
     storyManager.checkTrigger('scene_enter', { sceneId: startRoom.id });
+
+    // Track game start for achievements
+    const achievementSystem = getAchievementSystem();
+    achievementSystem.clearSessionUnlocks();
+    achievementSystem.trackGameStart(selectedCharacter, worldSeed.seedString);
+    achievementSystem.trackRoomExplored(stageId, startRoom.id);
   }, [state.selectedCharacter, state.worldSeed]);
 
   // Ref to latest state for callbacks that shouldn't trigger re-renders
@@ -232,10 +288,10 @@ export function useRPGGameState() {
       playerPosition: player.position,
       playerRotation: player.rotation,
       collectedItems: player.inventory,
-      completedQuests: [],
+      completedQuests: getAchievementSystem().getUnlockedIds(),
       completedBeats: storyState.completedBeats,
       horrorLevel: storyState.horrorLevel,
-      score: 0,
+      score: (player.inventory.length * 25) + (storyState.completedBeats.length * 15),
       timestamp: Date.now()
     };
 
@@ -368,6 +424,8 @@ export function useRPGGameState() {
     resetStoryManager();
     resetAtmosphereManager();
     resetAudioManager();
+    resetAmbientEventSystem();
+    resetEncounterSystem();
     gameInstanceRef.current = null;
     setState(prev => ({
       ...prev,
@@ -401,8 +459,17 @@ export function useRPGGameState() {
 
     const nextStageId = getNextStage(currentStageId);
 
+    // Track stage completion for achievements
+    getAchievementSystem().trackStageComplete(currentStageId, selectedCharacter);
+
     // No next stage — the game is complete!
     if (!nextStageId) {
+      // Track game completion + unlockables
+      const playTime = stateRef.current.playTimeSeconds;
+      getAchievementSystem().trackGameComplete(selectedCharacter, playTime);
+      const horrorLevel = getStoryManager().getHorrorLevel();
+      getUnlockableSystem().trackCompletion(selectedCharacter, horrorLevel, stateRef.current.settings.difficulty);
+
       setState(prev => ({
         ...prev,
         showVictory: true,
@@ -469,6 +536,7 @@ export function useRPGGameState() {
         }
       };
     });
+    getAchievementSystem().trackItemCollected(itemId);
   }, []);
 
   const removeFromInventory = useCallback((itemId: string) => {
@@ -530,6 +598,12 @@ export function useRPGGameState() {
 
     // Fire scene_enter story trigger for the new room
     getStoryManager().checkTrigger('scene_enter', { sceneId: roomId });
+
+    // Track room exploration for achievements
+    const { currentStageId } = stateRef.current;
+    if (currentStageId) {
+      getAchievementSystem().trackRoomExplored(currentStageId, roomId);
+    }
   }, []);
 
   // Room transitions — uses GameInstance to move between stage scenes (fallback for single-room mode)

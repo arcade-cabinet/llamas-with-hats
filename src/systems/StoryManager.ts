@@ -112,6 +112,18 @@ export interface StoryManager {
   /** Get a branching dialogue tree for an NPC by character ID (e.g. 'paul') */
   getNpcDialogueTree(characterId: string): NpcDialogueTree | null;
 
+  // Room-based narrative content
+  /** Get a random ambient dialogue line for a room (from story.json ambientDialogues) */
+  getAmbientDialogue(roomPurpose: string, character: 'carl' | 'paul'): string | null;
+  /** Get a random re-entry dialogue line for a room (from story.json reEntryDialogues) */
+  getReEntryDialogue(roomPurpose: string, character: 'carl' | 'paul'): string | null;
+  /** Get cross-stage reference lines (e.g. Stage 2 referencing Stage 1 events) */
+  getCrossStageReferences(fromStageKey: string, character: 'carl' | 'paul'): string[];
+  /** Get all cross-stage reference lines for the current stage (collects from all from_stageN keys) */
+  getAllCrossStageReferences(character: 'carl' | 'paul'): string[];
+  /** Get prop override data for examining a prop */
+  getPropOverride(propName: string): PropOverrideData | null;
+
   // State queries
   getCurrentBeat(): string | null;
   getCompletedBeats(): string[];
@@ -155,6 +167,21 @@ export interface NpcDialogueTree {
   tree: Record<string, DialogueTreeNode>;
 }
 
+/** Character-keyed ambient/re-entry dialogue data */
+interface CharacterDialogueMap {
+  carl?: string[];
+  paul?: string[];
+}
+
+/** Prop override data from story.json */
+export interface PropOverrideData {
+  prompt?: string;
+  carl?: string[];
+  paul?: string[];
+  horror?: string[];
+  examine?: Array<{ speaker: string; text: string }>;
+}
+
 export function createStoryManager(): StoryManager {
   let beats: Map<string, StoryBeatRuntime> = new Map();
   let callbacks: StoryCallbacks = {};
@@ -171,6 +198,16 @@ export function createStoryManager(): StoryManager {
 
   // Cached NPC dialogue trees, keyed by character ID (e.g. 'paul')
   const npcDialogueCache = new Map<string, NpcDialogueTree>();
+
+  // Cached room-based narrative content from story.json
+  const ambientDialogueCache = new Map<string, CharacterDialogueMap>();
+  const reEntryDialogueCache = new Map<string, CharacterDialogueMap>();
+  const crossStageRefCache = new Map<string, CharacterDialogueMap>();
+  const propOverrideCache = new Map<string, PropOverrideData>();
+
+  // Track which ambient/re-entry lines have been used to avoid immediate repetition
+  const usedAmbientIndices = new Map<string, number>();
+  const usedReEntryIndices = new Map<string, number>();
 
   /**
    * Effective horror level = scene base + story modifier, clamped to 0-10
@@ -361,6 +398,46 @@ export function createStoryManager(): StoryManager {
           }
         }
 
+        // Cache ambient dialogues (room -> { carl: [...], paul: [...] })
+        ambientDialogueCache.clear();
+        const ambientDialogues = stageData.ambientDialogues as Record<string, CharacterDialogueMap> | undefined;
+        if (ambientDialogues && typeof ambientDialogues === 'object') {
+          for (const [room, data] of Object.entries(ambientDialogues)) {
+            ambientDialogueCache.set(room, data);
+          }
+        }
+
+        // Cache re-entry dialogues
+        reEntryDialogueCache.clear();
+        const reEntryDialogues = stageData.reEntryDialogues as Record<string, CharacterDialogueMap> | undefined;
+        if (reEntryDialogues && typeof reEntryDialogues === 'object') {
+          for (const [room, data] of Object.entries(reEntryDialogues)) {
+            reEntryDialogueCache.set(room, data);
+          }
+        }
+
+        // Cache cross-stage references
+        crossStageRefCache.clear();
+        const crossRefs = stageData.crossStageReferences as Record<string, CharacterDialogueMap> | undefined;
+        if (crossRefs && typeof crossRefs === 'object') {
+          for (const [key, data] of Object.entries(crossRefs)) {
+            crossStageRefCache.set(key, data);
+          }
+        }
+
+        // Cache prop overrides
+        propOverrideCache.clear();
+        const propOverrides = stageData.propOverrides as Record<string, PropOverrideData> | undefined;
+        if (propOverrides && typeof propOverrides === 'object') {
+          for (const [prop, data] of Object.entries(propOverrides)) {
+            propOverrideCache.set(prop, data);
+          }
+        }
+
+        // Clear used indices on stage load
+        usedAmbientIndices.clear();
+        usedReEntryIndices.clear();
+
         // Set starting beat if specified
         if (stageData.startingBeat && typeof stageData.startingBeat === 'string') {
           currentBeat = stageData.startingBeat;
@@ -447,6 +524,47 @@ export function createStoryManager(): StoryManager {
       return npcDialogueCache.get(characterId) ?? null;
     },
 
+    getAmbientDialogue(roomPurpose: string, character: 'carl' | 'paul'): string | null {
+      const data = ambientDialogueCache.get(roomPurpose);
+      const lines = data?.[character];
+      if (!lines || lines.length === 0) return null;
+      // Cycle through lines to avoid immediate repetition
+      const key = `ambient:${roomPurpose}:${character}`;
+      const lastIdx = usedAmbientIndices.get(key) ?? -1;
+      const nextIdx = (lastIdx + 1) % lines.length;
+      usedAmbientIndices.set(key, nextIdx);
+      return lines[nextIdx];
+    },
+
+    getReEntryDialogue(roomPurpose: string, character: 'carl' | 'paul'): string | null {
+      const data = reEntryDialogueCache.get(roomPurpose);
+      const lines = data?.[character];
+      if (!lines || lines.length === 0) return null;
+      const key = `reentry:${roomPurpose}:${character}`;
+      const lastIdx = usedReEntryIndices.get(key) ?? -1;
+      const nextIdx = (lastIdx + 1) % lines.length;
+      usedReEntryIndices.set(key, nextIdx);
+      return lines[nextIdx];
+    },
+
+    getCrossStageReferences(fromStageKey: string, character: 'carl' | 'paul'): string[] {
+      const data = crossStageRefCache.get(fromStageKey);
+      return data?.[character] ?? [];
+    },
+
+    getAllCrossStageReferences(character: 'carl' | 'paul'): string[] {
+      const allLines: string[] = [];
+      for (const data of crossStageRefCache.values()) {
+        const lines = data[character];
+        if (lines) allLines.push(...lines);
+      }
+      return allLines;
+    },
+
+    getPropOverride(propName: string): PropOverrideData | null {
+      return propOverrideCache.get(propName) ?? null;
+    },
+
     setSceneHorrorLevel(level: number) {
       const prevLevel = effectiveHorror();
       sceneBaseHorror = Math.max(0, Math.min(10, level));
@@ -509,6 +627,12 @@ export function createStoryManager(): StoryManager {
       }
       dialogueCache.clear();
       npcDialogueCache.clear();
+      ambientDialogueCache.clear();
+      reEntryDialogueCache.clear();
+      crossStageRefCache.clear();
+      propOverrideCache.clear();
+      usedAmbientIndices.clear();
+      usedReEntryIndices.clear();
       currentBeat = null;
       sceneBaseHorror = 0;
       storyHorrorModifier = 0;
