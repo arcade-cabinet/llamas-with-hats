@@ -8,6 +8,25 @@
   "layout": {
     "archetypeId": "pirate_island",
     "levelOverrides": {
+      "1": {
+        "anchorRooms": [
+          {
+            "purpose": "lighthouse_base",
+            "gridPosition": { "x": 1, "z": 1 },
+            "templateId": "room_small",
+            "templateTags": ["small", "island"],
+            "storyBeats": ["lighthouse_climb"]
+          },
+          {
+            "purpose": "lamp_room",
+            "gridPosition": { "x": 1, "z": 2 },
+            "templateId": "room_small",
+            "templateTags": ["small", "island"],
+            "isExit": true,
+            "storyBeats": ["lighthouse_escape"]
+          }
+        ]
+      },
       "0": {
         "totalRooms": { "min": 7, "max": 9 },
         "anchorRooms": [
@@ -62,8 +81,26 @@
             "gridPosition": { "x": 1, "z": 1 },
             "templateId": "room_small",
             "templateTags": ["small", "island"],
-            "isExit": true,
-            "storyBeats": ["lighthouse_escape"]
+            "storyBeats": ["lighthouse_approach"]
+          }
+        ]
+      },
+      "-1": {
+        "anchorRooms": [
+          {
+            "purpose": "deep_cave",
+            "gridPosition": { "x": 1, "z": -1 },
+            "templateId": "room_medium",
+            "templateTags": ["medium", "dark"],
+            "storyBeats": ["deep_cave_horror"],
+            "questItems": ["ancient_skull"]
+          },
+          {
+            "purpose": "treasure_chamber",
+            "gridPosition": { "x": 2, "z": -1 },
+            "templateId": "room_medium",
+            "templateTags": ["medium", "dark"],
+            "storyBeats": ["treasure_discovery"]
           }
         ]
       }
@@ -245,6 +282,18 @@
         "consequences": {
           "stageComplete": true
         }
+      },
+      {
+        "id": "leave_cave",
+        "description": "Leaving the cave - Carl's treasures are burned into memory",
+        "dialogueId": "stage3_leave_cave",
+        "trigger": {
+          "type": "scene_exit",
+          "params": { "sceneId": "cave" }
+        },
+        "consequences": {
+          "horrorLevelChange": 1
+        }
       }
     ],
     "goals": [
@@ -253,7 +302,10 @@
         "character": "paul",
         "description": "Explore the island",
         "type": "reach_scene",
-        "params": { "sceneId": "dock" }
+        "params": { "sceneId": "dock" },
+        "priority": 0,
+        "coupledGoalId": "show_paul_dock",
+        "interferenceType": "racing"
       },
       {
         "id": "find_captain_log",
@@ -261,7 +313,13 @@
         "description": "Find the captain's log",
         "type": "collect_items",
         "params": { "items": ["captain_log"] },
-        "hiddenUntil": "investigate_dock"
+        "hiddenUntil": "investigate_dock",
+        "priority": 1,
+        "coupledGoalId": "hide_captain_log",
+        "interferenceType": "racing",
+        "onComplete": {
+          "fireBeat": "find_captain_log"
+        }
       },
       {
         "id": "investigate_cave",
@@ -269,7 +327,10 @@
         "description": "Investigate the cave",
         "type": "reach_scene",
         "params": { "sceneId": "cave" },
-        "hiddenUntil": "find_captain_log"
+        "hiddenUntil": "find_captain_log",
+        "priority": 2,
+        "coupledGoalId": "curate_treasure_cave",
+        "interferenceType": "racing"
       },
       {
         "id": "search_ship",
@@ -277,14 +338,48 @@
         "description": "Search the ghost ship",
         "type": "reach_scene",
         "params": { "sceneId": "captain_quarters" },
-        "hiddenUntil": "cave_treasure"
+        "hiddenUntil": "cave_treasure",
+        "priority": 3,
+        "coupledGoalId": "guard_captain_quarters",
+        "interferenceType": "racing"
+      },
+      {
+        "id": "climb_crow_nest",
+        "character": "paul",
+        "description": "Climb to the crow's nest for a vantage point",
+        "type": "reach_scene",
+        "params": { "sceneId": "crow_nest" },
+        "hiddenUntil": "captain_diary",
+        "priority": 4,
+        "coupledGoalId": "sabotage_lighthouse",
+        "interferenceType": "racing"
       },
       {
         "id": "show_paul_dock",
         "character": "carl",
         "description": "Show Paul the S.S. Carl",
         "type": "reach_scene",
-        "params": { "sceneId": "dock" }
+        "params": { "sceneId": "dock" },
+        "priority": 0,
+        "coupledGoalId": "explore_island",
+        "interferenceType": "racing"
+      },
+      {
+        "id": "hide_captain_log",
+        "character": "carl",
+        "description": "Hide the captain's log before Paul finds it",
+        "type": "reach_scene",
+        "params": { "sceneId": "dock" },
+        "hiddenUntil": "investigate_dock",
+        "priority": 1,
+        "coupledGoalId": "find_captain_log",
+        "interferenceType": "racing",
+        "onComplete": {
+          "relocateItem": { "itemId": "captain_log", "toRoom": "captain_quarters" }
+        },
+        "onFailed": {
+          "fireBeat": "find_captain_log"
+        }
       },
       {
         "id": "curate_treasure_cave",
@@ -292,7 +387,10 @@
         "description": "Curate the treasure cave collection",
         "type": "reach_scene",
         "params": { "sceneId": "cave" },
-        "hiddenUntil": "investigate_dock"
+        "hiddenUntil": "investigate_dock",
+        "priority": 2,
+        "coupledGoalId": "investigate_cave",
+        "interferenceType": "enabling"
       },
       {
         "id": "finish_nature_trail",
@@ -300,14 +398,41 @@
         "description": "Finish the nature trail installation",
         "type": "reach_scene",
         "params": { "sceneId": "jungle_path" },
-        "hiddenUntil": "jungle_bones"
+        "hiddenUntil": "jungle_bones",
+        "priority": 2
+      },
+      {
+        "id": "guard_captain_quarters",
+        "character": "carl",
+        "description": "Guard the captain's quarters secrets",
+        "type": "reach_scene",
+        "params": { "sceneId": "captain_quarters" },
+        "hiddenUntil": "cave_treasure",
+        "priority": 3,
+        "coupledGoalId": "search_ship",
+        "interferenceType": "blocking"
+      },
+      {
+        "id": "sabotage_lighthouse",
+        "character": "carl",
+        "description": "Sabotage the lighthouse path before Paul escapes",
+        "type": "reach_scene",
+        "params": { "sceneId": "lighthouse" },
+        "hiddenUntil": "captain_diary",
+        "priority": 4,
+        "coupledGoalId": "climb_crow_nest",
+        "interferenceType": "sabotaging",
+        "onComplete": {
+          "lockExit": "lighthouse_path"
+        }
       },
       {
         "id": "escape_island",
         "description": "Complete this chapter",
         "type": "reach_exit",
         "params": {},
-        "hiddenUntil": "crow_nest_view"
+        "hiddenUntil": "crow_nest_view",
+        "priority": 5
       }
     ],
     "startingBeat": "wash_ashore",
@@ -470,6 +595,24 @@
       "lighthouse": {
         "horrorLevel": 5,
         "musicTrack": "music_dark_theme"
+      },
+      "lighthouse_base": {
+        "horrorLevel": 5,
+        "musicTrack": "music_dark_theme"
+      },
+      "lamp_room": {
+        "horrorLevel": 4,
+        "musicTrack": "music_dark_theme"
+      },
+      "deep_cave": {
+        "horrorLevel": 9,
+        "ambientSound": "ambient_basement_drip",
+        "musicTrack": "music_gothic"
+      },
+      "treasure_chamber": {
+        "horrorLevel": 10,
+        "ambientSound": "ambient_basement_drip",
+        "musicTrack": "music_gothic"
       }
     }
   },

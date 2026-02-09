@@ -1,31 +1,134 @@
 // Llamas With Hats - The Dark Comedy RPG
 // Data-driven game using JSON stage definitions
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect } from 'react';
 import { clsx } from 'clsx';
 import { useRPGGameState } from './hooks/useRPGGameState';
 import { useDeviceInfo } from './hooks/useDeviceInfo';
+import { useMenuPreview } from './hooks/useMenuPreview';
+import { useAIOrchestration } from './hooks/useAIOrchestration';
+import { useCameraTelemetry } from './hooks/useCameraTelemetry';
 import { MenuOverlay } from './components/ui/MenuOverlay';
+import { StageTransitionOverlay } from './components/ui/StageTransitionOverlay';
+import { VictoryOverlay } from './components/ui/VictoryOverlay';
+import { LandscapeOverlay } from './components/ui/LandscapeOverlay';
 import { GameView } from './components/game/GameView';
-import { LlamaAI, AIState, createLlamaAI } from './systems/AIController';
-import { initializeGame } from './systems/GameInitializer';
-import { getStoryManager } from './systems/StoryManager';
-import { getAudioManager } from './systems/AudioManager';
-import { getStartingStage } from './data';
 import { DevAIOverlay } from './components/game/DevAIOverlay';
-import type { GeneratedLayout } from './systems/LayoutGenerator';
-import type { RoomConfig, WorldSeed } from './types/game';
-
-// Fixed seed for menu background — deterministic so the menu always looks the same
-const MENU_SEED: WorldSeed = {
-  adjective1: 'Dark',
-  adjective2: 'Twisted',
-  noun: 'House',
-  seedString: 'Dark-Twisted-House'
-};
+import { FilmGrainOverlay } from './components/ui/FilmGrainOverlay';
+import { HorrorEffects } from './components/ui/HorrorEffects';
+import { GameToastProvider } from './components/ui/GameToast';
+import { getAudioManager, SoundEffects } from './systems/AudioManager';
+import { getGoalTracker } from './systems/GoalTracker';
+import { getAchievementSystem } from './systems/AchievementSystem';
+import { getStoryManager } from './systems/StoryManager';
+import { useGameToast } from './components/ui/GameToast';
 
 // Check URL params for dev mode
 const urlParams = new URLSearchParams(window.location.search);
 const devAIMode = urlParams.get('dev') === 'ai';
+
+// Bridge: wires AchievementSystem unlock events to the toast notification system.
+// Must live inside GameToastProvider to access the toast context.
+const AchievementToastBridge: React.FC = () => {
+  const { addToast } = useGameToast();
+
+  useEffect(() => {
+    getAchievementSystem().setCallbacks({
+      onUnlock: (achievement) => {
+        addToast('achievement', `${achievement.name} — ${achievement.description}`, achievement.icon);
+        // Play ascending sparkle chime for achievement unlock
+        getAudioManager().playSound(SoundEffects.ITEM_PICKUP, { pitch: 1.2 });
+      },
+    });
+    return () => getAchievementSystem().setCallbacks({});
+  }, [addToast]);
+
+  return null;
+};
+
+// ---------------------------------------------------------------------------
+// Loading Screen — cinematic loading state with animated progressive bar
+// ---------------------------------------------------------------------------
+
+const LoadingScreen: React.FC = () => (
+  <div
+    className="fixed inset-0 flex flex-col items-center justify-center"
+    style={{ background: 'var(--color-void)' }}
+  >
+    {/* Title */}
+    <h1
+      className="font-serif mb-2"
+      style={{
+        fontSize: 'clamp(1.5rem, 6vw, 2.5rem)',
+        background: 'linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.4) 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.6))',
+        animation: 'count-up 0.6s ease-out both',
+      }}
+    >
+      Llamas With Hats
+    </h1>
+
+    <p
+      style={{
+        fontSize: 11,
+        textTransform: 'uppercase',
+        letterSpacing: '0.2em',
+        color: 'var(--color-hud-muted)',
+        marginBottom: 24,
+        animation: 'count-up 0.4s ease-out 0.2s both',
+      }}
+    >
+      Preparing the scene
+    </p>
+
+    {/* Progressive bar */}
+    <div
+      style={{
+        width: 'min(280px, 60vw)',
+        height: 4,
+        borderRadius: 2,
+        background: 'rgba(255,255,255,0.06)',
+        overflow: 'hidden',
+        animation: 'count-up 0.4s ease-out 0.3s both',
+      }}
+    >
+      <div
+        style={{
+          height: '100%',
+          borderRadius: 2,
+          background: 'linear-gradient(90deg, var(--color-pumpkin), var(--color-gold))',
+          animation: 'loading-bar 2s ease-in-out infinite',
+          width: '40%',
+        }}
+      />
+    </div>
+
+    {/* Loading dots */}
+    <div
+      style={{
+        display: 'flex',
+        gap: 4,
+        marginTop: 16,
+        animation: 'count-up 0.4s ease-out 0.4s both',
+      }}
+    >
+      {[0, 1, 2].map(i => (
+        <div
+          key={i}
+          style={{
+            width: 4,
+            height: 4,
+            borderRadius: '50%',
+            background: 'var(--color-pumpkin)',
+            animation: `loading-dot 1.2s ease-in-out ${i * 0.2}s infinite`,
+          }}
+        />
+      ))}
+    </div>
+  </div>
+);
 
 const App: React.FC = () => {
   const {
@@ -52,36 +155,27 @@ const App: React.FC = () => {
   } = useRPGGameState();
 
   const device = useDeviceInfo();
+  const { menuLayout, menuAllRoomConfigs, menuRoom } = useMenuPreview();
 
-  // Menu preview layout — loaded on mount from the starting stage
-  const [menuLayout, setMenuLayout] = useState<GeneratedLayout | null>(null);
-  const [menuAllRoomConfigs, setMenuAllRoomConfigs] = useState<Map<string, RoomConfig> | null>(null);
-  const [menuRoom, setMenuRoom] = useState<RoomConfig | null>(null);
+  // AI orchestration — ObjectiveAI, LlamaAI, pathfinding, difficulty, goal tracking
+  const ai = useAIOrchestration({
+    isPlaying: state.isPlaying,
+    isPaused: state.isPaused,
+    currentRoom: state.currentRoom,
+    currentStageId: state.currentStageId,
+    layout: state.layout,
+    selectedCharacter: state.selectedCharacter as 'carl' | 'paul' | null,
+    playerPosition: state.player.position,
+    opponentPosition: state.opponentPosition,
+    stageGoals: state.stageGoals,
+    devAIMode,
+    difficulty: state.settings.difficulty,
+    updatePlayerPosition,
+    updateOpponent,
+  });
 
-  // Initialize layout on mount for menu background
-  useEffect(() => {
-    const stageId = getStartingStage();
-    initializeGame(stageId, 'carl', MENU_SEED).then(game => {
-      if (!game.layout) {
-        throw new Error(`Stage "${stageId}" failed to generate a layout — every stage must have a layout`);
-      }
-      setMenuLayout(game.layout);
-      setMenuAllRoomConfigs(game.allRoomConfigs);
-      setMenuRoom(game.getCurrentRoom());
-    }).catch(e => {
-      console.error('[App] Failed to initialize menu layout:', e);
-      throw e;
-    });
-  }, []);
-
-  // AI controller refs
-  const aiRef = useRef<LlamaAI | null>(null);
-  const playerAIRef = useRef<LlamaAI | null>(null);
-  const lastUpdateRef = useRef<number>(performance.now());
-
-  // AI state tracking for dev overlay
-  const [playerAIState, setPlayerAIState] = useState<AIState>('idle');
-  const [opponentAIState, setOpponentAIState] = useState<AIState>('idle');
+  // Camera telemetry — ref written by render loop, polled at 5Hz for overlay
+  const { cameraTelemetryRef, cameraTelemetry } = useCameraTelemetry(devAIMode, state.isPlaying);
 
   // Wire settings volume to AudioManager
   useEffect(() => {
@@ -104,115 +198,6 @@ const App: React.FC = () => {
     };
   }, [state.isPlaying, device.requiresLandscape]);
 
-  // Initialize AI when game starts
-  useEffect(() => {
-    if (state.isPlaying && state.currentRoom) {
-      // Opponent AI (always active)
-      aiRef.current = createLlamaAI(
-        state.opponentPosition.x,
-        state.opponentPosition.z,
-        state.currentRoom.width,
-        state.currentRoom.height,
-        (x, z, rotation) => {
-          updateOpponent(x, 0, z, rotation);
-        }
-      );
-      if (devAIMode) {
-        aiRef.current.setStateCallback(setOpponentAIState);
-      }
-
-      // Player AI (dev mode only)
-      if (devAIMode) {
-        playerAIRef.current = createLlamaAI(
-          state.player.position.x,
-          state.player.position.z,
-          state.currentRoom.width,
-          state.currentRoom.height,
-          (x, z, rotation) => {
-            updatePlayerPosition(x, 0, z, rotation);
-          }
-        );
-        playerAIRef.current.setStateCallback(setPlayerAIState);
-      }
-
-      return () => {
-        aiRef.current?.dispose();
-        aiRef.current = null;
-        if (playerAIRef.current) {
-          playerAIRef.current.dispose();
-          playerAIRef.current = null;
-        }
-      };
-    }
-  }, [state.isPlaying, state.currentRoom?.id]);
-
-  // Update AI with player position — opponent tracks player, player AI tracks opponent
-  useEffect(() => {
-    if (aiRef.current) {
-      aiRef.current.updatePlayerPosition(
-        state.player.position.x,
-        state.player.position.z
-      );
-    }
-    if (playerAIRef.current) {
-      playerAIRef.current.updatePlayerPosition(
-        state.opponentPosition.x,
-        state.opponentPosition.z
-      );
-    }
-  }, [state.player.position.x, state.player.position.z, state.opponentPosition.x, state.opponentPosition.z]);
-
-  // AI update loop
-  useEffect(() => {
-    if (!state.isPlaying || state.isPaused) return;
-
-    let animationId: number;
-
-    const updateLoop = () => {
-      const now = performance.now();
-      const deltaTime = (now - lastUpdateRef.current) / 1000;
-      lastUpdateRef.current = now;
-
-      // Sync horror level from story manager to AI — drives Paul's escalating behavior
-      const horrorLevel = getStoryManager().getHorrorLevel();
-      if (aiRef.current) {
-        aiRef.current.setHorrorLevel(horrorLevel);
-        aiRef.current.update(deltaTime);
-      }
-      if (playerAIRef.current) {
-        playerAIRef.current.update(deltaTime);
-      }
-
-      animationId = requestAnimationFrame(updateLoop);
-    };
-
-    animationId = requestAnimationFrame(updateLoop);
-
-    return () => {
-      cancelAnimationFrame(animationId);
-    };
-  }, [state.isPlaying, state.isPaused]);
-
-  // Update AI bounds on room change
-  useEffect(() => {
-    if (state.currentRoom) {
-      if (aiRef.current) {
-        aiRef.current.updateBounds(
-          state.currentRoom.width,
-          state.currentRoom.height
-        );
-        aiRef.current.teleport(0, -2);
-      }
-      if (playerAIRef.current) {
-        playerAIRef.current.updateBounds(
-          state.currentRoom.width,
-          state.currentRoom.height
-        );
-        playerAIRef.current.teleport(0, 2);
-      }
-    }
-  }, [state.currentRoom?.id]);
-
   // Get world name
   const getWorldName = () => {
     if (state.worldSeed) {
@@ -226,7 +211,6 @@ const App: React.FC = () => {
     device.orientation === 'portrait' &&
     state.isPlaying;
 
-  // Whether to show the menu overlay
   const showMenu = !state.isPlaying;
 
   // Use game layout when playing, menu layout when on menu
@@ -235,7 +219,12 @@ const App: React.FC = () => {
   const activeRoom = state.isPlaying ? state.currentRoom : menuRoom;
   const activeSeed = state.isPlaying ? state.worldSeed?.seedString : 'menu-preview';
 
+  // Compute horror level from atmosphere (0-3)
+  const horrorLevel = state.stageAtmosphere?.baseHorrorLevel ?? 0;
+
   return (
+    <GameToastProvider>
+    <AchievementToastBridge />
     <div className={clsx(
       'fixed inset-0 bg-shadow overflow-hidden',
       'safe-area-inset'
@@ -264,8 +253,21 @@ const App: React.FC = () => {
           onSave={saveGame}
           onMainMenu={returnToMainMenu}
           hideHUD={showMenu}
-          onItemPickup={addToInventory}
-          onUnlockExit={unlockExit}
+          onItemPickup={(itemId) => {
+            addToInventory(itemId);
+            getAudioManager().playSound(SoundEffects.ITEM_PICKUP);
+            getGoalTracker().checkGoalCompletion({
+              type: 'item_pickup',
+              character: (state.selectedCharacter as 'carl' | 'paul') || 'carl',
+              params: { itemId },
+            });
+          }}
+          onUnlockExit={(lockId) => {
+            unlockExit(lockId);
+            getAudioManager().playSound(SoundEffects.DOOR_UNLOCK);
+            ai.objectiveAIRef.current?.onDoorUnlocked(lockId);
+            ai.playerObjectiveAIRef.current?.onDoorUnlocked(lockId);
+          }}
           onStageComplete={advanceStage}
           devAIEnabled={devAIMode}
           layout={activeLayout}
@@ -274,26 +276,34 @@ const App: React.FC = () => {
           onRoomChange={handleRoomChange}
           stageAtmosphere={state.isPlaying ? state.stageAtmosphere ?? undefined : undefined}
           stageGoals={state.isPlaying ? state.stageGoals : undefined}
+          cameraTelemetryRef={devAIMode ? cameraTelemetryRef : undefined}
         />
       )}
 
       {/* Dev AI overlay */}
       {devAIMode && state.isPlaying && (
         <DevAIOverlay
-          playerAIState={playerAIState}
-          opponentAIState={opponentAIState}
+          playerAIState={ai.playerAIState}
+          opponentAIState={ai.opponentAIState}
           playerPosition={{ x: state.player.position.x, z: state.player.position.z }}
           opponentPosition={{ x: state.opponentPosition.x, z: state.opponentPosition.z }}
           currentRoomName={state.currentRoom?.name ?? ''}
+          playerObjectiveState={ai.playerObjectiveState}
+          opponentObjectiveState={ai.opponentObjectiveState}
+          playerGoal={ai.playerObjectiveAIRef.current?.getCurrentGoal()?.def.description}
+          opponentGoal={ai.objectiveAIRef.current?.getCurrentGoal()?.def.description}
+          opponentRoom={ai.objectiveAIRef.current?.getCurrentRoom()}
+          difficultyLevel={ai.difficultyRef.current?.getDifficultyLevel()}
+          difficultyTuning={ai.difficultyRef.current?.getTuning()}
+          carlGoals={getGoalTracker().getGoalsForCharacter('carl')}
+          paulGoals={getGoalTracker().getGoalsForCharacter('paul')}
+          triggerLog={ai.dualStoryRef.current?.getTriggerLog()}
+          cameraTelemetry={cameraTelemetry}
         />
       )}
 
-      {/* Loading state while layout initializes */}
-      {!activeLayout && (
-        <div className="fixed inset-0 bg-shadow flex items-center justify-center">
-          <p className="text-wood font-serif">Loading...</p>
-        </div>
-      )}
+      {/* Loading state while layout initializes or stage loads */}
+      {(!activeLayout || state.isLoadingStage) && <LoadingScreen />}
 
       {/* Menu Overlay - shown on top of game scene */}
       {showMenu && (
@@ -315,83 +325,44 @@ const App: React.FC = () => {
         />
       )}
 
-      {/* Stage Transition Screen — shown between stages */}
+      {/* Stage Transition Screen */}
       {state.showStageTransition && (
-        <div className="fixed inset-0 z-[90] bg-black/90 flex items-center justify-center p-8">
-          <div className="text-center max-w-lg">
-            <p className="text-gray-500 text-sm uppercase tracking-widest mb-2">
-              Stage Complete
-            </p>
-            <h1 className="text-3xl md:text-5xl font-serif text-wood mb-4">
-              {state.stageName || 'Next Stage'}
-            </h1>
-            {state.stageDescription && (
-              <p className="text-gray-400 mb-6 font-serif italic leading-relaxed">
-                {state.stageDescription}
-              </p>
-            )}
-            <div className="border-t border-wood/20 my-6" />
-            <button
-              onClick={dismissStageTransition}
-              className="px-8 py-3 bg-wood/20 hover:bg-wood/40 text-wood border border-wood/50 rounded-lg font-serif transition-colors"
-            >
-              Continue
-            </button>
-          </div>
-        </div>
+        <StageTransitionOverlay
+          stageName={state.stageName || 'Next Stage'}
+          stageDescription={state.stageDescription}
+          onDismiss={dismissStageTransition}
+        />
       )}
 
-      {/* Victory Screen Overlay */}
+      {/* Victory Screen */}
       {state.showVictory && (
-        <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-8">
-          <div className="text-center max-w-lg">
-            <h1 className="text-4xl md:text-6xl font-serif text-blood mb-6">
-              {state.selectedCharacter === 'carl' ? 'CAAAAARL!' : 'Oh hey Paul.'}
-            </h1>
-            <p className="text-xl text-wood mb-4 font-serif">
-              {state.selectedCharacter === 'carl'
-                ? 'I had the rumblies that only hands could satisfy.'
-                : 'That kills people, Carl!'}
-            </p>
-            <div className="border-t border-wood/30 my-6" />
-            <p className="text-gray-400 mb-2">
-              {state.selectedCharacter === 'carl'
-                ? 'You embraced Carl\'s ecstatic artistry across all three stages.'
-                : 'You navigated Paul through Carl\'s escalating madness and lived to tell the tale.'}
-            </p>
-            <p className="text-gray-500 text-sm mb-2">
-              The {state.worldSeed?.adjective1} {state.worldSeed?.adjective2} {state.worldSeed?.noun} will never be the same.
-            </p>
-            <p className="text-gray-600 text-xs mb-8">
-              All three stages complete
-            </p>
-            <div className="flex flex-col gap-3 items-center">
-              <button
-                onClick={returnToMainMenu}
-                className="px-8 py-3 bg-wood/20 hover:bg-wood/40 text-wood border border-wood/50 rounded-lg font-serif transition-colors"
-              >
-                Return to Main Menu
-              </button>
-            </div>
-          </div>
-        </div>
+        <VictoryOverlay
+          selectedCharacter={state.selectedCharacter || 'carl'}
+          worldSeed={state.worldSeed}
+          onReturnToMenu={returnToMainMenu}
+          playTimeSeconds={state.playTimeSeconds}
+          roomsExplored={getAchievementSystem().getStats().roomsExplored.length}
+          totalRooms={state.allRoomConfigs?.size ?? 0}
+          itemsCollected={state.player.inventory.length}
+          beatsTriggered={getStoryManager().getCompletedBeats().length}
+          horrorPeak={Math.round(getStoryManager().getHorrorLevel())}
+        />
+      )}
+
+      {/* Horror escalation effects — z-index 9 (below film grain) */}
+      {state.isPlaying && horrorLevel > 0 && (
+        <HorrorEffects horrorLevel={horrorLevel} />
+      )}
+
+      {/* Film grain overlay — horror-responsive, z-index 10 */}
+      {state.isPlaying && (
+        <FilmGrainOverlay horrorLevel={horrorLevel} />
       )}
 
       {/* Landscape requirement overlay */}
-      {showLandscapeOverlay && (
-        <div className="fixed inset-0 z-[9999] bg-shadow flex items-center justify-center p-8">
-          <div className="text-center">
-            <div className="text-6xl mb-4 animate-bounce">📱</div>
-            <p className="text-wood text-xl font-serif">
-              Please rotate your device to landscape mode
-            </p>
-            <p className="text-gray-500 text-sm mt-2">
-              For the best gameplay experience
-            </p>
-          </div>
-        </div>
-      )}
+      {showLandscapeOverlay && <LandscapeOverlay />}
     </div>
+    </GameToastProvider>
   );
 };
 

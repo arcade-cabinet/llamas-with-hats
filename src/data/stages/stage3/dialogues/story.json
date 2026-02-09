@@ -227,6 +227,16 @@
         { "speaker": "paul", "text": "A pirate flag with Carl's smiling face. The crossbones underneath are disturbingly realistic." },
         { "speaker": "paul", "text": "At the bottom in tiny letters: 'Handmade with love and genuine materials.'" }
       ]
+    },
+
+    "stage3_leave_cave": {
+      "id": "stage3_leave_cave",
+      "type": "cutscene",
+      "lines": [
+        { "speaker": "narrator", "text": "Daylight feels wrong after the cave. Too bright. Too normal.", "delay": 1000 },
+        { "speaker": "paul", "text": "I can't unsee what was in there. The necklaces. The carvings.", "delay": 1000 },
+        { "speaker": "carl", "text": "You barely saw the collection! There are HUNDREDS of pieces deeper in!", "delay": 800 }
+      ]
     }
   },
 
@@ -359,28 +369,329 @@
 
   "propOverrides": {
     "barrel": {
-      "examine": [
-        { "speaker": "paul", "text": "A barrel from the ship. The lid is nailed shut. Something inside is sloshing. I'm not opening it." }
+      "prompt": "A weathered ship barrel, lid nailed shut with rusted iron. Liquid sloshes inside.",
+      "carl": [
+        "My fermentation project! Give it another week and it'll be ready for the luau!",
+        "That one's labeled 'Do Not Open Until Christmas.' I'm very patient when it comes to aging things."
+      ],
+      "paul": [
+        "A barrel from the ship. The lid is nailed shut. Something inside is sloshing. I'm not opening it.",
+        "There's a smell coming from this barrel that I've unfortunately learned to recognize."
+      ],
+      "horror": [
+        "The barrel pulses slightly, as if something inside is still settling."
       ]
     },
     "crate": {
-      "examine": [
-        { "speaker": "paul", "text": "Shipping crate from the S.S. Carl. Labeled 'FRAGILE — SUPPLIES.' The label is handwritten." }
+      "prompt": "A shipping crate from the S.S. Carl. Handwritten labels in uneven hoofwriting.",
+      "carl": [
+        "Supplies! I organized everything by category. Very efficient packing!",
+        "That one's my arts and crafts materials. Organic, free-range, ethically... well, just organic."
+      ],
+      "paul": [
+        "Shipping crate from the S.S. Carl. Labeled 'FRAGILE — SUPPLIES.' The label is handwritten.",
+        "The manifest stapled to this crate lists contents that should never be listed on a manifest."
+      ],
+      "horror": [
+        "The crate's wood grain has warped into patterns that almost look like screaming faces."
       ]
     },
     "rock": {
-      "examine": [
-        { "speaker": "paul", "text": "A large rock. Something is carved into it. It looks like a tally mark system. There are a LOT of marks." }
+      "prompt": "A large flat rock with deep carvings scratched into its surface.",
+      "carl": [
+        "My scoreboard! I keep track of all my island activities! Very organized!",
+        "I ran out of room on one side so I started a second column. Productivity!"
+      ],
+      "paul": [
+        "A large rock. Something is carved into it. It looks like a tally mark system. There are a LOT of marks.",
+        "The tally marks are grouped in fives. There are over forty groups. That's over two hundred..."
+      ],
+      "horror": [
+        "Some of the tally marks appear to have been scratched not by hooves, but by fingernails."
       ]
     },
     "campfire": {
-      "examine": [
-        { "speaker": "paul", "text": "A campfire pit. The ashes are still warm. The smell is... not wood smoke." }
+      "prompt": "A campfire pit surrounded by stones. The ashes are still warm.",
+      "carl": [
+        "S'mores night! Every Tuesday! The secret ingredient is in the marinade!",
+        "I hosted a cookout for the whole crew! Well, FOR the whole crew might be the wrong preposition."
+      ],
+      "paul": [
+        "A campfire pit. The ashes are still warm. The smell is... not wood smoke.",
+        "There are bones in the ash. I'm going to tell myself they're from a fish. A very large, bipedal fish."
+      ],
+      "horror": [
+        "The embers briefly rearrange into a grinning face before collapsing back to ash."
       ]
     },
     "sign": {
-      "examine": [
-        { "speaker": "paul", "text": "'Welcome to Carl's Island Paradise! Population: Varies.' That's ominous." }
+      "prompt": "A hand-painted wooden sign staked into the sand.",
+      "carl": [
+        "I made that sign myself! The paint is homemade too! Very resourceful!",
+        "I update the population count every week! It's a running tally. Emphasis on running."
+      ],
+      "paul": [
+        "'Welcome to Carl's Island Paradise! Population: Varies.' That's ominous.",
+        "Someone crossed out the original population number. Multiple times. Each revision is lower."
+      ],
+      "horror": [
+        "The sign's paint is flaking, revealing older text beneath: 'HELP US.'"
+      ]
+    },
+    "chest": {
+      "prompt": "An ornate treasure chest with Carl's initials branded into the lid.",
+      "carl": [
+        "My personal trophy chest! Each item has sentimental value! And dental records!",
+        "I keep the really special pieces in here. Collector's editions, you might say."
+      ],
+      "paul": [
+        "A treasure chest. The 'treasures' inside are not gold or jewels. They're personal effects. Wallets. Watches. Rings.",
+        "Each item in this chest has a tiny label with a name and date. Carl keeps meticulous records of his atrocities."
+      ],
+      "horror": [
+        "The chest's lock clicks open on its own, as if eager to show you what's inside."
+      ]
+    },
+    "desk": {
+      "prompt": "A heavy wooden desk covered in maps, charts, and Carl's handwritten notes.",
+      "carl": [
+        "My command center! Every great captain needs a desk! Mine has built-in cup holders!",
+        "I've mapped the entire island! Every path, every landmark, every... deposit site."
+      ],
+      "paul": [
+        "Carl's desk. Covered in nautical charts annotated with his hoofwriting. The margin notes are harrowing.",
+        "There's a 'To Do' list pinned to the desk. Every item is crossed off. I don't want to read what they were."
+      ],
+      "horror": [
+        "A drawer slides open by itself, revealing a half-finished letter that begins 'Dear Next Visitor.'"
+      ]
+    },
+    "lamp": {
+      "prompt": "An oil lamp with a flickering flame. The glass is stained an unusual color.",
+      "carl": [
+        "Mood lighting! Ambiance is important for island living, Paul!",
+        "I rendered the oil myself! Very sustainable! The previous owners had no use for it anymore."
+      ],
+      "paul": [
+        "This lamp oil has an unusual color. And viscosity. I'm choosing not to think about the chemistry.",
+        "The flame flickers in patterns that almost look deliberate. Like a signal no one should answer."
+      ],
+      "horror": [
+        "The lamp's flame burns a sickly green for a moment, illuminating stains on the wall that weren't visible before."
+      ]
+    },
+    "chair": {
+      "prompt": "A captain's chair, ornately carved and bolted to the floor.",
+      "carl": [
+        "The captain's throne! I added the armrests myself! Very ergonomic bone structure!",
+        "Sit down, make yourself at home! The cushion is genuine... leather. Definitely leather."
+      ],
+      "paul": [
+        "This chair is bolted to the floor. The armrests have scratch marks on the inside. Like someone was gripping them in terror.",
+        "The upholstery on this chair is handmade. The stitching pattern matches Carl's other 'crafts.'"
+      ],
+      "horror": [
+        "The chair creaks under no weight, as though remembering everyone who last sat in it."
+      ]
+    },
+    "dead_plant": {
+      "prompt": "A wilted tropical plant in a cracked pot. The soil is an unusual dark red.",
+      "carl": [
+        "My garden! I have a green thumb! Well, it's green NOW. It wasn't always.",
+        "I use a special fertilizer! The plants grow SO fast! Very nutrient-rich soil!"
+      ],
+      "paul": [
+        "This plant is dead despite growing in soil that is clearly... enriched. Even the plants reject Carl's gardening methods.",
+        "The soil in this pot is the wrong color. And the wrong consistency. Nothing should grow in this."
+      ],
+      "horror": [
+        "A single new leaf sprouts from the dead plant as you watch. It's the color of a bruise."
+      ]
+    },
+    "cannon": {
+      "prompt": "A ship's cannon aimed out to sea. Recently fired, judging by the residue.",
+      "carl": [
+        "My welcome cannon! I fire it whenever new visitors arrive! Very festive!",
+        "The aim is a little off. I was trying to hit the reef but I keep hitting the escape boats instead. Oopsie!"
+      ],
+      "paul": [
+        "This cannon has been fired recently. And frequently. The barrel is practically smooth from use.",
+        "There are notches carved into the cannon's base. One for each... I need to stop counting things on this island."
+      ],
+      "horror": [
+        "The cannon is warm to the touch, though no one has been near it. It's aimed at the only route off the island."
+      ]
+    },
+    "grass_patch": {
+      "prompt": "A patch of unusually lush, green grass. Greener than anything else on the island.",
+      "carl": [
+        "My lawn! I'm very proud of the landscaping! The secret is what's underneath!",
+        "I composted very thoroughly in this area! The grass just LOVES it!"
+      ],
+      "paul": [
+        "This grass is impossibly green. Lush. Healthy. Whatever is decomposing underneath must be... substantial.",
+        "The ground here is soft and slightly raised. Like a mound. I know what mounds like this usually are."
+      ],
+      "horror": [
+        "Your foot sinks an inch into the soft earth. Something underneath shifts."
+      ]
+    },
+    "dock_platform": {
+      "prompt": "The main dock platform extending over dark water. Planks are stained and warped.",
+      "carl": [
+        "The welcome dock! I built it myself! Well, the crew built it. Before the restructuring.",
+        "Every plank tells a story! Some of them are even true!"
+      ],
+      "paul": [
+        "The dock planks are stained with something that isn't seawater. The stains lead to the edge and stop.",
+        "This is where the plank was. THE plank. Carl's 'team-building exercise.' The wood is worn smooth from use."
+      ],
+      "horror": [
+        "Bubbles rise from the dark water beneath the dock. Too many bubbles. Too regularly spaced."
+      ]
+    },
+    "anchor": {
+      "prompt": "The ship's anchor, massive and rusted, wrapped in chains on the dock.",
+      "carl": [
+        "My anchor! I decorated it! See the little carvings? Each one is a portrait of a crew member!",
+        "It's heavier than it looks! I had to add extra chain. For... anchoring purposes."
+      ],
+      "paul": [
+        "The anchor chain has extra lengths of chain wrapped around it. Not for the anchor. For... other things.",
+        "There are scratches at the waterline where the chain meets the dock. Like something was dragged. Repeatedly."
+      ],
+      "horror": [
+        "The anchor chain rattles softly on its own. From below the waterline, something tugs back."
+      ]
+    }
+  },
+
+  "ambientDialogues": {
+    "beach": {
+      "carl": [
+        "Beautiful day for the beach! I even raked the sand! Had to pick out a few things first, but it's pristine now!",
+        "The seashells here are amazing! Some of them aren't seashells but they're SHAPED like seashells!",
+        "I set up a volleyball net! Well, a net. It's made from the ship's rigging. And some other fibers I had lying around."
+      ],
+      "paul": [
+        "The sand is warm. Too warm in patches. Like something underneath is still... generating heat.",
+        "Every few minutes a wave deposits something on the shore that definitely didn't come from the ocean floor.",
+        "This would be a beautiful beach if I didn't know what was buried under every single sand dune."
+      ]
+    },
+    "dock": {
+      "carl": [
+        "The S.S. Carl is looking beautiful today! I gave her a fresh coat of paint! The paint is homemade!",
+        "I love the sound of the ship creaking! It's like she's talking to me! She says 'Carl, you're a great captain!'",
+        "Did you know this dock can hold up to fifty people? Well, it USED to hold fifty people. Now it holds fewer."
+      ],
+      "paul": [
+        "The ghost ship's portholes are dark but I keep seeing movement. There's supposed to be no one on board.",
+        "Water laps against the hull and the sound echoes wrong. Like the ship is hollow. Or full of something that absorbs sound.",
+        "The gangplank has a groove worn into it. Like a track. Like something was rolled down it. Over and over."
+      ]
+    },
+    "jungle_path": {
+      "carl": [
+        "Nature walk! I labeled all the species! Well, the species of TREES. The other labels are for different things.",
+        "I cleared this path myself! It took a lot of elbow grease! And other types of grease I had available!",
+        "The jungle is so alive! Things growing everywhere! Especially where I did the composting!"
+      ],
+      "paul": [
+        "The bone trail markers get more elaborate the deeper you go. He's improving his craft. That's the worst part.",
+        "Something is following us through the undergrowth. It sounds too heavy for any animal that should be on this island.",
+        "The air smells sweet here. Cloyingly sweet. I've learned that sweetness in Carl's vicinity is never a good sign."
+      ]
+    },
+    "cave": {
+      "carl": [
+        "Welcome to the gallery! I'm thinking of doing a grand opening! With refreshments! Guess the recipe!",
+        "This is my favorite room! I spend hours in here just admiring my work! Art appreciates over time, Paul!",
+        "I'm running out of display space! I might need to expand! The island has plenty of raw materials!"
+      ],
+      "paul": [
+        "The walls are lined with shelves. Each shelf is organized. Labeled. Categorized. He turned horror into a filing system.",
+        "My eyes have adjusted to the torchlight. I wish they hadn't. I could see less before. Less was better.",
+        "Every piece in this collection was a person. With a life. And Carl turned them into a curio cabinet."
+      ]
+    },
+    "captain_quarters": {
+      "carl": [
+        "Mi casa es su casa! I redecorated! The previous captain had NO taste! Very drab. No personality.",
+        "I keep all my planning materials here! Charts, schedules, ingredient lists! Very organized!",
+        "The bed is custom-made! The frame is hand-carved! From a very specific type of... driftwood. Definitely driftwood."
+      ],
+      "paul": [
+        "Carl's quarters are immaculate. He's a psychopath with a flair for interior design. Somehow that makes it worse.",
+        "There are plans pinned to every wall. Blueprints for things that should never be blueprinted.",
+        "A mirror on the wall is cracked. In the cracks, if you look at the right angle, you can see the old captain's face."
+      ]
+    },
+    "crow_nest": {
+      "carl": [
+        "Best seat in the house! You can see the whole island! Every project, every installation, every buried thing!",
+        "I come up here to plan! The bird's-eye view really helps with spatial organization of my activities!",
+        "Look! You can see the beach, the cave, the lighthouse! And all the spots where the soil is freshly turned!"
+      ],
+      "paul": [
+        "From up here the scope is undeniable. Every clearing, every path — it's all one giant monument to Carl's madness.",
+        "I can count at least thirty patches of disturbed earth from here. Thirty. And those are just the ones I can see.",
+        "The wind carries sounds from every corner of the island up here. None of them are sounds I want to hear."
+      ]
+    },
+    "lighthouse": {
+      "carl": [
+        "The lighthouse! Great for parties! The beam reaches for MILES! It's like a disco ball but for the whole ocean!",
+        "I was going to convert this into a gift shop! 'Carl's Island Souvenirs!' Handmade goods!",
+        "The light still works! I maintained it! In case anyone wanted to visit! I love visitors, Paul!"
+      ],
+      "paul": [
+        "The lighthouse still works. If I can get a signal out, someone will come. Someone has to come.",
+        "This is the highest point on the island. The farthest from Carl's cave. That alone makes it the safest place here.",
+        "There's a logbook from the original lighthouse keeper. The last entry just says 'The llama is here.' Then nothing."
+      ]
+    }
+  },
+
+  "reEntryDialogues": {
+    "beach": {
+      "carl": [
+        "Back for more sun! I should set up a tiki bar! I've been experimenting with tropical drinks! The garnishes are unique!",
+        "Oh good, you're back! I buried something special near the tide line! A surprise for later!"
+      ],
+      "paul": [
+        "The tide came in while I was gone. It rearranged what was on the shore. There are new things exposed now.",
+        "I thought leaving and coming back would make this beach seem normal. It did not."
+      ]
+    },
+    "dock": {
+      "carl": [
+        "Welcome back aboard! I've been organizing the cargo hold! Everything is sorted by size and... freshness!",
+        "The ship missed you! Well, I missed you! The ship doesn't have feelings! Probably!"
+      ],
+      "paul": [
+        "Something changed on the dock since I was last here. There are fewer crates. But the remaining ones are heavier.",
+        "The ghost ship has settled lower in the water. Like it's taken on new weight."
+      ]
+    },
+    "cave": {
+      "carl": [
+        "Back for another viewing! I added new pieces since you were last here! The collection grows daily!",
+        "I rearranged the exhibits! New layout! The gift shop is almost ready! No refunds though!"
+      ],
+      "paul": [
+        "There are new items on the shelves. I was only gone for an hour. He works fast. Terrifyingly fast.",
+        "I told myself I wouldn't come back in here. And yet here I am. Staring at Carl's trophy wall. Again."
+      ]
+    },
+    "captain_quarters": {
+      "carl": [
+        "Welcome back to my quarters! I updated the diary! Today's entry is a real page-turner! Several pages, actually!",
+        "I redecorated a little! New curtains! I made them myself! From very soft material! Don't ask what material!"
+      ],
+      "paul": [
+        "The diary has new entries since I was here last. He writes in real time. Documenting everything. Including my visits.",
+        "He's added a new map to the wall. It has MORE Xs than before. He's been busy."
       ]
     }
   },
@@ -389,12 +700,41 @@
     "hints": [
       { "speaker": "paul", "text": "The lighthouse. If I can get the beacon working, someone might see it." },
       { "speaker": "paul", "text": "I should check the cave. Carl's 'collection' might explain how long he's been at this." },
-      { "speaker": "paul", "text": "The ghost ship has to have clues. Carl keeps a captain's log — he's thorough about documentation." }
+      { "speaker": "paul", "text": "The ghost ship has to have clues. Carl keeps a captain's log — he's thorough about documentation." },
+      { "speaker": "paul", "text": "The crow's nest might give me a better view of the island. I need to understand the full scope of this." },
+      { "speaker": "paul", "text": "Carl's quarters will have his plans. He documents everything. Every horrible thing, written down like a recipe." },
+      { "speaker": "paul", "text": "The jungle path leads somewhere. The bone markers are pointing deeper inland. Carl wants me to follow them." }
     ],
     "ambient": [
       { "speaker": "narrator", "text": "Waves crash against the shore. The sound almost masks the other noises." },
       { "speaker": "narrator", "text": "Something moves in the jungle undergrowth. Too large to be a jungle animal." },
-      { "speaker": "narrator", "text": "The ghost ship creaks in the harbor. A lantern swings on the mast." }
+      { "speaker": "narrator", "text": "The ghost ship creaks in the harbor. A lantern swings on the mast." },
+      { "speaker": "narrator", "text": "A bird takes flight from the treeline. Or something shaped like a bird. It has too many wings." },
+      { "speaker": "narrator", "text": "The ground shifts underfoot. Soft in places it shouldn't be. The island is hiding things just below the surface." },
+      { "speaker": "narrator", "text": "Carl's humming drifts from somewhere nearby. A sea shanty. The lyrics are original. The subject matter is unspeakable." }
     ]
+  },
+
+  "crossStageReferences": {
+    "from_stage1": {
+      "carl": [
+        "The house was just the beginning! A rough draft! THIS is the masterpiece!",
+        "Remember when you found the kitchen? You were so dramatic about it."
+      ],
+      "paul": [
+        "The house. The basement. I thought THAT was rock bottom.",
+        "He started with a kitchen. Now he has an entire ISLAND."
+      ]
+    },
+    "from_stage2": {
+      "carl": [
+        "Space was too clinical. Art needs NATURE, Paul! Fresh island air!",
+        "The station was good practice. But zero gravity makes sculpting impractical."
+      ],
+      "paul": [
+        "The space station crew. The medical bay. The engine room mobile. And now THIS.",
+        "Three locations. Three galleries of horror. Each one bigger than the last."
+      ]
+    }
   }
 }

@@ -8,6 +8,24 @@
   "layout": {
     "archetypeId": "space_station",
     "levelOverrides": {
+      "1": {
+        "anchorRooms": [
+          {
+            "purpose": "bridge",
+            "gridPosition": { "x": 1, "z": 0 },
+            "templateId": "room_medium",
+            "templateTags": ["medium", "station"],
+            "storyBeats": ["bridge_discovery"]
+          },
+          {
+            "purpose": "observation_deck",
+            "gridPosition": { "x": 2, "z": 0 },
+            "templateId": "room_medium",
+            "templateTags": ["medium", "station"],
+            "storyBeats": ["observation_view"]
+          }
+        ]
+      },
       "0": {
         "totalRooms": { "min": 7, "max": 9 },
         "anchorRooms": [
@@ -65,6 +83,24 @@
             "templateTags": ["small", "station"],
             "isExit": true,
             "storyBeats": ["airlock_escape"]
+          }
+        ]
+      },
+      "-1": {
+        "anchorRooms": [
+          {
+            "purpose": "cargo_hold",
+            "gridPosition": { "x": 3, "z": -1 },
+            "templateId": "room_medium",
+            "templateTags": ["large", "station"],
+            "storyBeats": ["cargo_hold_horror"]
+          },
+          {
+            "purpose": "reactor_core",
+            "gridPosition": { "x": 4, "z": -1 },
+            "templateId": "room_medium",
+            "templateTags": ["medium", "station"],
+            "storyBeats": ["reactor_danger"]
           }
         ]
       }
@@ -258,6 +294,18 @@
           "stageComplete": true,
           "nextStage": "stage3_pirate"
         }
+      },
+      {
+        "id": "leave_medical",
+        "description": "Leaving the medical bay - the horror lingers",
+        "dialogueId": "stage2_leave_medical",
+        "trigger": {
+          "type": "scene_exit",
+          "params": { "sceneId": "medical_bay" }
+        },
+        "consequences": {
+          "horrorLevelChange": 1
+        }
       }
     ],
     "goals": [
@@ -266,7 +314,10 @@
         "character": "paul",
         "description": "Explore the space station",
         "type": "reach_scene",
-        "params": { "sceneId": "corridor_a" }
+        "params": { "sceneId": "corridor_a" },
+        "priority": 0,
+        "coupledGoalId": "inspect_mess_hall",
+        "interferenceType": "racing"
       },
       {
         "id": "find_crew_logs",
@@ -274,7 +325,8 @@
         "description": "Find the crew logs",
         "type": "collect_items",
         "params": { "items": ["crew_log"] },
-        "hiddenUntil": "flickering_corridor"
+        "hiddenUntil": "flickering_corridor",
+        "priority": 1
       },
       {
         "id": "search_medical",
@@ -282,7 +334,10 @@
         "description": "Investigate the medical bay",
         "type": "reach_scene",
         "params": { "sceneId": "medical_bay" },
-        "hiddenUntil": "find_crew_log"
+        "hiddenUntil": "find_crew_log",
+        "priority": 2,
+        "coupledGoalId": "setup_medical_lab",
+        "interferenceType": "racing"
       },
       {
         "id": "find_key",
@@ -290,14 +345,23 @@
         "description": "Find the airlock override key",
         "type": "collect_items",
         "params": { "items": ["override_key"] },
-        "hiddenUntil": "medical_horror"
+        "hiddenUntil": "medical_horror",
+        "priority": 3,
+        "coupledGoalId": "complete_engine_mobile",
+        "interferenceType": "racing",
+        "onComplete": {
+          "fireBeat": "find_override_key"
+        }
       },
       {
         "id": "inspect_mess_hall",
         "character": "carl",
         "description": "Visit the mess hall kitchen",
         "type": "reach_scene",
-        "params": { "sceneId": "mess_hall" }
+        "params": { "sceneId": "mess_hall" },
+        "priority": 0,
+        "coupledGoalId": "explore_station",
+        "interferenceType": "racing"
       },
       {
         "id": "setup_medical_lab",
@@ -305,7 +369,10 @@
         "description": "Check on the medical bay experiments",
         "type": "reach_scene",
         "params": { "sceneId": "medical_bay" },
-        "hiddenUntil": "mess_hall_discovery"
+        "hiddenUntil": "mess_hall_discovery",
+        "priority": 1,
+        "coupledGoalId": "search_medical",
+        "interferenceType": "racing"
       },
       {
         "id": "complete_engine_mobile",
@@ -313,14 +380,21 @@
         "description": "Finish the engine room art installation",
         "type": "reach_scene",
         "params": { "sceneId": "engine_room" },
-        "hiddenUntil": "medical_horror"
+        "hiddenUntil": "medical_horror",
+        "priority": 2,
+        "coupledGoalId": "find_key",
+        "interferenceType": "sabotaging",
+        "onComplete": {
+          "lockExit": "airlock_door"
+        }
       },
       {
         "id": "escape_station",
         "description": "Complete this chapter",
         "type": "reach_exit",
         "params": {},
-        "hiddenUntil": "find_override_key"
+        "hiddenUntil": "find_override_key",
+        "priority": 4
       }
     ],
     "startingBeat": "arrive_station",
@@ -485,6 +559,25 @@
       "airlock": {
         "horrorLevel": 6,
         "musicTrack": "music_space_tense"
+      },
+      "bridge": {
+        "horrorLevel": 5,
+        "ambientSound": "ambient_station_hum",
+        "musicTrack": "music_space_exploration"
+      },
+      "observation_deck": {
+        "horrorLevel": 4,
+        "ambientSound": "ambient_station_hum"
+      },
+      "cargo_hold": {
+        "horrorLevel": 7,
+        "ambientSound": "ambient_basement_drip",
+        "musicTrack": "music_space_tense"
+      },
+      "reactor_core": {
+        "horrorLevel": 9,
+        "ambientSound": "ambient_basement_drip",
+        "musicTrack": "music_space_boss"
       }
     }
   },

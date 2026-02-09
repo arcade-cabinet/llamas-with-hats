@@ -21,7 +21,8 @@ import {
   StageDefinition,
   SceneTemplate,
   MaterialPalette,
-  CompositionModule
+  CompositionModule,
+  StageGoal as StageGoalDef,
 } from './StageDefinition';
 import { generateStage, GeneratedStage } from './StageGenerator';
 import { SceneDefinition } from './SceneDefinition';
@@ -94,6 +95,9 @@ export interface GameInstance {
   /** Story goals from the stage definition */
   storyGoals: StageGoal[];
 
+  /** Story beats from the stage definition (for StoryManager) */
+  storyBeats: unknown[];
+
   /** Stage display name */
   stageName: string;
 
@@ -114,15 +118,8 @@ export interface GameInstance {
 }
 
 /** A story goal from the stage definition's story.goals array */
-export interface StageGoal {
-  id: string;
-  description: string;
-  type: string;
-  params: Record<string, unknown>;
-  hiddenUntil?: string;
-  /** If set, this goal only applies to this character's playthrough */
-  character?: 'carl' | 'paul';
-}
+/** Re-export StageGoal from StageDefinition for consumers that import from here */
+export type StageGoal = StageGoalDef;
 
 // ============================================
 // Initialization
@@ -254,18 +251,17 @@ export async function initializeGame(
     perRoomOverrides: rawAtmo?.perRoomOverrides as StageAtmosphere['perRoomOverrides'],
   };
 
-  // Extract story goals from stage definition, filtering by player character
+  // Extract ALL story goals from stage definition — both character tracks
+  // preserved simultaneously for GoalTracker dual-character support.
+  // The HUD filters display to the player character; GoalTracker tracks both.
   const rawStory = (rawStageDef as Record<string, unknown>).story as Record<string, unknown> | undefined;
   const rawGoals = (rawStory?.goals as StageGoal[]) ?? [];
   const storyGoals: StageGoal[] = rawGoals
-    .filter(g => !g.character || g.character === playerCharacter)
     .map(g => ({
-      id: g.id,
-      description: g.description,
-      type: g.type,
+      ...g,
       params: g.params ?? {},
-      hiddenUntil: g.hiddenUntil,
     }));
+  const storyBeats = (rawStory?.beats as unknown[]) ?? [];
 
   const stageName = (rawStageDef as Record<string, unknown>).name as string ?? 'Unknown';
   const stageDescription = (rawStageDef as Record<string, unknown>).description as string ?? '';
@@ -283,6 +279,7 @@ export async function initializeGame(
     allRoomConfigs,
     atmosphere,
     storyGoals,
+    storyBeats,
     stageName,
     stageDescription,
 

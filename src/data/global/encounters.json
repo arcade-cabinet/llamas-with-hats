@@ -1,0 +1,205 @@
+{
+  "encounters": [
+    {
+      "id": "carl_kitchen_surprise",
+      "character": "carl",
+      "stageId": "stage1_house",
+      "roomPurpose": "kitchen",
+      "requiredBeat": "discover_blood",
+      "probability": 0.4,
+      "cooldown": 120,
+      "lines": [
+        { "speaker": "carl", "text": "Oh! You found my kitchen! The sauce is almost done!" },
+        { "speaker": "carl", "text": "Want a taste? It's my best batch yet." },
+        { "speaker": "carl", "text": "The secret ingredient is LOVE. And also hands." }
+      ],
+      "effects": [{ "type": "horror_pulse", "intensity": 0.3 }]
+    },
+    {
+      "id": "carl_bedroom_lurk",
+      "character": "carl",
+      "stageId": "stage1_house",
+      "roomPurpose": "master_bedroom",
+      "probability": 0.35,
+      "cooldown": 150,
+      "lines": [
+        { "speaker": "carl", "text": "Paul! I was just tidying up in here!" },
+        { "speaker": "carl", "text": "Don't mind the mess. It's all part of the creative process." }
+      ]
+    },
+    {
+      "id": "carl_basement_pride",
+      "character": "carl",
+      "stageId": "stage1_house",
+      "roomPurpose": "basement_main",
+      "requiredBeat": "basement_descent",
+      "probability": 0.5,
+      "cooldown": 90,
+      "lines": [
+        { "speaker": "carl", "text": "ISN'T IT BEAUTIFUL, Paul?!" },
+        { "speaker": "carl", "text": "I spent WEEKS on this gallery. The symmetry took forever." },
+        { "speaker": "carl", "text": "This one over here is my favorite. I call it 'Hands Across America.'" }
+      ],
+      "effects": [{ "type": "horror_pulse", "intensity": 0.5 }]
+    },
+    {
+      "id": "carl_living_room_casual",
+      "character": "carl",
+      "stageId": "stage1_house",
+      "roomPurpose": "living_room",
+      "probability": 0.3,
+      "cooldown": 120,
+      "lines": [
+        { "speaker": "carl", "text": "Oh hey Paul! Just relaxing. Nothing suspicious happening here!" },
+        { "speaker": "carl", "text": "Want to watch TV? I recorded my favorite cooking show." }
+      ]
+    },
+    {
+      "id": "carl_mess_hall_chef",
+      "character": "carl",
+      "stageId": "stage2_space",
+      "roomPurpose": "mess_hall",
+      "probability": 0.4,
+      "cooldown": 120,
+      "lines": [
+        { "speaker": "carl", "text": "Paul! Today's special is Protein Surprise!" },
+        { "speaker": "carl", "text": "The crew LOVED it. Well, some of them ARE it." },
+        { "speaker": "carl", "text": "Farm to table. Station to table. Same concept, really." }
+      ],
+      "effects": [{ "type": "horror_pulse", "intensity": 0.4 }]
+    },
+    {
+      "id": "carl_corridor_whistle",
+      "character": "carl",
+      "stageId": "stage2_space",
+      "roomPurpose": "corridor_a",
+      "probability": 0.3,
+      "cooldown": 90,
+      "lines": [
+        { "speaker": "carl", "text": "Oh! Walking the corridors too? Great minds!" },
+        { "speaker": "carl", "text": "I was just checking on my wall decorations. Very avant-garde." }
+      ]
+    },
+    {
+      "id": "carl_crew_quarters_nostalgia",
+      "character": "carl",
+      "stageId": "stage2_space",
+      "roomPurpose": "crew_quarters",
+      "probability": 0.35,
+      "cooldown": 120,
+      "lines": [
+        { "speaker": "carl", "text": "These bunks bring back memories! Such great crew bonding." },
+        { "speaker": "carl", "text": "Jenkins was my favorite. Very collaborative. Until the end." },
+        { "speaker": "carl", "text": "Want to see the commemorative playlist I made for everyone?" }
+      ],
+      "effects": [{ "type": "horror_pulse", "intensity": 0.3 }]
+    },
+    {
+      "id": "carl_engine_room_art",
+      "character": "carl",
+      "stageId": "stage2_space",
+      "roomPurpose": "engine_room",
+      "requiredBeat": "engine_room_workshop",
+      "probability": 0.45,
+      "cooldown": 90,
+      "lines": [
+        { "speaker": "carl", "text": "You came back to see the mobile! I KNEW you'd appreciate it!" },
+        { "speaker": "carl", "text": "Watch how it spins in zero gravity! The craftsmanship is PERFECT." },
+        { "speaker": "carl", "text": "I'm thinking of adding another wing. I have plenty of materials." }
+      ],
+      "effects": [{ "type": "horror_pulse", "intensity": 0.5 }, { "type": "screen_shake", "intensity": 0.2 }]
+    },
+    {
+      "id": "carl_medical_science",
+      "character": "carl",
+      "stageId": "stage2_space",
+      "roomPurpose": "medical_bay",
+      "probability": 0.35,
+      "cooldown": 120,
+      "lines": [
+        { "speaker": "carl", "text": "Doing some research? I left my notes on the counter!" },
+        { "speaker": "carl", "text": "My bedside manner has really improved. The patients are much quieter now." }
+      ],
+      "effects": [{ "type": "horror_pulse", "intensity": 0.4 }]
+    },
+    {
+      "id": "carl_beach_welcome",
+      "character": "carl",
+      "stageId": "stage3_pirate",
+      "roomPurpose": "beach",
+      "probability": 0.35,
+      "cooldown": 120,
+      "lines": [
+        { "speaker": "carl", "text": "Enjoying the beach, Paul? I cleaned it up just for you!" },
+        { "speaker": "carl", "text": "The water is lovely this time of year. Very warm. Very red at sunset." }
+      ]
+    },
+    {
+      "id": "carl_dock_captain",
+      "character": "carl",
+      "stageId": "stage3_pirate",
+      "roomPurpose": "dock",
+      "probability": 0.4,
+      "cooldown": 90,
+      "lines": [
+        { "speaker": "carl", "text": "Ahoy, matey! Want a tour of the S.S. Carl?" },
+        { "speaker": "carl", "text": "I keep her shipshape! Every plank polished. Some planks more... seasoned than others." },
+        { "speaker": "carl", "text": "The crew loved walking the plank! It was their favorite team activity!" }
+      ],
+      "effects": [{ "type": "horror_pulse", "intensity": 0.3 }]
+    },
+    {
+      "id": "carl_jungle_guide",
+      "character": "carl",
+      "stageId": "stage3_pirate",
+      "roomPurpose": "jungle_path",
+      "probability": 0.35,
+      "cooldown": 120,
+      "lines": [
+        { "speaker": "carl", "text": "Following my nature trail! Very eco-friendly!" },
+        { "speaker": "carl", "text": "Watch your step! Some of the markers are pointy." },
+        { "speaker": "carl", "text": "I was thinking of adding a gift shop at the end. Bone souvenirs." }
+      ]
+    },
+    {
+      "id": "carl_cave_curator",
+      "character": "carl",
+      "stageId": "stage3_pirate",
+      "roomPurpose": "cave",
+      "requiredBeat": "cave_treasure",
+      "probability": 0.45,
+      "cooldown": 90,
+      "lines": [
+        { "speaker": "carl", "text": "Welcome back to the gallery! I've added new pieces!" },
+        { "speaker": "carl", "text": "This necklace is my magnum opus. One hundred percent handcrafted." },
+        { "speaker": "carl", "text": "I'm opening a pop-up store. Very exclusive clientele. Very... permanent." }
+      ],
+      "effects": [{ "type": "horror_pulse", "intensity": 0.5 }]
+    },
+    {
+      "id": "carl_captain_quarters_host",
+      "character": "carl",
+      "stageId": "stage3_pirate",
+      "roomPurpose": "captain_quarters",
+      "probability": 0.35,
+      "cooldown": 120,
+      "lines": [
+        { "speaker": "carl", "text": "Welcome to my quarters! I redecorated with a pirate theme!" },
+        { "speaker": "carl", "text": "The skull and crossbones on the wall? All genuine! Very authentic decor." }
+      ]
+    },
+    {
+      "id": "carl_crow_nest_lookout",
+      "character": "carl",
+      "stageId": "stage3_pirate",
+      "roomPurpose": "crow_nest",
+      "probability": 0.4,
+      "cooldown": 90,
+      "lines": [
+        { "speaker": "carl", "text": "The view from up here is AMAZING! You can see all my work!" },
+        { "speaker": "carl", "text": "Look at the island, Paul! Every trail, every clearing — all Carl!" },
+        { "speaker": "carl", "text": "I call it 'Carl's Paradise.' Five stars on TripAdvisor!" }
+      ]
+    }
+  ]
+}

@@ -51,6 +51,9 @@ export class LlamaAI {
   private behavior: AIBehavior;
   private config: AIConfig;
 
+  // Ground-height callback for multi-floor Y positioning
+  private _getGroundY: ((x: number, z: number) => number) | null = null;
+
   // Callbacks
   private onPositionUpdate: ((x: number, z: number, rotation: number) => void) | null = null;
   private onStateChange: ((state: AIState) => void) | null = null;
@@ -112,6 +115,11 @@ export class LlamaAI {
   // Set callback for state changes
   setStateCallback(callback: (state: AIState) => void) {
     this.onStateChange = callback;
+  }
+
+  // Set ground-height callback for multi-floor Y positioning
+  setGetGroundY(fn: (x: number, z: number) => number) {
+    this._getGroundY = fn;
   }
 
   // Update player (target) position - called each frame by game
@@ -428,8 +436,14 @@ export class LlamaAI {
       this.onStateChange?.(newState);
     }
 
-    // Notify position update
+    // Apply ground Y from layout so the AI follows elevation on stairs/ramps
     const pos = this.navigator.getPosition();
+    if (this._getGroundY) {
+      const y = this._getGroundY(pos.x, pos.z);
+      this.navigator.setPosition(pos.x, pos.z, y);
+    }
+
+    // Notify position update
     this.onPositionUpdate?.(pos.x, pos.z, pos.rotation);
   }
 

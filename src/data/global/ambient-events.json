@@ -1,0 +1,273 @@
+{
+  "events": [
+    {
+      "id": "creak_nearby",
+      "type": "sound",
+      "probability": 0.3,
+      "cooldown": 60,
+      "minHorrorLevel": 0,
+      "maxHorrorLevel": 3,
+      "sound": "creak",
+      "narrator": ["A floorboard creaks somewhere nearby.", "The walls settle with a low groan.", "Something taps against the window. Just the wind."]
+    },
+    {
+      "id": "pipes_gurgle",
+      "type": "dialogue",
+      "probability": 0.25,
+      "cooldown": 45,
+      "minHorrorLevel": 0,
+      "maxHorrorLevel": 4,
+      "narrator": ["The pipes gurgle. Just plumbing. Probably.", "A faucet drips somewhere. Steady. Rhythmic.", "The ventilation hums a tuneless melody."]
+    },
+    {
+      "id": "carl_humming",
+      "type": "sound",
+      "probability": 0.2,
+      "cooldown": 90,
+      "minHorrorLevel": 1,
+      "maxHorrorLevel": 5,
+      "sound": "carl_hmm",
+      "carl": ["*humming cheerfully* La la la...", "*whistling a jaunty tune*"],
+      "paul": ["Is Carl... humming? How can he be so cheerful?", "I can hear Carl somewhere. He sounds happy. That's terrifying."]
+    },
+    {
+      "id": "shadow_movement",
+      "type": "dialogue",
+      "probability": 0.2,
+      "cooldown": 75,
+      "minHorrorLevel": 3,
+      "maxHorrorLevel": 6,
+      "narrator": ["A shadow moves at the edge of vision. When you look, nothing's there.", "Something shifts in the corner. Too fast to identify.", "Was that a reflection? The light plays tricks in here."]
+    },
+    {
+      "id": "distant_sound",
+      "type": "dialogue",
+      "probability": 0.25,
+      "cooldown": 50,
+      "minHorrorLevel": 2,
+      "maxHorrorLevel": 5,
+      "narrator": ["A distant thud echoes through the walls.", "Something heavy falls in another room. Then silence.", "Footsteps? No. Just the building settling."]
+    },
+    {
+      "id": "temperature_drop",
+      "type": "dialogue",
+      "probability": 0.15,
+      "cooldown": 120,
+      "minHorrorLevel": 3,
+      "maxHorrorLevel": 7,
+      "narrator": ["The temperature drops suddenly. Your breath mists in the air.", "A cold draft from nowhere. The air tastes metallic."],
+      "carl": ["Brr! Getting chilly! Must be the ventilation. Or the spirits!"],
+      "paul": ["Why is it suddenly cold? This isn't natural."]
+    },
+    {
+      "id": "wall_scrape",
+      "type": "dialogue",
+      "probability": 0.2,
+      "cooldown": 80,
+      "minHorrorLevel": 4,
+      "maxHorrorLevel": 7,
+      "narrator": ["Something scrapes against the wall behind you.", "Nails on metal. Or bone on stone. Hard to tell.", "A slow, deliberate dragging sound from the other side of the wall."]
+    },
+    {
+      "id": "distant_scream",
+      "type": "sound",
+      "probability": 0.1,
+      "cooldown": 180,
+      "minHorrorLevel": 5,
+      "maxHorrorLevel": 8,
+      "sound": "scream",
+      "narrator": ["A scream echoes from somewhere far away. Then cuts off abruptly."],
+      "carl": ["Did you hear that? Probably just the wind!"],
+      "paul": ["That was a scream. That was definitely a scream."]
+    },
+    {
+      "id": "blood_drip",
+      "type": "sound",
+      "probability": 0.15,
+      "cooldown": 90,
+      "minHorrorLevel": 5,
+      "maxHorrorLevel": 9,
+      "sound": "drip",
+      "narrator": ["Drip. Drip. Drip. Something red seeps from above.", "A dark stain spreads slowly across the ceiling."]
+    },
+    {
+      "id": "watched_feeling",
+      "type": "dialogue",
+      "probability": 0.15,
+      "cooldown": 120,
+      "minHorrorLevel": 6,
+      "maxHorrorLevel": 10,
+      "narrator": ["You're being watched. You can feel it.", "Eyes in the darkness. Watching. Waiting. Patient."],
+      "paul": ["Something is watching me. I can feel it in my wool.", "The hairs on my neck are standing up. All of them."]
+    },
+    {
+      "id": "screen_flicker",
+      "type": "effect",
+      "probability": 0.12,
+      "cooldown": 150,
+      "minHorrorLevel": 7,
+      "maxHorrorLevel": 10,
+      "effect": "flicker",
+      "narrator": ["The lights flicker. In the darkness between flashes, something moves.", "Power fluctuation. The shadows dance."]
+    },
+    {
+      "id": "horror_pulse_ambient",
+      "type": "effect",
+      "probability": 0.1,
+      "cooldown": 180,
+      "minHorrorLevel": 7,
+      "maxHorrorLevel": 10,
+      "effect": "horror_pulse",
+      "narrator": ["The air thickens. Reality feels thin here.", "Something presses against the fabric of the world. Trying to get through."]
+    },
+    {
+      "id": "screen_shake_ambient",
+      "type": "effect",
+      "probability": 0.08,
+      "cooldown": 200,
+      "minHorrorLevel": 8,
+      "maxHorrorLevel": 10,
+      "effect": "screen_shake",
+      "narrator": ["The ground trembles. Just for a moment.", "Everything shakes. Then stops. As if nothing happened."]
+    },
+    {
+      "id": "carl_philosophy",
+      "type": "dialogue",
+      "probability": 0.15,
+      "cooldown": 120,
+      "minHorrorLevel": 0,
+      "maxHorrorLevel": 10,
+      "carl": [
+        "You know what they say, Paul — you can't make an omelette without breaking some... well, you know.",
+        "Art is subjective, Paul. MY art just uses unusual canvases.",
+        "I read somewhere that creativity requires sacrifice. I took that VERY literally."
+      ]
+    },
+    {
+      "id": "paul_dread",
+      "type": "dialogue",
+      "probability": 0.15,
+      "cooldown": 120,
+      "minHorrorLevel": 3,
+      "maxHorrorLevel": 10,
+      "paul": [
+        "Every room I enter, I'm afraid of what I'll find.",
+        "How did I end up here? How does Carl keep DOING this?",
+        "I should have left when I had the chance. Any of the chances."
+      ]
+    },
+    {
+      "id": "kitchen_smell",
+      "type": "dialogue",
+      "roomPurpose": "kitchen",
+      "probability": 0.3,
+      "cooldown": 60,
+      "minHorrorLevel": 2,
+      "maxHorrorLevel": 10,
+      "narrator": ["The kitchen smells like copper and cinnamon. An impossible combination."],
+      "carl": ["My kitchen! The sauce is simmering nicely. Want a taste?"],
+      "paul": ["I'm NOT eating anything from this kitchen. Ever."]
+    },
+    {
+      "id": "mess_hall_trays",
+      "type": "dialogue",
+      "roomPurpose": "mess_hall",
+      "probability": 0.25,
+      "cooldown": 90,
+      "minHorrorLevel": 3,
+      "maxHorrorLevel": 10,
+      "narrator": ["A food tray slides off the table by itself. Clatters to the floor."],
+      "carl": ["The self-cleaning system! I programmed it myself!"],
+      "paul": ["The trays are still warm. How are the trays still warm?"]
+    },
+    {
+      "id": "basement_whisper",
+      "type": "sound",
+      "roomPurpose": "basement_main",
+      "probability": 0.2,
+      "cooldown": 60,
+      "minHorrorLevel": 5,
+      "maxHorrorLevel": 10,
+      "sound": "whisper",
+      "narrator": ["A whisper from the darkness. Too quiet to understand. Too loud to ignore."],
+      "paul": ["Something just whispered my name. From the dark corner."]
+    },
+    {
+      "id": "cave_echo",
+      "type": "dialogue",
+      "roomPurpose": "cave",
+      "probability": 0.25,
+      "cooldown": 75,
+      "minHorrorLevel": 5,
+      "maxHorrorLevel": 10,
+      "narrator": ["The cave echoes with sounds that have no source.", "Water drips somewhere deep. Or is it water?"],
+      "carl": ["Great acoustics in here! Perfect for my gallery's audio tour!"]
+    },
+    {
+      "id": "beach_tide",
+      "type": "dialogue",
+      "roomPurpose": "beach",
+      "probability": 0.3,
+      "cooldown": 45,
+      "minHorrorLevel": 0,
+      "maxHorrorLevel": 5,
+      "narrator": ["The tide brings in something. It's not seashells.", "Waves lap at the shore. Each one slightly redder than the last."]
+    },
+    {
+      "id": "engine_hum",
+      "type": "dialogue",
+      "roomPurpose": "engine_room",
+      "probability": 0.25,
+      "cooldown": 60,
+      "minHorrorLevel": 5,
+      "maxHorrorLevel": 10,
+      "narrator": ["The engine pulses. Like a heartbeat. Like something alive."],
+      "carl": ["Listen to that engine purr! I tuned it myself. Added organic components."],
+      "paul": ["The engine sounds... wrong. Like it's breathing."]
+    },
+    {
+      "id": "medical_beep",
+      "type": "dialogue",
+      "roomPurpose": "medical_bay",
+      "probability": 0.2,
+      "cooldown": 90,
+      "minHorrorLevel": 5,
+      "maxHorrorLevel": 10,
+      "narrator": ["A heart monitor beeps. There's no one connected to it.", "Surgical instruments rattle on the tray. By themselves."],
+      "carl": ["The equipment is still calibrated! Very professional setup!"]
+    },
+    {
+      "id": "jungle_rustle",
+      "type": "dialogue",
+      "roomPurpose": "jungle_path",
+      "probability": 0.25,
+      "cooldown": 60,
+      "minHorrorLevel": 3,
+      "maxHorrorLevel": 8,
+      "narrator": ["The undergrowth rustles. Something large moves through the jungle.", "Branches crack in sequence, as if something is following the trail."]
+    },
+    {
+      "id": "dock_creak",
+      "type": "sound",
+      "roomPurpose": "dock",
+      "probability": 0.25,
+      "cooldown": 60,
+      "minHorrorLevel": 2,
+      "maxHorrorLevel": 7,
+      "sound": "creak",
+      "narrator": ["The ghost ship groans at its moorings. The ropes strain.", "A porthole on the ship flickers with light. Then goes dark."],
+      "carl": ["The S.S. Carl is in excellent condition! I maintain it weekly!"]
+    },
+    {
+      "id": "carl_unsettling_laugh",
+      "type": "sound",
+      "probability": 0.12,
+      "cooldown": 150,
+      "minHorrorLevel": 4,
+      "maxHorrorLevel": 10,
+      "sound": "paul_laugh",
+      "narrator": ["A laugh echoes from somewhere. High-pitched. Wrong."],
+      "paul": ["Was that Carl laughing? What could possibly be funny right now?"]
+    }
+  ]
+}

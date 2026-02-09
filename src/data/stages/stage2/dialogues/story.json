@@ -7,9 +7,12 @@
         { "speaker": "narrator", "text": "The front door opens onto a docking bay. Steel walls. Flickering fluorescent lights.", "delay": 1500 },
         { "speaker": "narrator", "text": "The hum of recycled air. This is a space station.", "delay": 1500 },
         { "speaker": "carl", "text": "Paul! Welcome to our new place! I relocated us!", "delay": 800 },
+        { "speaker": "carl", "text": "You remember the house? This is the UPGRADE, Paul!", "delay": 1000 },
         { "speaker": "paul", "text": "This... this isn't outside.", "delay": 800 },
+        { "speaker": "paul", "text": "After what you did at home... I should have known you'd escalate.", "delay": 1000 },
         { "speaker": "paul", "text": "Carl. Why am I standing in a SPACE STATION?", "delay": 1200 },
         { "speaker": "carl", "text": "The commute was getting long! This is more efficient.", "delay": 1000 },
+        { "speaker": "carl", "text": "Besides, the basement was getting FULL. I needed more room to grow!", "delay": 1000 },
         { "speaker": "paul", "text": "Where is the crew? Where is ANYONE?", "delay": 800 },
         { "speaker": "carl", "text": "Oh, they're around. Somewhere. Everywhere, really.", "delay": 1000 },
         { "speaker": "narrator", "text": "A warning klaxon blares in the distance. Then goes silent.", "delay": 1500 }
@@ -234,6 +237,16 @@
         { "speaker": "paul", "text": "Track 1: 'Sounds of the Station.' Track 2: 'Late Night Procedures.' Track 3: 'The Final Countdown (Literal Version).'" },
         { "speaker": "paul", "text": "I'm not playing this. Ever." }
       ]
+    },
+
+    "stage2_leave_medical": {
+      "id": "stage2_leave_medical",
+      "type": "cutscene",
+      "lines": [
+        { "speaker": "narrator", "text": "The medical bay door seals shut behind you. The fluorescent lights keep buzzing inside.", "delay": 1000 },
+        { "speaker": "paul", "text": "I can still smell the disinfectant. And... everything else.", "delay": 800 },
+        { "speaker": "carl", "text": "Did you appreciate the surgical precision? I practiced on oranges first!", "delay": 1000 }
+      ]
     }
   },
 
@@ -390,23 +403,340 @@
 
   "propOverrides": {
     "console": {
-      "examine": [
-        { "speaker": "paul", "text": "A station control console. Most systems are offline. The ones that are on... I wish they weren't." }
-      ]
+      "carl": [
+        "The main console! I reprogrammed it to play my music. Priorities!",
+        "I disabled the distress beacon. Nobody appreciates unsolicited guests."
+      ],
+      "paul": [
+        "A station control console. Most systems are offline. The ones that are on... I wish they weren't.",
+        "Someone tried to send a distress signal. It was overridden from the kitchen terminal."
+      ],
+      "horror": [
+        "The screen flickers between crew manifest and a recipe database. The ingredients overlap.",
+        "The last security camera feed shows the mess hall. Everyone is smiling. Then they aren't."
+      ],
+      "prompt": "Access console"
     },
     "barrel": {
-      "examine": [
-        { "speaker": "paul", "text": "A sealed barrel. Something inside shifts when I touch it. I'm not opening this." }
-      ]
+      "carl": [
+        "Storage containers! I'm very organized about my projects.",
+        "These ones are the overflow from the mess hall. Very efficient."
+      ],
+      "paul": [
+        "A sealed barrel. Something inside shifts when I touch it. I'm not opening this.",
+        "It's warm. Barrels shouldn't be warm."
+      ],
+      "horror": [
+        "The seal is bulging outward. Pressure is building inside.",
+        "A label reads 'BATCH 7 — EXTRA TENDER.'"
+      ],
+      "prompt": "Check barrel"
     },
     "crate": {
-      "examine": [
-        { "speaker": "paul", "text": "Supply crate. Empty. Whatever was stored here has been... repurposed." }
-      ]
+      "carl": [
+        "Supply crate! I organized everything by project category.",
+        "That one's labeled 'Inspiration.' Very motivating contents!"
+      ],
+      "paul": [
+        "Supply crate. Empty. Whatever was stored here has been... repurposed.",
+        "The shipping manifest lists fifty sets of personal effects. All outbound. None delivered."
+      ],
+      "horror": [
+        "The crate is lined with something soft. It's not packing material."
+      ],
+      "prompt": "Open crate"
     },
     "chest": {
-      "examine": [
-        { "speaker": "paul", "text": "A locker of personal belongings. Letters, photos... they never got to send these home." }
+      "carl": [
+        "Personal effects! I kept the best souvenirs from each crew member.",
+        "Very sentimental. I'm a collector at heart!"
+      ],
+      "paul": [
+        "A locker of personal belongings. Letters, photos... they never got to send these home.",
+        "Wedding rings. Wallets. A child's drawing that says 'Come home safe, Daddy.'"
+      ],
+      "horror": [
+        "Every item is meticulously labeled with a date and a smiley face.",
+        "The last entry: 'Jenkins — Day 48. Excellent participant.'"
+      ],
+      "prompt": "Search locker"
+    },
+    "desk": {
+      "carl": [
+        "My planning desk! Where all the best ideas are born!",
+        "I keep my project blueprints in the top drawer. Very detailed."
+      ],
+      "paul": [
+        "A desk covered in schematics. These are layouts of every room on the station.",
+        "Carl marked each room with a number. It took me a moment to realize they're body counts."
+      ],
+      "horror": [
+        "The desk calendar has cheerful stickers on certain dates. Each one corresponds to a missing person report."
+      ],
+      "prompt": "Search desk"
+    },
+    "pipe": {
+      "carl": [
+        "Plumbing! The station's circulatory system. Like veins, but for water!",
+        "I rerouted some of the pipes. The mess hall needed a special supply line."
+      ],
+      "paul": [
+        "The pipe is leaking something that isn't water. The color is wrong.",
+        "It connects the medical bay to the mess hall. I don't want to think about why."
+      ],
+      "horror": [
+        "The pipe is warm to the touch. Something pulses through it at irregular intervals."
+      ],
+      "prompt": "Examine pipe"
+    },
+    "generator": {
+      "carl": [
+        "Backup power! I modified it to run on alternative fuel sources.",
+        "Very sustainable! The fuel is locally sourced. VERY locally."
+      ],
+      "paul": [
+        "The backup generator. Someone tampered with the fuel intake.",
+        "The fuel gauge reads full, but the fuel itself... it's the wrong color for diesel."
+      ],
+      "horror": [
+        "The generator hums with an uneven rhythm. Almost like a heartbeat.",
+        "The exhaust smells sweet. Sickeningly sweet."
+      ],
+      "prompt": "Check generator"
+    },
+    "chair": {
+      "carl": [
+        "Captain's chair! Well, CHEF's chair. I promoted myself.",
+        "Very comfortable. I added extra padding from the crew quarters."
+      ],
+      "paul": [
+        "A station chair. There are restraint marks on the armrests.",
+        "Someone was strapped into this. The scratch marks tell the rest of the story."
+      ],
+      "prompt": "Examine chair"
+    },
+    "bed": {
+      "carl": [
+        "Rest is important! Even artists need their beauty sleep.",
+        "I gave myself the captain's bunk. The captain wasn't using it anymore."
+      ],
+      "paul": [
+        "A crew bunk. The sheets are pristine, but the mattress underneath tells a different story.",
+        "Personal photos are still pinned to the wall. Smiling faces that will never come home."
+      ],
+      "horror": [
+        "Under the pillow, a hastily written note: 'If you find this, the llama did it. Tell my family I—'"
+      ],
+      "prompt": "Search bunk"
+    },
+    "lamp": {
+      "carl": [
+        "Mood lighting! Ambiance is crucial for any gallery.",
+        "I adjusted the color temperature. Warm tones hide the stains better."
+      ],
+      "paul": [
+        "A work lamp. The bulb is tinted red. Not by design.",
+        "Something is smeared on the shade. It casts strange shadows."
+      ],
+      "prompt": "Check lamp"
+    },
+    "dead_plant": {
+      "carl": [
+        "My botanical experiment! I tried a new fertilizer. Very organic.",
+        "The soil is enriched with... special nutrients. The plant didn't appreciate them."
+      ],
+      "paul": [
+        "A dead plant in a station planter. The soil smells wrong.",
+        "Whatever Carl used as fertilizer, it killed the plant but made the soil rich and dark."
+      ],
+      "horror": [
+        "Something white protrudes from the soil. It's not a root."
+      ],
+      "prompt": "Examine plant"
+    },
+    "tv": {
+      "carl": [
+        "Entertainment system! I loaded it with my home movies.",
+        "The crew LOVED movie night. Mandatory attendance, of course."
+      ],
+      "paul": [
+        "The screen cycles through security camera feeds. Empty corridors. Empty rooms.",
+        "One camera shows the mess hall kitchen. Carl is humming while he works. I don't want to see what he's working on."
+      ],
+      "horror": [
+        "The screen glitches. For a split second, it shows a room full of people. Then it's empty again."
+      ],
+      "prompt": "Watch screen"
+    },
+    "stool": {
+      "carl": [
+        "Bar stool! I set up a juice bar in the corridor. Freshly squeezed!",
+        "The ingredients are from the station garden. Well, 'garden.'"
+      ],
+      "paul": [
+        "A metal stool bolted to the floor. There are cuff marks on the legs.",
+        "This was in the medical bay at some point. The base has wheel tracks leading here."
+      ],
+      "prompt": "Examine stool"
+    }
+  },
+
+  "ambientDialogues": {
+    "docking_bay": {
+      "carl": [
+        "The docking bay! Where dreams arrive and nobody leaves!",
+        "I sealed the outer doors. Safety regulation! MY safety regulation.",
+        "This is where I welcomed the original crew. Very warm reception. VERY warm."
+      ],
+      "paul": [
+        "The docking bay. The escape pods are all jettisoned. Carl was thorough.",
+        "Emergency lights are still flashing. Nobody responded to them.",
+        "The airlock controls are disabled. Of course they are."
+      ]
+    },
+    "corridor_a": {
+      "carl": [
+        "I love a good corridor! Connects everything. Like arteries!",
+        "The lighting is my design. Flickering adds atmosphere, don't you think?",
+        "These walls used to be white. I've given them some CHARACTER."
+      ],
+      "paul": [
+        "The corridor stretches in both directions. Neither feels safe.",
+        "Handprints on the wall. Lots of them. All going the same direction.",
+        "The PA system keeps playing Carl's playlist. It never stops."
+      ]
+    },
+    "mess_hall": {
+      "carl": [
+        "My kitchen kingdom! The BEST meals are prepared right here.",
+        "The menu changes daily! Depends on the ingredients. Very seasonal.",
+        "I should write a cookbook. 'From Station to Table: A Culinary Journey.'"
+      ],
+      "paul": [
+        "The mess hall. Fifty seats. All empty. Food still on the trays.",
+        "I will not eat anything in this room. Not now. Not ever.",
+        "The specials board is written in Carl's hoofwriting. I can't read it. I won't."
+      ]
+    },
+    "crew_quarters": {
+      "carl": [
+        "The crew quarters! Very homey. I left their decorations up as a tribute.",
+        "Each bunk tells a story! A very short story with an abrupt ending.",
+        "I organized their belongings alphabetically. I'm very respectful."
+      ],
+      "paul": [
+        "Fifty empty bunks. Fifty lives. All those photos on the walls.",
+        "Someone left a diary open. The last entry is just the word 'HELP' over and over.",
+        "The silence in here is deafening. This room should be full of people."
+      ]
+    },
+    "medical_bay": {
+      "carl": [
+        "The medical bay! Where SCIENCE happens! And other things.",
+        "I reorganized the surgical tools by my favorites. Very intuitive system.",
+        "The anesthesia supplies are untouched. I found them unnecessary!"
+      ],
+      "paul": [
+        "The medical bay. I can smell the disinfectant. And what it's trying to cover up.",
+        "These operating tables have been used recently. All of them. Simultaneously.",
+        "The medical logs are clinical. Detached. Carl wrote them like recipes."
+      ]
+    },
+    "engine_room": {
+      "carl": [
+        "My art studio! The engine room has the BEST acoustics for creative work.",
+        "Zero gravity makes everything float. Very ethereal. Very haunting.",
+        "I've been meaning to expand the gallery. More wall space needed!"
+      ],
+      "paul": [
+        "The engine room. I can't look up. I know what's hanging there.",
+        "The engines are barely running. Carl diverted power to his... installations.",
+        "Every surface has been repurposed. The engineer would be horrified. If he were still here."
+      ]
+    },
+    "airlock": {
+      "carl": [
+        "The airlock! Great views of the cosmos! Very romantic, if you're into that.",
+        "I reinforced the door. Can't have anyone leaving the party early!",
+        "Space is beautiful, Paul! Almost as beautiful as my engine room collection."
+      ],
+      "paul": [
+        "The airlock. Freedom is on the other side of this door.",
+        "The emergency override slot is here. If I can find the key card...",
+        "Beyond that glass is the void. Somehow it feels safer than in here."
+      ]
+    }
+  },
+
+  "reEntryDialogues": {
+    "docking_bay": {
+      "carl": [
+        "Back at the bay! Checking the escape pods again? They're gone, Paul!",
+        "You keep coming back here. Homesick? This IS home now!"
+      ],
+      "paul": [
+        "The docking bay again. Still no escape pods. Still no way out.",
+        "I keep hoping a ship will dock. Anyone. Any ship at all."
+      ]
+    },
+    "mess_hall": {
+      "carl": [
+        "Hungry again? Today's special is the same as yesterday's. And tomorrow's!",
+        "Back for the ambiance? I knew you'd grow to love the mess hall!"
+      ],
+      "paul": [
+        "The mess hall. The food is still warm. It shouldn't still be warm.",
+        "I thought I heard voices in here. But it's just the PA system echoing."
+      ]
+    },
+    "medical_bay": {
+      "carl": [
+        "Return patient! Don't worry, the wait time is very short. No line!",
+        "Back for a checkup? I've been practicing my bedside manner!"
+      ],
+      "paul": [
+        "The medical bay again. The reports haven't changed. I was hoping they would.",
+        "I keep coming back here looking for answers. All I find is evidence."
+      ]
+    },
+    "corridor_a": {
+      "carl": [
+        "Back in the corridor! I keep updating the wall art. New pieces daily!",
+        "The corridor connects everything! Very convenient for transporting materials."
+      ],
+      "paul": [
+        "The walls... there are MORE marks since I was last here.",
+        "I don't want to spend any more time in these corridors than I have to."
+      ]
+    },
+    "crew_quarters": {
+      "carl": [
+        "The bunks are still warm! Well, some of them. The ones I haven't cleaned out yet.",
+        "Jenkins's bunk has the best view. He doesn't need it anymore though."
+      ],
+      "paul": [
+        "Fewer personal items every time I come back here. Fewer name tags.",
+        "The bunks. Each one emptier than before. I don't want to count."
+      ]
+    },
+    "engine_room": {
+      "carl": [
+        "My workshop keeps growing! I added a pottery section! Materials are plentiful.",
+        "The mobile looks even better with the new additions! Very dynamic!"
+      ],
+      "paul": [
+        "The mobile... it's bigger. He's added more. I can't look directly at it.",
+        "The engine room. More art. More evidence. I need to move faster."
+      ]
+    },
+    "airlock": {
+      "carl": [
+        "The airlock is very efficient! One-way recycling program!",
+        "I streamlined the process since you were last here. Much faster now."
+      ],
+      "paul": [
+        "The airlock controls have been... recently used. The logs show activity.",
+        "Every time I come back here, the crew roster gets shorter."
       ]
     }
   },
@@ -415,12 +745,33 @@
     "hints": [
       { "speaker": "paul", "text": "I need to find the airlock. It's the only way off this station." },
       { "speaker": "paul", "text": "The crew logs might explain what happened here." },
-      { "speaker": "paul", "text": "If Carl is the chef... I don't want to think about the menu." }
+      { "speaker": "paul", "text": "If Carl is the chef... I don't want to think about the menu." },
+      { "speaker": "paul", "text": "The engine room. Carl mentioned his 'projects' are in there. And the override key." },
+      { "speaker": "paul", "text": "Maybe the medical bay has records. Something official. Something damning." },
+      { "speaker": "paul", "text": "The crew quarters might have personal logs. Someone must have documented this." }
     ],
     "ambient": [
       { "speaker": "narrator", "text": "The station hums. Something shifts in the walls." },
       { "speaker": "narrator", "text": "The PA system plays a cheerful tune. Nobody is listening." },
-      { "speaker": "narrator", "text": "A distant clang echoes through the corridor. Then silence." }
+      { "speaker": "narrator", "text": "A distant clang echoes through the corridor. Then silence." },
+      { "speaker": "narrator", "text": "The recycled air tastes metallic. Like breathing through a mouthful of pennies." },
+      { "speaker": "narrator", "text": "A light fixture pops and dies. The shadows grow longer." },
+      { "speaker": "narrator", "text": "Somewhere, a door opens and closes on its own. The station breathes." }
     ]
+  },
+
+  "crossStageReferences": {
+    "from_stage1": {
+      "carl": [
+        "The house was getting cramped anyway. MUCH more room up here for my projects!",
+        "Remember the basement gallery? This is the SEQUEL, Paul! Now in SPACE!",
+        "I learned so much from the house. Efficiency. Scale. Bulk ordering."
+      ],
+      "paul": [
+        "After the house... after what I saw in the basement... I thought it couldn't get worse.",
+        "He turned our HOME into a slaughterhouse. And now he has an entire STATION.",
+        "The kitchen, the basement, the living room — it was all just practice for THIS."
+      ]
+    }
   }
 }

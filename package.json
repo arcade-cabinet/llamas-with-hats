@@ -26,6 +26,7 @@
     "@capacitor/status-bar": "^8.0.0",
     "autoprefixer": "^10.4.24",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.33.0",
     "miniplex": "^2.0.0",
     "miniplex-react": "^2.0.1",
     "postcss": "^8.5.6",
